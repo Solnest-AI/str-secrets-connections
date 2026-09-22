@@ -353,7 +353,7 @@ def build_directory_rows(entries: list[dict]) -> list[dict]:
 
 def how_it_connects(r: dict) -> str:
     if r["auth"] == "OAuth sign-in":
-        return "You add it: Customize > Connectors > + > Add custom connector, paste the URL, Connect, sign in"
+        return "You add it as a custom connector in the app, then sign in (Claude gives you the clicks)"
     if r["auth"] == "key in .env (header)":
         return "Claude adds it for you once the key is in your .env"
     return "Claude adds it for you once the URL is in your .env"
