@@ -1,0 +1,16 @@
+# secrets
+.env
+.env.*
+!.env.template
+session.txt
+.cache/
+# build products
+node_modules/
+dist/
+.venv/
+__pycache__/
+*.pyc
+uv.lock.bak
+# os
+.DS_Store
+Thumbs.db
