@@ -535,7 +535,7 @@
           <div class="num">7</div>
           <div class="step-body">
             <h3>For sign-in style tools, it's a browser click, not a key</h3>
-            <p>Some tools (Meta Ads, and the official PMS and pricing servers) connect by signing in, not with a key. Claude cannot do this part for you, it happens in the app's own connectors menu. When Claude hands you a URL, add it as a custom connector in the Claude Code desktop app and sign in when the browser tab opens. Claude walks you through the exact clicks at that moment, then checks the connection live. The URLs are all in the directory table below.</p>
+            <p>Some tools (Meta Ads, and the official PMS and pricing servers) connect by signing in, not with a key. Claude cannot do this part for you, it happens in the app's own connectors menu. When Claude hands you a URL: click the <b>+</b> next to the message box, then <b>Connectors</b>, then <b>Manage connectors</b>. Click <b>Add custom connector</b>, paste the URL, give it a name, click <b>Add</b>, then <b>Connect</b>. A browser tab opens, you sign in and approve, and that's it, the connector is on. Tell Claude "connected" and it checks the connection live. The URLs are all in the directory table below.</p>
           </div>
         </li>
       </ol>
@@ -555,7 +555,7 @@ System
 
 PMS
 ✅ Hospitable API                 connected
-🔎 Hospitable MCP (official)      add it as a connector in the app; Claude checks it live
+🔎 Hospitable MCP (official)      add it under + > Connectors; Claude checks it live
 
 Pricing
 ✅ PriceLabs API                  connected
@@ -584,20 +584,20 @@ Summary: 14 connected, 0 missing, 1 pending vendor, 2 not used, 0 need restart, 
     <hr class="rule">
     <section id="directory">
       <h2 class="display">Official MCP directory</h2>
-      <p class="section-sub">The servers that have a web address. The sign-in ones are the URLs you add as custom connectors in the app when Claude tells you to (step 7 above). The other two Claude adds for you. Everything else the kit uses runs on your own computer and never needs a URL from you.</p>
+      <p class="section-sub">The servers that have a web address. The sign-in ones are the URLs you paste into <b>+ &gt; Connectors &gt; Manage connectors &gt; Add custom connector</b> when Claude tells you to (step 7 above). The other two Claude adds for you. Everything else the kit uses runs on your own computer and never needs a URL from you.</p>
       <!-- MCP-DIRECTORY -->
 <table class="mcp-directory">
   <thead><tr><th>Vendor</th><th>URL</th><th>How it gets connected</th></tr></thead>
   <tbody>
-    <tr><td>Hospitable</td><td><a href="https://mcp.hospitable.com/mcp" target="_blank" rel="noopener">https://mcp.hospitable.com/mcp</a></td><td>You add it as a custom connector in the app, then sign in (Claude gives you the clicks)</td></tr>
-    <tr><td>Lodgify</td><td><a href="https://mcp.lodgify.com/mcp" target="_blank" rel="noopener">https://mcp.lodgify.com/mcp</a></td><td>You add it as a custom connector in the app, then sign in (Claude gives you the clicks)</td></tr>
-    <tr><td>Uplisting</td><td><a href="https://connect.uplisting.io/mcp" target="_blank" rel="noopener">https://connect.uplisting.io/mcp</a></td><td>You add it as a custom connector in the app, then sign in (Claude gives you the clicks)</td></tr>
-    <tr><td>Beyond</td><td><a href="https://neyoba.beyondpricing.com/mcp" target="_blank" rel="noopener">https://neyoba.beyondpricing.com/mcp</a></td><td>You add it as a custom connector in the app, then sign in (Claude gives you the clicks)</td></tr>
-    <tr><td>PriceLabs</td><td><a href="https://mcp.pricelabs.co/mcp" target="_blank" rel="noopener">https://mcp.pricelabs.co/mcp</a></td><td>You add it as a custom connector in the app, then sign in (Claude gives you the clicks)</td></tr>
-    <tr><td>IntelliHost</td><td><a href="https://clients.intellihost.co/api/mcp" target="_blank" rel="noopener">https://clients.intellihost.co/api/mcp</a></td><td>You add it as a custom connector in the app, then sign in (Claude gives you the clicks)</td></tr>
+    <tr><td>Hospitable</td><td><a href="https://mcp.hospitable.com/mcp" target="_blank" rel="noopener">https://mcp.hospitable.com/mcp</a></td><td>You add it: + &gt; Connectors &gt; Manage connectors &gt; Add custom connector, paste the URL, Connect, sign in</td></tr>
+    <tr><td>Lodgify</td><td><a href="https://mcp.lodgify.com/mcp" target="_blank" rel="noopener">https://mcp.lodgify.com/mcp</a></td><td>You add it: + &gt; Connectors &gt; Manage connectors &gt; Add custom connector, paste the URL, Connect, sign in</td></tr>
+    <tr><td>Uplisting</td><td><a href="https://connect.uplisting.io/mcp" target="_blank" rel="noopener">https://connect.uplisting.io/mcp</a></td><td>You add it: + &gt; Connectors &gt; Manage connectors &gt; Add custom connector, paste the URL, Connect, sign in</td></tr>
+    <tr><td>Beyond</td><td><a href="https://neyoba.beyondpricing.com/mcp" target="_blank" rel="noopener">https://neyoba.beyondpricing.com/mcp</a></td><td>You add it: + &gt; Connectors &gt; Manage connectors &gt; Add custom connector, paste the URL, Connect, sign in</td></tr>
+    <tr><td>PriceLabs</td><td><a href="https://mcp.pricelabs.co/mcp" target="_blank" rel="noopener">https://mcp.pricelabs.co/mcp</a></td><td>You add it: + &gt; Connectors &gt; Manage connectors &gt; Add custom connector, paste the URL, Connect, sign in</td></tr>
+    <tr><td>IntelliHost</td><td><a href="https://clients.intellihost.co/api/mcp" target="_blank" rel="noopener">https://clients.intellihost.co/api/mcp</a></td><td>You add it: + &gt; Connectors &gt; Manage connectors &gt; Add custom connector, paste the URL, Connect, sign in</td></tr>
     <tr><td>RankBreeze</td><td><code>https://app.rankbreeze.com/api/mcp/rb_mcp_&lt;key&gt;</code></td><td>Claude adds it for you once the URL is in your .env</td></tr>
     <tr><td>AirROI</td><td><a href="https://mcp.airroi.com" target="_blank" rel="noopener">https://mcp.airroi.com</a></td><td>Claude adds it for you once the key is in your .env</td></tr>
-    <tr><td>Meta Ads</td><td><a href="https://mcp.facebook.com/ads" target="_blank" rel="noopener">https://mcp.facebook.com/ads</a></td><td>You add it as a custom connector in the app, then sign in (Claude gives you the clicks)</td></tr>
+    <tr><td>Meta Ads</td><td><a href="https://mcp.facebook.com/ads" target="_blank" rel="noopener">https://mcp.facebook.com/ads</a></td><td>You add it: + &gt; Connectors &gt; Manage connectors &gt; Add custom connector, paste the URL, Connect, sign in</td></tr>
     <tr><td>Firecrawl</td><td><a href="https://mcp.firecrawl.dev/v2/mcp" target="_blank" rel="noopener">https://mcp.firecrawl.dev/v2/mcp</a></td><td>Claude adds it for you once the key is in your .env</td></tr>
   </tbody>
 </table>
@@ -977,7 +977,7 @@ Summary: 14 connected, 0 missing, 1 pending vendor, 2 not used, 0 need restart, 
         <li><span class="glyph">⏳</span><span><b>Waiting on a vendor.</b> You emailed them, shown with the date you sent it. Nothing to do but wait for the reply.</span></li>
         <li><span class="glyph">➖</span><span><b>Not used.</b> You told Claude you don't use that tool, so it's skipped. This is a normal, finished state, not a gap.</span></li>
         <li><span class="glyph">🔒</span><span><b>Needs a restart.</b> The server is registered, it just needs a full quit-and-reopen of the app to show up.</span></li>
-        <li><span class="glyph">🔎</span><span><b>Sign-in tool, checked live.</b> These get added as connectors in the app by you (step 7), and there is no background health check for them, so Claude confirms each one by asking it a real question in the chat. Not a problem, just a different kind of check.</span></li>
+        <li><span class="glyph">🔎</span><span><b>Sign-in tool, checked live.</b> These get added by you under + &gt; Connectors &gt; Manage connectors (step 7), and there is no background health check for them, so Claude confirms each one by asking it a real question in the chat. Not a problem, just a different kind of check.</span></li>
       </ul>
 
       <p class="section-sub" style="margin-top:22px">A few more things that are normal, not bugs:</p>
