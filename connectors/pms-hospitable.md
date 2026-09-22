@@ -2,7 +2,7 @@
 server: hospitable
 slot: pms
 required: one-of
-env: [HOSPITABLE_API_KEY]
+env: [HOSPITABLE_API_KEY, HOSPITABLE_OFFICIAL_TOKEN]
 official_mcp: https://mcp.hospitable.com/mcp
 ---
 
@@ -45,16 +45,16 @@ Then Claude runs, in this order:
 ```bash
 ( cd "$BUNDLE/mcp-servers/hospitable" && npm ci --silent && npm run build --silent ) && test -f "$BUNDLE/mcp-servers/hospitable/dist/index.js" && echo "built ✅" || echo "build failed ❌"
 bash "$BUNDLE/fan-out-env.sh" >/dev/null && echo "fanned out ✅" || echo "fan-out failed ❌"
-claude mcp remove hospitable -s user >/dev/null 2>&1; claude mcp add --transport stdio hospitable --scope user -- node "$BUNDLE/mcp-servers/hospitable/dist/index.js" >/dev/null 2>&1 && echo "hospitable registered ✅" || echo "register failed ❌"
+uv run --python 3.13 python "$BUNDLE/lib/mcp_register.py" hospitable --stdio node "$BUNDLE/mcp-servers/hospitable/dist/index.js" && echo "hospitable registered ✅" || echo "register failed ❌"
 echo hospitable >> "$BUNDLE/.cache/needs-restart"
 ```
-`$BUNDLE` is the absolute path of this folder; Claude resolved it once in Phase 0. The bundled server reads `HOSPITABLE_API_KEY` from its own `.env`, which `bash "$BUNDLE/fan-out-env.sh"` fills from the root one. Run fan-out after any `.env` change. The remove-then-add pair is safe to re-run any number of times.
+`$BUNDLE` is the absolute path of this folder; Claude resolved it once in Phase 0. The bundled server reads `HOSPITABLE_API_KEY` from its own `.env`, which `bash "$BUNDLE/fan-out-env.sh"` fills from the root one. Run fan-out after any `.env` change. Re-running the register line is safe any number of times; it overwrites the old entry.
 
-**Windows (Git Bash):** run the build line above as-is, then use these four lines INSTEAD of the fan-out, register and needs-restart lines. Claude Code on Windows is a native Windows program, so it must be handed a `C:\...` path, not the `/c/Users/...` form Git Bash uses:
+**Windows (Git Bash):** run the build line above as-is, then use these three lines INSTEAD of the fan-out, register and needs-restart lines. Claude Code on Windows is a native Windows program, so it must be handed a `C:\...` path, not the `/c/Users/...` form Git Bash uses:
 ```bash
 BUNDLE_WIN="$(cygpath -w "$BUNDLE")"
 bash "$BUNDLE/fan-out-env.sh" >/dev/null && echo "fanned out ✅" || echo "fan-out failed ❌"
-claude mcp remove hospitable -s user >/dev/null 2>&1; claude mcp add --transport stdio hospitable --scope user -- node "$BUNDLE_WIN\mcp-servers\hospitable\dist\index.js" >/dev/null 2>&1 && echo "hospitable registered ✅" || echo "register failed ❌"
+uv run --python 3.13 python "$BUNDLE/lib/mcp_register.py" hospitable --stdio node "$BUNDLE_WIN\mcp-servers\hospitable\dist\index.js" && echo "hospitable registered ✅" || echo "register failed ❌"
 echo hospitable >> "$BUNDLE/.cache/needs-restart"
 ```
 This server is Node, so there is no venv here. The Python servers in this kit use `.venv/Scripts/python.exe` on Windows instead of `.venv/bin/python`; same rule, Windows form of the path.
@@ -62,10 +62,10 @@ This server is Node, so there is no venv here. The Python servers in this kit us
 ## 4. Path B: official MCP
 Hospitable's own MCP server. Live and GA (since April 2026), read and write, browser sign-in. Register it:
 ```bash
-claude mcp add --transport http hospitable-official --scope user https://mcp.hospitable.com/mcp >/dev/null 2>&1 && echo "hospitable-official registered ✅" || echo "register failed ❌ (already registered, or the claude command is not in this window; see section 6)"
+uv run --python 3.13 python "$BUNDLE/lib/mcp_register.py" hospitable-official --http https://mcp.hospitable.com/mcp && echo "hospitable-official registered ✅" || echo "register failed ❌"
 echo hospitable-official >> "$BUNDLE/.cache/needs-restart"
 ```
-Claude batches restarts, so wait for the "After you restart" checklist. Once you are back: type `/mcp`, pick `hospitable-official`, choose **Authenticate**. A browser tab opens on Hospitable. Log in as the account owner (or a full-access admin; Hospitable: "Only primary account holders and full-access (admin) secondary users can connect AI agents"), then click **Allow**. Back in the terminal the server flips to connected.
+Claude batches restarts, so wait for the "After you restart" checklist. Once you are back: type `/mcp` in the chat, pick `hospitable-official`, choose **Authenticate** (if your app shows a Connectors (+) button instead of `/mcp`, use that and paste the same URL). A browser tab opens on Hospitable. Log in as the account owner (or a full-access admin; Hospitable: "Only primary account holders and full-access (admin) secondary users can connect AI agents"), then click **Allow**. Back in the chat the server flips to connected.
 
 Claude prints this warning to you, verbatim, before anything else:
 "This connection can send real messages to guests and unlock smart locks. Claude will always ask before any of that."
@@ -74,12 +74,17 @@ Hospitable's own words on the messaging part: "Messages sent through MCP are del
 
 Hospitable's help page documents the Claude app, ChatGPT, Cursor and a generic OAuth agent; there is no Claude Code section (help 14424057, updated 2026-08-13). The generic steps are exactly what the command above does: "1. Add the following MCP server URL to your AI agent: https://mcp.hospitable.com/mcp 2. Follow the prompt to sign in 3. Authorize access". Their page also says "A paid Claude plan is required for custom MCP connectors"; you already have one if Claude Code runs.
 
-**Fallback if the browser sign-in loops** (keeps bouncing you back without ever connecting): in Hospitable go to Settings > Integrations > MCP > Fallback bearer tokens > **Add fallback token**. Copy it. Then, in a terminal window OUTSIDE Claude Code so the token never crosses the chat, remove the server and re-register it with the token as a header, replacing `<token>` yourself:
-```bash
-claude mcp remove hospitable-official -s user
-claude mcp add --transport http hospitable-official --scope user https://mcp.hospitable.com/mcp --header "Authorization: Bearer <token>"
+**Fallback if the browser sign-in loops** (keeps bouncing you back without ever connecting): in Hospitable go to Settings > Integrations > MCP > Fallback bearer tokens > **Add fallback token**. Copy it. Claude opens `.env` for you; paste it on this line, no quotes, no spaces, save, and never in the chat:
 ```
-Restart Claude Code afterwards. No `/mcp` > Authenticate step on this path; the header is the login.
+HOSPITABLE_OFFICIAL_TOKEN=
+```
+Then Claude registers it as a header:
+```bash
+set -a; . "$BUNDLE/.env"; set +a
+uv run --python 3.13 python "$BUNDLE/lib/mcp_register.py" hospitable-official --http https://mcp.hospitable.com/mcp --header "Authorization: Bearer HOSPITABLE_OFFICIAL_TOKEN" && echo "hospitable-official registered ✅" || echo "register failed ❌"
+echo hospitable-official >> "$BUNDLE/.cache/needs-restart"
+```
+Quit and reopen the Claude Code desktop app afterwards. No `/mcp` > Authenticate step on this path; the header is the login.
 
 ## 5. Verify
 Claude runs `bash check-connections.sh`. Two Hospitable rows come back.
@@ -93,7 +98,7 @@ Claude runs `bash check-connections.sh`. Two Hospitable rows come back.
 - `⚠️ Hospitable API registered, key fails` with `vendor unreachable or blocked` = timeout or a 5xx. Hospitable is down or your wifi is. Try again in a minute; the probe only reads your own user profile and changes nothing.
 - `⚠️ Hospitable API registered, key fails` with `server status: failed` = the token works but the registered server does not start. Either the build never finished or the server's own `.env` is empty. Run `bash "$BUNDLE/fan-out-env.sh"`, then re-run the Register block. Windows: see the last item in section 6.
 
-**Hospitable MCP (official)** row: the checker reads `claude mcp list` for you and looks for `✔ Connected` on the `hospitable-official` line. It never prints the raw list (another server's line in there is a password).
+**Hospitable MCP (official)** row: the checker reads Claude Code's own server status for you and looks for connected on the `hospitable-official` entry. It never prints the raw contents of `~/.claude.json` (another server's entry in there is a password).
 - `✅ Hospitable MCP (official) connected` = done with Path B.
 - `⚠️ registered, not authenticated (/mcp > Authenticate)` = the browser step has not happened yet. `/mcp` > `hospitable-official` > Authenticate.
 - `🔒 needs a full restart of Claude Code` = just registered. Restart first, then `/mcp` > Authenticate.
@@ -107,13 +112,11 @@ Claude runs `bash check-connections.sh`. Two Hospitable rows come back.
 - **A token that worked at home fails at the venue:** you filled in the IP allowlist on the token. Clear it on the API access page; no new token needed.
 - **No "+ Add new" button, or the API access page is empty:** you are on Essentials, or logged in as a teammate without full access, or the account has no connected listing yet. Fix whichever one applies, then reload the page.
 - **`build failed ❌`:** Node is missing or older than 20, or npm could not download packages. See `connectors/system-node.md`, then re-run the build line, then the register line.
-- **`register failed ❌`:** the `claude` command is not available in this window. Open a new terminal in the same folder and re-run the register line (it removes any old `hospitable` entry first, so re-running is safe).
-- **`register failed ❌` on the official MCP line:** either it is already registered (run `bash check-connections.sh`; if the row is not `❌ missing`, you are fine) or the `claude` command is not available in this window (open a new terminal in the same folder and re-run the line).
-- **The register step reports success but the row says `server status: failed` after the restart:** the build did not finish; `claude mcp add` never checks that the file exists. Re-run the build line until it prints `built ✅`, then the register line.
-- **Key works in the check but the row says `server status: failed`:** you skipped `fan-out-env.sh`. The bundled server reads `mcp-servers/hospitable/.env`, not the root one. Run `bash "$BUNDLE/fan-out-env.sh"`, restart Claude Code, re-run the checker.
+- **The register step reports success but the row says `server status: failed` after the restart:** the build did not finish; registering does not check that the file exists. Re-run the build line until it prints `built ✅`, then the register line.
+- **Key works in the check but the row says `server status: failed`:** you skipped `fan-out-env.sh`. The bundled server reads `mcp-servers/hospitable/.env`, not the root one. Run `bash "$BUNDLE/fan-out-env.sh"`, quit and reopen the Claude Code desktop app, re-run the checker.
 - **The MCP row is connected but the API row says key fails:** they are separate credentials. The MCP used your browser login; the API row needs the token in `.env`. Fix the token, not the MCP.
 - **Browser sign-in loops forever:** use the fallback bearer token path in section 4.
-- **Windows: the server shows failed after a restart:** the registered path is probably the Git Bash form. Re-run the four Windows (Git Bash) lines in section 3; they remove the old entry first and register the `C:\...` form.
+- **Windows: the server shows failed after a restart:** the registered path is probably the Git Bash form. Re-run the three Windows (Git Bash) lines in section 3; they overwrite the old entry with the `C:\...` form.
 
 ## 7. Sources
 help.hospitable.com articles 14424057 (MCP, updated 2026-08-13) and 8609392 (personal access tokens); developer.hospitable.com authentication page; hospitable.com/pricing. All read 2026-09-21.

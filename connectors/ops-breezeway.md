@@ -64,23 +64,25 @@ cd "$BUNDLE" && bash fan-out-env.sh
 
 **Register:** pick the line that matches what Claude built (same shape as Track B step B5, but run these lines, not the build doc's). Python with uv, modeled on the bundled Turno server, is the default:
 ```bash
-claude mcp add --transport stdio breezeway --scope user -- uv --directory "$BUNDLE/mcp-servers/breezeway" run breezeway-mcp >/dev/null 2>&1 && echo "breezeway registered ✅" || echo "breezeway register failed ❌ (already registered? run: claude mcp remove breezeway --scope user, then this line again; still failing: run it once more without the >/dev/null part to see why)"
+uv run --python 3.13 python "$BUNDLE/lib/mcp_register.py" breezeway --stdio uv --directory "$BUNDLE/mcp-servers/breezeway" run breezeway-mcp && echo "breezeway registered ✅" || echo "breezeway register failed ❌"
 echo breezeway >> "$BUNDLE/.cache/needs-restart"
 ```
-If Claude built it in TypeScript (PriceLabs-style) or plain Python with a venv, swap the first line for the matching one. Same name, same scope:
+If Claude built it in TypeScript (PriceLabs-style) or plain Python with a venv, swap the `--stdio` part for the matching one. Same name:
 ```bash
-claude mcp add --transport stdio breezeway --scope user -- node "$BUNDLE/mcp-servers/breezeway/dist/index.js" >/dev/null 2>&1 && echo "breezeway registered ✅" || echo "breezeway register failed ❌ (already registered? run: claude mcp remove breezeway --scope user, then this line again; still failing: run it once more without the >/dev/null part to see why)"
-claude mcp add --transport stdio breezeway --scope user -- "$BUNDLE/mcp-servers/breezeway/.venv/bin/python" "$BUNDLE/mcp-servers/breezeway/server.py" >/dev/null 2>&1 && echo "breezeway registered ✅" || echo "breezeway register failed ❌ (already registered? run: claude mcp remove breezeway --scope user, then this line again; still failing: run it once more without the >/dev/null part to see why)"
+uv run --python 3.13 python "$BUNDLE/lib/mcp_register.py" breezeway --stdio node "$BUNDLE/mcp-servers/breezeway/dist/index.js" && echo "breezeway registered ✅" || echo "breezeway register failed ❌"
+uv run --python 3.13 python "$BUNDLE/lib/mcp_register.py" breezeway --stdio "$BUNDLE/mcp-servers/breezeway/.venv/bin/python" "$BUNDLE/mcp-servers/breezeway/server.py" && echo "breezeway registered ✅" || echo "breezeway register failed ❌"
 ```
-**Windows note (Git Bash).** Claude Code on Windows is a native Windows process, so every absolute path handed to `claude mcp add` must be the `C:\...` form. Convert first, then register with the converted path:
+Re-running any of these is safe any number of times; each one overwrites the old entry.
+
+**Windows note (Git Bash).** Claude Code on Windows is a native Windows process, so every absolute path handed to the register helper must be the `C:\...` form. Convert first, then register with the converted path:
 ```bash
 BUNDLE_WIN="$(cygpath -w "$BUNDLE")"
-claude mcp add --transport stdio breezeway --scope user -- uv --directory "$BUNDLE_WIN\mcp-servers\breezeway" run breezeway-mcp >/dev/null 2>&1 && echo "breezeway registered ✅" || echo "breezeway register failed ❌ (already registered? run: claude mcp remove breezeway --scope user, then this line again; still failing: run it once more without the >/dev/null part to see why)"
+uv run --python 3.13 python "$BUNDLE/lib/mcp_register.py" breezeway --stdio uv --directory "$BUNDLE_WIN\mcp-servers\breezeway" run breezeway-mcp && echo "breezeway registered ✅" || echo "breezeway register failed ❌"
 echo breezeway >> "$BUNDLE/.cache/needs-restart"
 ```
-TypeScript build instead: `claude mcp add --transport stdio breezeway --scope user -- node "$BUNDLE_WIN\mcp-servers\breezeway\dist\index.js" >/dev/null 2>&1 && echo "breezeway registered ✅" || echo "breezeway register failed ❌ (already registered? run: claude mcp remove breezeway --scope user, then this line again; still failing: run it once more without the >/dev/null part to see why)"`. Plain Python with a venv: the interpreter is `"$BUNDLE_WIN\mcp-servers\breezeway\.venv\Scripts\python.exe"` (never `.venv/bin/python`) followed by `"$BUNDLE_WIN\mcp-servers\breezeway\server.py" >/dev/null 2>&1 && echo "breezeway registered ✅" || echo "breezeway register failed ❌ (already registered? run: claude mcp remove breezeway --scope user, then this line again; still failing: run it once more without the >/dev/null part to see why)"`. The `$BUNDLE/.cache/needs-restart` write stays inside Bash and works as-is.
+TypeScript build instead: `uv run --python 3.13 python "$BUNDLE/lib/mcp_register.py" breezeway --stdio node "$BUNDLE_WIN\mcp-servers\breezeway\dist\index.js" && echo "breezeway registered ✅" || echo "breezeway register failed ❌"`. Plain Python with a venv: the interpreter is `"$BUNDLE_WIN\mcp-servers\breezeway\.venv\Scripts\python.exe"` (never `.venv/bin/python`) followed by `"$BUNDLE_WIN\mcp-servers\breezeway\server.py"`. The `$BUNDLE/.cache/needs-restart` write stays inside Bash and works as-is.
 
-**Restart Claude Code** fully (quit, not reload). Then say "Check my connections" again.
+**Quit and reopen the Claude Code desktop app** fully (not just the window). Then say "Check my connections" again.
 
 ## 4. Path B: official MCP
 _None for this connector._ Breezeway publishes no MCP server (breezeway.io and developer.breezeway.io read in full, 2026-09-21). The built `breezeway` server in section 3 is the only route.
@@ -110,7 +112,7 @@ Real-call test after the restart: ask Claude "Breezeway, list my properties". Th
 - **List tasks returns an error or nothing:** Breezeway's list-tasks endpoint wants exactly one of `home_id` or `reference_property_id`. List properties first, take the property's `id`, then ask for tasks for that property.
 - **Token stopped working the next day:** access tokens live 24 hours. The server refreshes with the 30-day refresh token, and every refresh returns a new refresh token, so the server has to store the newest one. If the refresh token itself lapsed (30 days idle), a fresh client_id + client_secret exchange starts over.
 - **No reply after a few days:** you already sent both the email and the form on day one (section 2). Reply to your own email thread with the date you submitted the form and ask Breezeway to confirm they have the request. Both routes end with the same emailed pair.
-- **Windows: `breezeway` shows Failed to connect after restart:** it was registered with a `/c/Users/...` path. Run `claude mcp remove breezeway --scope user`, then re-register with the Windows block in section 3.
+- **Windows: `breezeway` shows Failed to connect after restart:** it was registered with a `/c/Users/...` path. Re-run the Windows register block in section 3; it overwrites the old entry.
 - **Scoreboard still shows ⏳ after the credentials are in:** the pending marker is still set. Run the clear line in section 2, then "Check my connections".
 
 ## 7. Sources

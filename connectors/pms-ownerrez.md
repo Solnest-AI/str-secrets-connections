@@ -46,19 +46,19 @@ OWNERREZ_TOKEN=
 **Register:**
 ```bash
 bash "$BUNDLE/fan-out-env.sh"
-claude mcp add --transport stdio ownerrez --scope user -- node "$BUNDLE/mcp-servers/ownerrez/dist/index.js" >/dev/null 2>&1 && echo "ownerrez registered ✅" || echo "register failed ❌"
+uv run --python 3.13 python "$BUNDLE/lib/mcp_register.py" ownerrez --stdio node "$BUNDLE/mcp-servers/ownerrez/dist/index.js" && echo "ownerrez registered ✅" || echo "register failed ❌"
 echo ownerrez >> "$BUNDLE/.cache/needs-restart"
 ```
 
 **Register (Windows, Git Bash):** Claude Code is a native Windows process, so it must be handed a `C:\...` path even though you are typing in Git Bash. Skip the block above on Windows; run this one instead, which converts the path with `cygpath -w` first:
 ```bash
 bash "$BUNDLE/fan-out-env.sh"
-claude mcp add --transport stdio ownerrez --scope user -- node "$(cygpath -w "$BUNDLE/mcp-servers/ownerrez/dist/index.js")" >/dev/null 2>&1 && echo "ownerrez registered ✅" || echo "register failed ❌"
+uv run --python 3.13 python "$BUNDLE/lib/mcp_register.py" ownerrez --stdio node "$(cygpath -w "$BUNDLE/mcp-servers/ownerrez/dist/index.js")" && echo "ownerrez registered ✅" || echo "register failed ❌"
 echo ownerrez >> "$BUNDLE/.cache/needs-restart"
 ```
 (This server is TypeScript, so there is no venv. The Python servers in this kit use `.venv/Scripts/python.exe` on Windows instead of `.venv/bin/python`, and that path gets the same `cygpath -w` treatment.)
 
-Then restart Claude Code. Claude batches restarts, so you will usually do one restart after several servers are registered, not one each.
+Then quit and reopen the Claude Code desktop app. Claude batches restarts, so you will usually do one restart after several servers are registered, not one each.
 
 ## 4. Path B: official MCP
 _None for this connector._ OwnerRez has no MCP server to connect to today. Staff on the feature-request thread (2026-07-16): "Both an MCP server, and a CLI are in the works" (status: Planned). When it ships it gets the name `ownerrez-official` and a section here.
@@ -79,7 +79,7 @@ After the restart, `/mcp` shows `ownerrez` as connected and its read tools (prop
 - **Two accounts, one laptop, one day:** OwnerRez: "any given IP address may only access two different user accounts within 24 hours." Manage more than two OwnerRez accounts from the same connection and the third is refused until the clock rolls over. OwnerRez does not document which status code that refusal uses, so it can surface as rc 1 or rc 3. Set up your main account first.
 - **401 right after creating the token:** the email is not the login email, or the token was pasted with a trailing space or without its `pt_` start. Open `.env`, check both lines, save, run WORKS again.
 - **Lost the token:** it is shown once. Go back to Developer/API Settings, make a new one, replace the `OWNERREZ_TOKEN=` line, run `bash fan-out-env.sh`, then WORKS.
-- **Windows: `ownerrez` shows Failed to connect after the restart:** the registered path is probably the `/c/Users/...` form. Remove it (`claude mcp remove ownerrez -s user`) and re-run the Register (Windows, Git Bash) block in section 3, which converts with `cygpath -w`.
+- **Windows: `ownerrez` shows Failed to connect after the restart:** the registered path is probably the `/c/Users/...` form. Re-run the Register (Windows, Git Bash) block in section 3; it overwrites the old entry with the `cygpath -w` form.
 - **402 `messaging_not_enabled`:** a Personal Access Token cannot use the messaging endpoints. By design, and the summit skills do not send messages through OwnerRez. Nothing to fix.
 - **"Do I need to click Grant Access To Me?"** No. That button lives inside a self-built OAuth app and exists for webhooks. Skip it.
 

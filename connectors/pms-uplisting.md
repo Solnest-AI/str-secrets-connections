@@ -49,32 +49,32 @@ From inside `$BUNDLE`, Claude runs the three checks:
 **Register (macOS / Linux):**
 ```bash
 test -f "$BUNDLE/mcp-servers/uplisting/dist/index.js" && echo "built ✅" || echo "build missing ❌ (finish build/build-pms-mcp.md Path B first)"
-claude mcp remove uplisting -s user >/dev/null 2>&1; claude mcp add --transport stdio uplisting --scope user -- node "$BUNDLE/mcp-servers/uplisting/dist/index.js" >/dev/null 2>&1 && echo "uplisting registered ✅" || echo "register failed ❌"
+uv run --python 3.13 python "$BUNDLE/lib/mcp_register.py" uplisting --stdio node "$BUNDLE/mcp-servers/uplisting/dist/index.js" && echo "uplisting registered ✅" || echo "register failed ❌"
 echo uplisting >> "$BUNDLE/.cache/needs-restart"
 ```
 
 **Register (Windows, Git Bash):** Claude Code is a native Windows process, so it must be handed a `C:\...` path even though you are typing in Git Bash. Skip the macOS block above on Windows; run this one instead, which converts the path with `cygpath -w` first:
 ```bash
 test -f "$BUNDLE/mcp-servers/uplisting/dist/index.js" && echo "built ✅" || echo "build missing ❌ (finish build/build-pms-mcp.md Path B first)"
-claude mcp remove uplisting -s user >/dev/null 2>&1; claude mcp add --transport stdio uplisting --scope user -- node "$(cygpath -w "$BUNDLE/mcp-servers/uplisting/dist/index.js")" >/dev/null 2>&1 && echo "uplisting registered ✅" || echo "register failed ❌"
+uv run --python 3.13 python "$BUNDLE/lib/mcp_register.py" uplisting --stdio node "$(cygpath -w "$BUNDLE/mcp-servers/uplisting/dist/index.js")" && echo "uplisting registered ✅" || echo "register failed ❌"
 echo uplisting >> "$BUNDLE/.cache/needs-restart"
 ```
-The remove-then-add pair is safe to re-run any number of times.
+Re-running either block is safe any number of times; it overwrites the old entry.
 
 If Claude built the server in Python instead of Node (airroi style, a flat `server.py`), the entry is the venv interpreter plus the script: on Mac `"$BUNDLE/mcp-servers/uplisting/.venv/bin/python" "$BUNDLE/mcp-servers/uplisting/server.py"`, on Windows `"$(cygpath -w "$BUNDLE/mcp-servers/uplisting/.venv/Scripts/python.exe")" "$(cygpath -w "$BUNDLE/mcp-servers/uplisting/server.py")"`. Windows venvs put the interpreter under `Scripts`, not `bin`.
 
-Then restart Claude Code. The scoreboard row flips from "restart" to a green check on the next run.
+Then quit and reopen the Claude Code desktop app. The scoreboard row flips from "restart" to a green check on the next run.
 
 ## 4. Path B: official MCP
 Uplisting runs its own MCP server, live since August 2026, no beta label, no waitlist, included on every plan (checked 2026-09-21). Uplisting's words: "Use this MCP server URL: https://connect.uplisting.io/mcp When you add the server, you'll be asked to sign in to Uplisting and choose the permissions you want to allow."
 
 Register it (same command on Mac and Windows, no path to convert):
 ```bash
-claude mcp add --transport http uplisting-official --scope user https://connect.uplisting.io/mcp >/dev/null 2>&1 && echo "uplisting-official registered ✅" || echo "uplisting-official failed ❌ (run the same line without the >/dev/null part to see why)"
+uv run --python 3.13 python "$BUNDLE/lib/mcp_register.py" uplisting-official --http https://connect.uplisting.io/mcp && echo "uplisting-official registered ✅" || echo "uplisting-official failed ❌"
 echo uplisting-official >> "$BUNDLE/.cache/needs-restart"
 ```
 
-Restart Claude Code, then type `/mcp`, pick `uplisting-official`, choose **Authenticate**. A browser tab opens.
+Quit and reopen the Claude Code desktop app, then type `/mcp` in the chat, pick `uplisting-official`, choose **Authenticate** (if your app shows a Connectors (+) button instead of `/mcp`, use that and paste the same URL). A browser tab opens.
 
 What to expect in the browser: an Uplisting sign-in. The login page may carry AirDNA branding (Uplisting is part of AirDNA); use your normal Uplisting login. After that comes a permissions picker. Uplisting's list: "properties:read, bookings:read, bookings:create, bookings:update, calendar:read, calendar:write, messaging:read, messaging:write, reviews:read". Uplisting's words: "You do not need to grant every permission."
 
@@ -82,9 +82,11 @@ Our advice for the summit: tick only the five `:read` ones (properties, bookings
 
 **Heads up:** if you grant `bookings:create`, `bookings:update`, `calendar:write` or `messaging:write`, this connection can create or change bookings, block or open dates, and send real messages to guests. Claude will always ask before any of that. Grant reads only if you want zero chance of it.
 
-Want to change your picks later? Remove the server and register it again; the picker comes back on the next sign-in:
+Want to change your picks later? Ask Claude to remove the server and register it again; the picker comes back on the next sign-in:
 ```bash
-claude mcp remove uplisting-official -s user
+uv run --python 3.13 python "$BUNDLE/lib/mcp_register.py" uplisting-official --remove
+uv run --python 3.13 python "$BUNDLE/lib/mcp_register.py" uplisting-official --http https://connect.uplisting.io/mcp
+echo uplisting-official >> "$BUNDLE/.cache/needs-restart"
 ```
 
 Path B does not replace Path A. The checker looks for both rows, and the Revenue Manager skill talks to the built `uplisting` server.
@@ -109,11 +111,10 @@ Path B does not replace Path A. The checker looks for both rows, and the Revenue
 - **Testing by hand and it fails while the checker passes:** Uplisting's words: "Check for a trailing newline if you generated the encoding on the command line." `echo "$KEY" | base64` adds a newline and breaks it. The probe uses `printf '%s'` and strips newlines. Do the same, or just trust the checker.
 - **No Connect > API in your sidebar:** the API page is an account-level setting. Make sure you are logged in as the account owner, not a team member. Uplisting's docs do not spell out who can see it, so if the owner cannot see it either, ask Uplisting support from inside the app.
 - **Requests start failing during a big pull:** Uplisting allows about 5 requests a second per IP. The built server backs off and retries on a 429. If something else is hitting the API from the same connection at the same time, stop that, wait a few seconds, re-run.
-- **MCP sign-in bounces to an AirDNA page:** expected. Uplisting is part of AirDNA and the login runs through it. Use your Uplisting credentials. If it loops, remove the server (`claude mcp remove uplisting-official -s user`), register again, restart, Authenticate again.
+- **MCP sign-in bounces to an AirDNA page:** expected. Uplisting is part of AirDNA and the login runs through it. Use your Uplisting credentials. If it loops, re-run the register block in section 4 (it overwrites the old entry), quit and reopen the Claude Code desktop app, Authenticate again.
 - **MCP shows auth after a restart:** you registered it but never finished the browser step. `/mcp` > `uplisting-official` > Authenticate.
-- **`register failed ❌`:** the `claude` command is not available in this window. Open a new terminal in the same folder and re-run the register line (it removes any old `uplisting` entry first, so re-running is safe).
-- **The register step reports success but the row says `server status: failed` after the restart:** the build did not finish; `claude mcp add` never checks that the file exists. Go back to `build/build-pms-mcp.md` Path B until `dist/index.js` (or `server.py` plus `.venv`) exists, then re-run the Register block for your OS.
-- **Windows: `uplisting` shows Failed to connect after restart:** the path was registered in `/c/Users/...` form. Remove it (`claude mcp remove uplisting -s user`) and run the Register (Windows, Git Bash) block in section 3, which converts with `cygpath -w`.
+- **The register step reports success but the row says `server status: failed` after the restart:** the build did not finish; registering does not check that the file exists. Go back to `build/build-pms-mcp.md` Path B until `dist/index.js` (or `server.py` plus `.venv`) exists, then re-run the Register block for your OS.
+- **Windows: `uplisting` shows Failed to connect after restart:** the path was registered in `/c/Users/...` form. Run the Register (Windows, Git Bash) block in section 3 again; it overwrites the old entry with the `cygpath -w` form.
 - **Windows and the server is Python:** the interpreter is `.venv/Scripts/python.exe`, not `.venv/bin/python`. See the Register (Windows, Git Bash) block in section 3.
 
 ## 7. Sources

@@ -27,4 +27,23 @@ t "blank STACK_PMS prompts"            "printf '%s' \"\$out2\" | grep -q '❌ PM
 mkdir -p .cache; echo "turno|2026-09-22" > .cache/pending-vendor; sed -i.bak 's/^STACK_OPS=.*/STACK_OPS=turno/' .env
 out3="$(bash check-connections.sh)"
 t "pending vendor row"                 "printf '%s' \"\$out3\" | grep -q '⏳ Turno API .*emailed 2026-09-22'"
+
+# --- no claude binary anywhere (desktop-app-only case): mcp_load reads ~/.claude.json ---
+# A PATH with a curl stub but no claude anywhere, and a HOME whose ~/.claude.json already
+# has entries, is exactly the attendee's environment: Claude Code itself is running (that's
+# how this script got invoked), but there is no `claude` CLI to shell out to.
+cp tests/fixtures/env-hospitable-full.env .env; rm -f .env.bak
+rm -rf .cache
+NOBIN_HOME="$(mktemp -d)"
+cat > "$NOBIN_HOME/.claude.json" <<'JSON'
+{"mcpServers":{"hospitable":{"type":"stdio","command":"node","args":["x"]},"meta-ads":{"type":"http","url":"https://mcp.facebook.com/ads"}}}
+JSON
+NOBIN_STUBS="$(mktemp -d)"
+cp tests/stubs/curl "$NOBIN_STUBS/curl"; chmod +x "$NOBIN_STUBS/curl"
+out4="$(HOME="$NOBIN_HOME" PATH="$NOBIN_STUBS:/usr/bin:/bin" CURL_STUB_DIR="$PWD/tests/fixtures/curl" bash check-connections.sh)"; rc4=$?
+t "no-binary: exits 0"                 "[ $rc4 -eq 0 ]"
+t "no-binary: meta-ads shows live-check glyph" "printf '%s' \"\$out4\" | grep -q '🔎 Meta Ads MCP.*registered; Claude checks it live'"
+t "no-binary: keyed row with a passing probe is ok" "printf '%s' \"\$out4\" | grep -q '✅ Hospitable API'"
+rm -rf "$NOBIN_HOME" "$NOBIN_STUBS"
+
 exit $fail

@@ -2,7 +2,7 @@
 server: meta-ads
 slot: ads
 required: yes
-env: []
+env: [META_ADS_TOKEN]
 official_mcp: https://mcp.facebook.com/ads
 ---
 
@@ -29,17 +29,16 @@ No email to anyone, no waitlist form, no `emails/` file for this one. Rollout is
 _None for this connector._ There is no key to fetch and no `.env` line. Go straight to Path B.
 
 ## 4. Path B: official MCP
-One `claude mcp add` line, then a browser sign-in. Meta's own doc shows the line with `--client-id <META_APP_ID>`; that is for people who own a Meta developer app. You do not, so it is dropped. Honesty note: Meta documents this no-app line for Claude Code, and as of 2026-09-21 Meta's sign-in endpoint accepts Claude Code's registration, but we have not run the browser sign-in end to end from Claude Code without a Meta app. If it fails, it is not you; go to section 6.
+One register step, then a browser sign-in. Meta's own doc shows their CLI line with `--client-id <META_APP_ID>`; that is for people who own a Meta developer app. You do not, so it is dropped. Honesty note: Meta documents this no-app line for Claude Code, and as of 2026-09-21 Meta's sign-in endpoint accepts Claude Code's registration, but we have not run the browser sign-in end to end from Claude Code without a Meta app. If it fails, it is not you; go to section 6.
 
 **Register:**
 ```bash
-claude mcp remove meta-ads -s user >/dev/null 2>&1 || true
-claude mcp add --transport http meta-ads --scope user https://mcp.facebook.com/ads >/dev/null 2>&1 && echo "meta-ads registered ✅" || echo "meta-ads register failed ❌ (run the same line again without the >/dev/null part to see why)"
+uv run --python 3.13 python "$BUNDLE/lib/mcp_register.py" meta-ads --http https://mcp.facebook.com/ads && echo "meta-ads registered ✅" || echo "meta-ads register failed ❌"
 echo meta-ads >> "$BUNDLE/.cache/needs-restart"
 ```
-Windows: run this in Git Bash (Claude's Bash tool). Nothing on the `claude mcp add` line is a file path, so no `cygpath -w` and no `.venv/Scripts/python.exe` here. The `$BUNDLE/.cache/needs-restart` write stays inside Bash and works as-is.
+Windows: run this in Git Bash (Claude's Bash tool). Nothing on this line is a file path, so no `cygpath -w` and no `.venv/Scripts/python.exe` here. The `$BUNDLE/.cache/needs-restart` write stays inside Bash and works as-is.
 
-**Restart Claude Code.** Then type `/mcp`, pick **meta-ads**, choose **Authenticate**. Claude Code opens a browser link. Meta's description of what happens next: "The MCP client redirects you to the Facebook Login for Business dialog. You sign in with your Facebook account or your Meta Managed Account (MMA) and approve the requested permissions. No manual token setup is required."
+**Quit and reopen the Claude Code desktop app.** Then type `/mcp` in the chat, pick **meta-ads**, choose **Authenticate**. (If your app shows a Connectors (+) button instead of `/mcp`, use that instead.) Claude Code opens a browser link. Meta's description of what happens next: "The MCP client redirects you to the Facebook Login for Business dialog. You sign in with your Facebook account or your Meta Managed Account (MMA) and approve the requested permissions. No manual token setup is required."
 
 Log in with the Facebook profile that owns your ad account, not a personal profile that has never advertised. Approve the requested permissions when the dialog asks. If the browser does not open on its own, copy the link Claude Code prints and open it yourself. Finish the sign-in on the same machine Claude Code is running on.
 
@@ -67,22 +66,25 @@ Outcomes:
 - **Every account shows `is_ads_mcp_enabled: false`**: Meta has not rolled the MCP out to your account yet. Nothing to do on your side. The Ad Spy degrades without it; the rest of the kit is unaffected. Check back in a week or two.
 
 ## 6. Troubleshooting
-- **Browser sign-in fails with "redirect_uris not registered":** a Claude Code OAuth bug that has been closed twice (GitHub anthropics/claude-code #57191, #58054). Run `claude update`, then `claude mcp remove meta-ads -s user`, re-run the register block, restart, Authenticate again.
-- **Meta Ads MCP row says `server status: failed`, or Claude reports `connection timed out after 30000ms` on a server you already signed in to:** Claude Code issue #89528 (open as of 2026-09-21). Claude Code's OAuth layer wrongly decides the stored Meta token expired; the token itself is fine. The text `OAuth session expired and could not be refreshed` only shows with `claude --debug`, so no need to go hunting for it. The reporter says it is fixed on Claude Code 2.1.270. Run `claude update`, quit and reopen Claude Code, then `/mcp` > meta-ads > **Authenticate** again. It is a re-login, not a re-register.
-- **Fallback when OAuth will not stick, only if you already have a Meta user access token:** we could not find a page in your Facebook or Business Suite account that hands out a token without a Meta developer app (Business Suite > Settings > Integrations > Ads MCP server only allows or blocks ad accounts, and needs full control of the Business Portfolio). If someone technical set a token up for you, register it as a header instead of a browser login. Meta's one documented rule: a system user token works only with the **Employee** role; an Admin-role system user token is rejected. Any Meta user token expires; when this row flips to `registered, key fails` weeks later you need a fresh token and this block again. No token in hand? Skip this, run `claude update`, and retry `/mcp` > meta-ads > **Authenticate**. Do this in a terminal you type into yourself (Terminal on Mac, Git Bash on Windows; skip PowerShell and cmd), never the chat, from inside the kit folder. Claude prints the folder path for you; a path is not a secret.
-  ```bash
-  cd "<kit folder>"
-  printf 'Meta token, then Enter: '; read -rs META_TOKEN; echo
-  claude mcp remove meta-ads -s user >/dev/null 2>&1 || true
-  claude mcp add --transport http meta-ads --scope user https://mcp.facebook.com/ads --header "Authorization: Bearer $META_TOKEN" >/dev/null 2>&1 && echo "meta-ads registered ✅" || echo "meta-ads register failed ❌"
-  unset META_TOKEN
-  mkdir -p .cache && echo meta-ads >> .cache/needs-restart
+- **Browser sign-in fails with "redirect_uris not registered":** a Claude Code OAuth bug that has been closed twice (GitHub anthropics/claude-code #57191, #58054). Update Claude Code from inside the app (Settings > Check for updates, or however this version surfaces it), re-run the register block, quit and reopen, Authenticate again.
+- **Meta Ads MCP row says `server status: failed`, or Claude reports `connection timed out after 30000ms` on a server you already signed in to:** Claude Code issue #89528 (open as of 2026-09-21). Claude Code's OAuth layer wrongly decides the stored Meta token expired; the token itself is fine. The reporter says it is fixed on Claude Code 2.1.270; update the app if you are behind. Then quit and reopen the Claude Code desktop app, `/mcp` > meta-ads > **Authenticate** again. It is a re-login, not a re-register.
+- **Fallback when OAuth will not stick, only if you already have a Meta user access token:** we could not find a page in your Facebook or Business Suite account that hands out a token without a Meta developer app (Business Suite > Settings > Integrations > Ads MCP server only allows or blocks ad accounts, and needs full control of the Business Portfolio). If someone technical set a token up for you, register it as a header instead of a browser login. Meta's one documented rule: a system user token works only with the **Employee** role; an Admin-role system user token is rejected. Any Meta user token expires; when this row flips to `registered, key fails` weeks later you need a fresh token and this section again. No token in hand? Skip this and retry `/mcp` > meta-ads > **Authenticate** instead.
+
+  Claude opens `.env` for you; paste the token on this line, no quotes, no spaces, save, and never in the chat:
   ```
-  `read -rs` keeps the token off the screen and out of your shell history. The token lands in `~/.claude.json`. Treat that file as a secret from then on.
+  META_ADS_TOKEN=
+  ```
+  Then Claude registers it as a header:
+  ```bash
+  set -a; . "$BUNDLE/.env"; set +a
+  uv run --python 3.13 python "$BUNDLE/lib/mcp_register.py" meta-ads --http https://mcp.facebook.com/ads --header "Authorization: Bearer META_ADS_TOKEN" && echo "meta-ads registered ✅" || echo "meta-ads register failed ❌"
+  echo meta-ads >> "$BUNDLE/.cache/needs-restart"
+  ```
+  The token lands in `~/.claude.json`, never in the chat. Treat that file as a secret from then on.
 - **Signed in with the wrong Facebook profile:** the browser used whichever profile was already logged in at facebook.com. Log out of facebook.com in that browser, run `/mcp` > meta-ads > Authenticate again, and log in with the profile that owns the ad account.
 - **"List my ad accounts" works but Ad Library search errors:** you have an ad account but it is not active. Ads Manager will tell you why (no payment method, disabled, restricted). Fix it there, then retry.
 - **Claude says it created a campaign or ad set:** it is paused. Meta's rule: "Write tools create entities in a paused state." Open Ads Manager, look at it, delete it or leave it. It only starts spending if someone activates it, either in Ads Manager or through the `ads_activate_entity` tool. The kit never calls that tool; do not ask Claude to.
-- **Scoreboard stays on Restart:** the `needs-restart` marker clears on the next launch. Quit Claude Code fully (not just the tab) and open it again.
+- **Scoreboard stays on Restart:** the `needs-restart` marker clears on the next launch. Quit the Claude Code desktop app fully (not just the window) and open it again.
 - **Ads MCP server is not under Integrations in Business Suite:** Meta's own note: "If you don't see this, you do not have access to this feature yet." The browser sign-in may still work; try it. If it also fails, wait for the rollout.
 
 ## 7. Sources

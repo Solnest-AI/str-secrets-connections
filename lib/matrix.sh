@@ -20,7 +20,7 @@ check_api_row() {
   st=$(mcp_status "$server")
   if _needs_restart "$server"; then row "$label" restart; return; fi
   case "$st" in
-    connected) row "$label" ok ;;
+    connected|registered) row "$label" ok ;;
     absent)    row "$label" missing "key works; server not registered yet (connectors/$server.md)" ;;
     *)         row "$label" keyfail "server status: $st (connectors/$server.md)" ;;
   esac
@@ -35,6 +35,7 @@ check_oauth_row() {
     needs-auth) row "$label" auth ;;
     absent)     row "$label" missing "not registered (connectors/$server.md)" ;;
     pending)    row "$label" auth "approve it in /mcp" ;;
+    registered) row "$label" live ;;
     *)          row "$label" keyfail "server status: $st (connectors/$server.md)" ;;
   esac
 }
@@ -54,7 +55,7 @@ check_url_mcp_row() {
   env_filled "$var" || { row "$label" missing "paste it into .env (connectors/$server.md)"; return; }
   if _needs_restart "$server"; then row "$label" restart; return; fi
   st=$(mcp_status "$server")
-  case "$st" in connected) row "$label" ok ;; absent) row "$label" missing "not registered (connectors/$server.md)" ;; *) row "$label" keyfail "server status: $st" ;; esac
+  case "$st" in connected|registered) row "$label" ok ;; absent) row "$label" missing "not registered (connectors/$server.md)" ;; *) row "$label" keyfail "server status: $st" ;; esac
 }
 
 scoreboard() {

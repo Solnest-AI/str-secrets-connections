@@ -49,15 +49,15 @@ The token has no permission settings of its own. It does whatever your Beyond lo
 ```bash
 cd "$BUNDLE/mcp-servers/beyond" && npm install --silent && npm run build --silent
 bash "$BUNDLE/fan-out-env.sh"
-claude mcp add --transport stdio beyond --scope user -- node "$BUNDLE/mcp-servers/beyond/dist/index.js" >/dev/null 2>&1 && echo "beyond registered ✅" || echo "register failed ❌"
+uv run --python 3.13 python "$BUNDLE/lib/mcp_register.py" beyond --stdio node "$BUNDLE/mcp-servers/beyond/dist/index.js" && echo "beyond registered ✅" || echo "register failed ❌"
 echo beyond >> "$BUNDLE/.cache/needs-restart"
 ```
 
-**Register (Windows, Git Bash):** run all of this in Git Bash (that is what Claude's Bash tool is on Windows). Claude Code itself is a native Windows program, so the path you hand `claude mcp add` has to be the `C:\...` form. Convert it with `cygpath -w` and register that instead:
+**Register (Windows, Git Bash):** run all of this in Git Bash (that is what Claude's Bash tool is on Windows). Claude Code itself is a native Windows program, so the path handed to the register helper has to be the `C:\...` form. Convert it with `cygpath -w` and register that instead:
 ```bash
 cd "$BUNDLE/mcp-servers/beyond" && npm install --silent && npm run build --silent
 bash "$BUNDLE/fan-out-env.sh"
-claude mcp add --transport stdio beyond --scope user -- node "$(cygpath -w "$BUNDLE/mcp-servers/beyond/dist/index.js")" >/dev/null 2>&1 && echo "beyond registered ✅" || echo "register failed ❌"
+uv run --python 3.13 python "$BUNDLE/lib/mcp_register.py" beyond --stdio node "$(cygpath -w "$BUNDLE/mcp-servers/beyond/dist/index.js")" && echo "beyond registered ✅" || echo "register failed ❌"
 echo beyond >> "$BUNDLE/.cache/needs-restart"
 ```
 If Claude built the Python flavour instead of Node, the interpreter on Windows is `.venv/Scripts/python.exe` (never `.venv/bin/python`), and both the interpreter path and the `server.py` path go through `cygpath -w` the same way.
@@ -68,10 +68,10 @@ Beyond's MCP is called Neyoba. Read-only. You ask it questions about your Beyond
 Beyond's docs only show Claude Desktop and ChatGPT ("Neyoba currently supports Claude Desktop and ChatGPT"). But their server does dynamic client registration with PKCE, which is exactly what Claude Code's `/mcp` login uses (their authorization server advertises a registration endpoint, auth method `none`, and `S256`; checked live 2026-09-21). So try it:
 
 ```bash
-claude mcp add --transport http beyond-official --scope user https://neyoba.beyondpricing.com/mcp >/dev/null 2>&1 && echo "beyond-official registered ✅" || echo "beyond-official failed ❌ (run the same line without the >/dev/null part to see why)"
+uv run --python 3.13 python "$BUNDLE/lib/mcp_register.py" beyond-official --http https://neyoba.beyondpricing.com/mcp && echo "beyond-official registered ✅" || echo "beyond-official failed ❌"
 echo beyond-official >> "$BUNDLE/.cache/needs-restart"
 ```
-Restart Claude Code, then `/mcp` > `beyond-official` > Authenticate. A browser opens on `v2.beyondpricing.com/oauth/authorize`. Sign in with your Beyond login and approve the `neyoba:ask` scope. Back in Claude Code the server shows connected.
+Quit and reopen the Claude Code desktop app, then type `/mcp` in the chat > `beyond-official` > Authenticate (if your app shows a Connectors (+) button instead of `/mcp`, use that and paste the same URL). A browser opens on `v2.beyondpricing.com/oauth/authorize`. Sign in with your Beyond login and approve the `neyoba:ask` scope. Back in Claude Code the server shows connected.
 
 **If Beyond's consent page rejects the client** (an error instead of an approve button), use the vendor's Claude Desktop path instead. It needs Claude Desktop on a paid plan. In Claude Desktop: Connectors (under Customize) > **Add custom connector** > Name `Neyoba` > URL `https://neyoba.beyondpricing.com/mcp` > **Add** > **Connect** > sign in to Beyond. The scoreboard row for the Beyond MCP then stays unfinished in Claude Code; that is expected. The summit skills run on the built `beyond` server above. Neyoba is a bonus.
 
@@ -99,7 +99,7 @@ Test the built server the same way after the restart: "List my Beyond listings."
 - **429:** honor `Retry-After` and the `X-RateLimit-*` headers; compset detail is capped around 30 requests a minute. The built server backs off and retries three times.
 - **Neyoba's consent page errors out on Claude Code:** use the Desktop custom-connector path in section 4. Read-only either way.
 - **Neyoba says it cannot change something:** correct, it is read-only. Price changes go through the built `beyond` server, and only with `confirm=true`.
-- **Windows: `beyond` shows Failed to connect after restart:** it was registered with a `/c/Users/...` path. Remove and re-add with the Windows register block in section 3: `claude mcp remove beyond -s user`, then the `cygpath -w` line.
+- **Windows: `beyond` shows Failed to connect after restart:** it was registered with a `/c/Users/...` path. Re-run the Windows register block in section 3; it overwrites the old entry with the `cygpath -w` form.
 - **Building from the wrong docs:** `dynamic-api-docs.beyondpricing.com` is the Dynamic Integration API for PMS vendors (Beyond calls them, not the other way). The old `api.beyondpricing.com/api` Token API is deprecated and 404s. Use `developers.beyondpricing.com` only.
 
 ## 7. Sources

@@ -37,36 +37,31 @@ Run this again after any `.env` change.
 **Register** the bundled server. Build its venv, then point Claude Code at it:
 ```bash
 cd "$BUNDLE/mcp-servers/airroi" && { [ -d .venv ] || uv venv --quiet .venv; } && uv pip install --quiet -r requirements.txt --python .venv
-claude mcp remove airroi -s user >/dev/null 2>&1 || true
-claude mcp add --transport stdio airroi --scope user -- "$BUNDLE/mcp-servers/airroi/.venv/bin/python" "$BUNDLE/mcp-servers/airroi/server.py" >/dev/null 2>&1 && echo "airroi registered ✅" || echo "register failed ❌"
+uv run --python 3.13 python "$BUNDLE/lib/mcp_register.py" airroi --stdio "$BUNDLE/mcp-servers/airroi/.venv/bin/python" "$BUNDLE/mcp-servers/airroi/server.py" && echo "airroi registered ✅" || echo "register failed ❌"
 echo airroi >> "$BUNDLE/.cache/needs-restart"
 ```
-The server reads the key from its own `.env`, which `fan-out-env.sh` fills from the root `.env`. The key itself never goes into the `claude mcp add` line.
+The server reads the key from its own `.env`, which `fan-out-env.sh` fills from the root `.env`. The key itself never goes into the register line.
 
 **Windows note:** the venv interpreter is `.venv/Scripts/python.exe`, not `.venv/bin/python`, and Claude Code is a native Windows process, so every absolute path gets converted with `cygpath -w` before it is registered. Same build line, then:
 ```bash
-claude mcp remove airroi -s user >/dev/null 2>&1 || true
-claude mcp add --transport stdio airroi --scope user -- "$(cygpath -w "$BUNDLE/mcp-servers/airroi/.venv/Scripts/python.exe")" "$(cygpath -w "$BUNDLE/mcp-servers/airroi/server.py")" >/dev/null 2>&1 && echo "airroi registered ✅" || echo "register failed ❌"
+uv run --python 3.13 python "$BUNDLE/lib/mcp_register.py" airroi --stdio "$(cygpath -w "$BUNDLE/mcp-servers/airroi/.venv/Scripts/python.exe")" "$(cygpath -w "$BUNDLE/mcp-servers/airroi/server.py")" && echo "airroi registered ✅" || echo "register failed ❌"
 echo airroi >> "$BUNDLE/.cache/needs-restart"
 ```
 
 ## 4. Path B: official MCP
-AirROI hosts its own MCP at https://mcp.airroi.com. Auth is the key in a header, not a browser login, so there is no `/mcp` > Authenticate step and no browser window will open. Source the `.env` first so the shell can read the key, then register:
+AirROI hosts its own MCP at https://mcp.airroi.com. Auth is the key in a header, not a browser login, so there is no `/mcp` > Authenticate step and no browser window will open. Source the `.env` first so the shell can read the key's variable name, then register (the value itself is never typed into this line):
 ```bash
 set -a; . "$BUNDLE/.env"; set +a
-if [ -z "${AIRROI_API_KEY:-}" ]; then
-  echo "AIRROI_API_KEY is still blank in .env; finish section 3 first"
-else
-  claude mcp remove airroi-official -s user >/dev/null 2>&1 || true
-  claude mcp add --transport http airroi-official --scope user https://mcp.airroi.com --header "X-API-KEY: $AIRROI_API_KEY" >/dev/null 2>&1 && echo "airroi-official registered ✅" || echo "register failed ❌"
-  echo airroi-official >> "$BUNDLE/.cache/needs-restart"
-fi
+uv run --python 3.13 python "$BUNDLE/lib/mcp_register.py" airroi-official --http https://mcp.airroi.com --header "X-API-KEY: AIRROI_API_KEY" && echo "airroi-official registered ✅" || echo "register failed ❌"
+echo airroi-official >> "$BUNDLE/.cache/needs-restart"
 ```
+If `AIRROI_API_KEY` is blank in `.env`, the helper says so on its own and registers nothing; finish section 3 first.
+
 Keep the `X-API-KEY:` prefix exactly as written; the vendor's setup page says so. Their getting-started page spells it lowercase `x-api-key`. Both work, HTTP headers are case-insensitive.
 
-The header is stored in `~/.claude.json`, never in this folder. `claude mcp list` does not print header values, but we still never paste raw `claude mcp list` output into the chat, because one other server in this kit (RankBreeze) carries its key in the URL.
+The header is stored in `~/.claude.json`, never in this folder. Claude never prints the raw contents of that file, because one other server in this kit (RankBreeze) carries its key in the URL.
 
-What you get: read-only market and listing tools, the same data as the REST API, billed per call from the same balance. No beta, no waitlist as of 2026-09-21. Restart Claude Code after registering; `/mcp` should then list both `airroi` and `airroi-official`.
+What you get: read-only market and listing tools, the same data as the REST API, billed per call from the same balance. No beta, no waitlist as of 2026-09-21. Quit and reopen the Claude Code desktop app after registering; type `/mcp` and it should then list both `airroi` and `airroi-official` as connected.
 
 ## 5. Verify
 The checker runs `probe_airroi`, which makes one real call: `GET https://api.airroi.com/markets/search?query=miami` with your key in the `X-API-KEY` header. It costs $0.01. Outcomes:
@@ -78,7 +73,7 @@ The checker runs `probe_airroi`, which makes one real call: `GET https://api.air
 
 The bundled server's own `health_check` tool only confirms the server started and its `.env` has a key-shaped value; it never calls AirROI, so it cannot prove the key actually works. After the restart, ask Claude to run a real AirROI market search for your city. That costs $0.01 and hits AirROI for real, so a result coming back is the actual proof. The checker's probe above makes that same market-search call during setup.
 
-The official MCP row checks three things: the `.env` line is filled, `airroi-official` is registered, and Claude Code reports it Connected. It cannot see whether the header holds the same key as `.env`. Two things to know: `claude mcp list` shows `airroi-official` as Connected even when the key is bad, because the handshake does not check it; and if you ever change the key in `.env`, the header keeps the old one until you re-run the section 4 block. Trust the probe, not the Connected label, and re-register after a key change.
+The official MCP row checks three things: the `.env` line is filled, `airroi-official` is registered, and Claude Code reports it Connected. It cannot see whether the header holds the same key as `.env`. Two things to know: Claude Code shows `airroi-official` as connected even when the key is bad, because the handshake does not check it; and if you ever change the key in `.env`, the header keeps the old one until you re-run the section 4 block. Trust the probe, not the Connected label, and re-register after a key change.
 
 ## 6. Troubleshooting
 - **403 right after signing up:** you have an account but no credits. The key only switches on after the $10 deposit. Go back to https://www.airroi.com/api/developer and add credits.
@@ -87,11 +82,11 @@ The official MCP row checks three things: the `.env` line is filled, `airroi-off
 - **A field you saw in one call is missing in another:** response keys differ per endpoint. Market search, listing metrics and estimates each return their own shape. That is AirROI, not a broken key.
 - **Rate limit:** 1,000 requests per minute per key. The summit skills never get close; if you do, you are looping.
 - **Header spelling:** `X-API-KEY` on the MCP page, `x-api-key` on the getting-started page. Same header. No need to "fix" one to match the other.
-- **`airroi` shows Failed after restart (Windows):** the registered path is probably `/c/Users/...` instead of `C:\Users\...`, or it points at `.venv/bin/python`, which does not exist on Windows. Remove it (`claude mcp remove airroi -s user`) and re-run the Windows register block in section 3.
+- **`airroi` shows Failed after restart (Windows):** the registered path is probably `/c/Users/...` instead of `C:\Users\...`, or it points at `.venv/bin/python`, which does not exist on Windows. Re-run the Windows register block in section 3; it overwrites the old entry.
 - **`ModuleNotFoundError: mcp.server.fastmcp`:** the venv picked up `mcp` 2.x. The bundled `requirements.txt` pins `mcp>=1.2,<2`; delete `.venv` and run the build line again.
-- **You changed the key in .env:** the bundled `airroi` server picks the new one up after `bash fan-out-env.sh` and a restart, but `airroi-official` keeps the key it was registered with. Re-run the section 4 block (it removes and re-adds), then restart.
-- **`airroi` shows Connected but `health_check` says ok false:** the server's own `.env` is empty. Run `cd "$BUNDLE" && bash fan-out-env.sh`, then restart Claude Code.
-- **Registered while the .env line was still blank:** the row can show Connected with an empty header. Run FILLED, fix the line, then re-run the section 4 block (it removes and re-adds) and restart.
+- **You changed the key in .env:** the bundled `airroi` server picks the new one up after `bash fan-out-env.sh` and a restart, but `airroi-official` keeps the key it was registered with. Re-run the section 4 block (it overwrites the old entry), then restart.
+- **`airroi` shows Connected but `health_check` says ok false:** the server's own `.env` is empty. Run `cd "$BUNDLE" && bash fan-out-env.sh`, then quit and reopen the Claude Code desktop app.
+- **Registered while the .env line was still blank:** the row can show Connected with an empty header. Run FILLED, fix the line, then re-run the section 4 block (it overwrites the old entry) and restart.
 
 ## 7. Sources
 airroi.com/api/getting-started, airroi.com/api/pricing, airroi.com/mcp-server/setup, airroi.com/api/developer, airroi.com/api/developer/activate (read 2026-09-21).

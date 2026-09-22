@@ -19,10 +19,13 @@ official_mcp: <https://... or none>
 **SAFE:** `if [ -d "$BUNDLE/.git" ]; then git -C "$BUNDLE" check-ignore -q .env && echo "protected ✅" || echo "add .env to $BUNDLE/.gitignore first"; else echo "protected ✅ (not a git folder, nothing can commit it)"; fi`
 **FILLED:** `grep -q '^VAR=.\+' .env && echo "present ✅" || echo "still blank"`
 **WORKS:** `bash -c '. lib/env.sh; . lib/probes.sh; env_load .env; probe_<vendor>; echo rc=$?'` (0 works, 1 rejected, 2 blank, 3 unreachable)
-**Register:** exact `claude mcp add` line with `$BUNDLE` absolute path and `--scope user`, output to `/dev/null`, then `echo "<server>" >> .cache/needs-restart`.
+**Register:** no `claude` CLI needed. Source `.env`, then call the bundled helper with `$BUNDLE` absolute paths, and hand it credential variable NAMES, never values:
+  - stdio (built or bundled server): `uv run --python 3.13 python "$BUNDLE/lib/mcp_register.py" <server> --stdio <command> <args...> --env <VAR> && echo "<server> registered ✅" || echo "<server> register failed ❌"`
+  - http with a key in a header: `uv run --python 3.13 python "$BUNDLE/lib/mcp_register.py" <server> --http <url> --header "<Header-Name>: <PREFIX> <VAR>" && echo "<server> registered ✅" || echo "<server> register failed ❌"`
+  Then `echo "<server>" >> "$BUNDLE/.cache/needs-restart"`. Re-running the same line any time (a new key, a rebuilt server) is always safe; it overwrites the old entry, nothing to remove first.
 
 ## 4. Path B: official MCP
-<Exact `claude mcp add --transport http ...` line. Auth: `/mcp` > server > Authenticate, or header. What to expect in the browser. Capability warning. Beta/waitlist status with date.>
+<Same helper, `--http <url>` with no `--env`/`--header` if auth is a browser sign-in. Auth: type `/mcp` in the chat > server > Authenticate (or the Connectors (+) button if the app shows that instead), or a header if the vendor supports one. What to expect in the browser. Capability warning. Beta/waitlist status with date. Restart instruction: "quit and reopen the Claude Code desktop app.">
 
 ## 5. Verify
 <What the checker runs and what pass/fail look like, using the vendor's real codes.>

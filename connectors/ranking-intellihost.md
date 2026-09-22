@@ -2,7 +2,7 @@
 server: intellihost
 slot: ranking
 required: optional
-env: []
+env: [INTELLIHOST_MCP_TOKEN]
 official_mcp: https://clients.intellihost.co/api/mcp
 ---
 
@@ -24,16 +24,16 @@ Watch the domain: **intellihost.co** is this tool. **intellihost.io** is a Price
 _None for this connector._ There is no public API and no key to fetch. Go straight to Path B.
 
 ## 4. Path B: official MCP
-This is the vendor's own Claude Code command, lifted from their Connections page (clients.intellihost.co > **Connections** > card "Connect an AI assistant" > **Claude Code** tab, which says "Run this command in your terminal:"). We add `--scope user` so it follows you into every project.
+IntelliHost's own Connections page (clients.intellihost.co > **Connections** > card "Connect an AI assistant" > **Claude Code** tab) hands out a CLI command for this. This kit registers the same server the CLI-free way instead:
 
 **Register:**
 ```bash
-claude mcp add intellihost --transport http https://clients.intellihost.co/api/mcp --scope user >/dev/null 2>&1 && echo "intellihost registered ✅" || echo "intellihost failed ❌ (run the same line without the >/dev/null part to see why)"
+uv run --python 3.13 python "$BUNDLE/lib/mcp_register.py" intellihost --http https://clients.intellihost.co/api/mcp && echo "intellihost registered ✅" || echo "intellihost failed ❌"
 echo intellihost >> "$BUNDLE/.cache/needs-restart"
 ```
-Windows: run this in Git Bash (Claude's Bash tool). Nothing on the `claude mcp add` line is a file path, so no `cygpath -w` and no `.venv/Scripts/python.exe` here. The `$BUNDLE/.cache/needs-restart` write stays inside Bash and works as-is.
+Windows: run this in Git Bash (Claude's Bash tool). Nothing on this line is a file path, so no `cygpath -w` and no `.venv/Scripts/python.exe` here. The `$BUNDLE/.cache/needs-restart` write stays inside Bash and works as-is.
 
-**Restart Claude Code.** Then type `/mcp`, pick **intellihost**, choose **Authenticate**. Claude Code opens a browser link. Follow it, sign in to IntelliHost, and authorize the connection. If the browser does not open on its own, copy the link Claude Code prints and open it yourself. Finish the sign-in on the same machine Claude Code is running on.
+**Quit and reopen the Claude Code desktop app.** Then type `/mcp` in the chat, pick **intellihost**, choose **Authenticate** (if your app shows a Connectors (+) button instead of `/mcp`, use that and paste the same URL). Claude Code opens a browser link. Follow it, sign in to IntelliHost, and authorize the connection. If the browser does not open on its own, copy the link Claude Code prints and open it yourself. Finish the sign-in on the same machine Claude Code is running on.
 
 If the sign-in screen asks how much access to give, pick **read-only**. Read and write lets Claude push live prices to your listings, and the summit skills never need that.
 
@@ -62,18 +62,24 @@ The real-call test, after the restart: ask Claude "IntelliHost, list my properti
 - **Sign-in page looks wrong or the account is not found:** you are on intellihost.io (PriceLabs). Use clients.intellihost.co.
 - **Claude is offering to change prices:** you granted read and write. Disconnect the assistant in IntelliHost > Connections, re-run Authenticate, and pick read-only.
 - **Funnel numbers look thin or empty:** IntelliHost gathers its funnel data through its Chrome extension. Make sure the extension is installed and running in your Chrome, then ask again.
-- **Scoreboard stays on Restart:** the `needs-restart` marker is cleared by the setup flow, not by the restart itself. Quit Claude Code fully (not just the tab), reopen it in this same folder, and say "Check my connections". If you ran `bash check-connections.sh` by hand instead, clear the marker first: `: > "$BUNDLE/.cache/needs-restart"`.
-- **The register block printed nothing, no ✅ and no error:** the server is already registered from an earlier try (maybe from IntelliHost's own command without `--scope user`). Remove it, then run the register block again: `claude mcp remove intellihost --scope user`. If you ran the vendor's line in a plain terminal before, also run `claude mcp remove intellihost --scope local`.
-- **The browser sign-in loops, errors, or never finishes:** fall back to an IntelliHost access token. In IntelliHost > Connections > MCP access tokens, create one named `Claude Code` with Access **Read only**. IntelliHost shows it once. Do not paste it into Claude's chat. Open a terminal window of your own (Terminal on Mac, Git Bash on Windows) and paste these lines in, replacing `<token>` with the token you copied:
-  ```bash
-  curl -s -X POST https://clients.intellihost.co/api/mcp -H "Authorization: Bearer <token>" -H "Content-Type: application/json" -H "Accept: application/json, text/event-stream" -d '{"jsonrpc":"2.0","method":"tools/list","id":1}'
+- **Scoreboard stays on Restart:** the `needs-restart` marker is cleared by the setup flow, not by the restart itself. Quit the Claude Code desktop app fully (not just the window), reopen it in this same folder, and say "Check my connections". If you ran `bash check-connections.sh` by hand instead, clear the marker first: `: > "$BUNDLE/.cache/needs-restart"`.
+- **The register block printed nothing, no ✅ and no error:** re-run the register block in section 4; it overwrites whatever was there, including an entry made earlier by IntelliHost's own vendor-docs command.
+- **The browser sign-in loops, errors, or never finishes:** fall back to an IntelliHost access token. In IntelliHost > Connections > MCP access tokens, create one named `Claude Code` with Access **Read only**. IntelliHost shows it once. Claude opens `.env` for you; paste it on this line, no quotes, no spaces, save, and never in the chat:
   ```
-  A list of tools means the token works. `{"message":"Unauthenticated."}` (HTTP 401) means the token is wrong; that is the same answer IntelliHost gives with no token at all (checked 2026-09-21). When it works, register it in the same terminal:
-  ```bash
-  claude mcp remove intellihost --scope user >/dev/null 2>&1
-  claude mcp add --transport http intellihost --scope user https://clients.intellihost.co/api/mcp --header "Authorization: Bearer <token>"
+  INTELLIHOST_MCP_TOKEN=
   ```
-  You should see `Added HTTP MCP server intellihost` and a `Headers` block showing `[REDACTED]` where your token is; Claude Code hides it on screen but stores it. Close that terminal, come back to Claude and say "I registered IntelliHost with a token". Claude then runs `echo intellihost >> "$BUNDLE/.cache/needs-restart"` for you (the `$BUNDLE` shortcut only exists inside Claude's Bash tool, which is why that line does not go in your terminal). Restart. No Authenticate step this time; the header carries the sign-in. The header lives in `~/.claude.json`, one more reason never to print `claude mcp list`.
+  Claude can check the token works without ever printing it (a tool list coming back means it is good; `{"message":"Unauthenticated."}`, HTTP 401, means it is wrong; that is the same answer IntelliHost gives with no token at all, checked 2026-09-21):
+  ```bash
+  set -a; . "$BUNDLE/.env"; set +a
+  curl -s -X POST https://clients.intellihost.co/api/mcp -H "Authorization: Bearer $INTELLIHOST_MCP_TOKEN" -H "Content-Type: application/json" -H "Accept: application/json, text/event-stream" -d '{"jsonrpc":"2.0","method":"tools/list","id":1}'
+  ```
+  Then Claude registers it as a header:
+  ```bash
+  set -a; . "$BUNDLE/.env"; set +a
+  uv run --python 3.13 python "$BUNDLE/lib/mcp_register.py" intellihost --http https://clients.intellihost.co/api/mcp --header "Authorization: Bearer INTELLIHOST_MCP_TOKEN" && echo "intellihost registered ✅" || echo "intellihost register failed ❌"
+  echo intellihost >> "$BUNDLE/.cache/needs-restart"
+  ```
+  Quit and reopen the Claude Code desktop app. No Authenticate step this time; the header carries the sign-in. The header lives in `~/.claude.json`, one more reason never to print its raw contents.
 - **You see "MCP access tokens" in IntelliHost:** those long-lived tokens are for assistants that want an API key instead of a sign-in (ChatGPT, Cursor). The kit only needs one if the browser sign-in fails (bullet above). If you create one, IntelliHost shows it only once, so pick **Read only** and never paste it in chat.
 
 ## 7. Sources

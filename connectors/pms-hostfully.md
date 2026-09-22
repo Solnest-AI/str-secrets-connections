@@ -64,18 +64,18 @@ bash "$BUNDLE/fan-out-env.sh"
 
 **Register (Mac):**
 ```bash
-claude mcp add --transport stdio hostfully --scope user -- node "$BUNDLE/mcp-servers/hostfully/dist/index.js" >/dev/null 2>&1 && echo "hostfully registered ✅" || echo "register failed ❌"
+uv run --python 3.13 python "$BUNDLE/lib/mcp_register.py" hostfully --stdio node "$BUNDLE/mcp-servers/hostfully/dist/index.js" && echo "hostfully registered ✅" || echo "register failed ❌"
 echo hostfully >> "$BUNDLE/.cache/needs-restart"
 ```
 
 **Register (Windows, in Git Bash):** Claude Code is a native Windows process, so it must be handed a `C:\...` path. Convert it first with `cygpath -w`:
 ```bash
-claude mcp add --transport stdio hostfully --scope user -- node "$(cygpath -w "$BUNDLE/mcp-servers/hostfully/dist/index.js")" >/dev/null 2>&1 && echo "hostfully registered ✅" || echo "register failed ❌"
+uv run --python 3.13 python "$BUNDLE/lib/mcp_register.py" hostfully --stdio node "$(cygpath -w "$BUNDLE/mcp-servers/hostfully/dist/index.js")" && echo "hostfully registered ✅" || echo "register failed ❌"
 echo hostfully >> "$BUNDLE/.cache/needs-restart"
 ```
 (If Claude built this server in Python instead of Node, the interpreter on Windows is `.venv/Scripts/python.exe`, not `.venv/bin/python`, and that path gets the same `cygpath -w` treatment.)
 
-Restart Claude Code when Claude tells you to (it batches restarts), then say "Check my connections".
+Quit and reopen the Claude Code desktop app when Claude tells you to (it batches restarts), then say "Check my connections".
 
 ## 4. Path B: official MCP
 _None for this connector._
@@ -100,8 +100,8 @@ After the restart, the real test: ask Claude "list my Hostfully properties". If 
 - **400 from the properties call:** `agencyUid` is missing. It is a query parameter on list endpoints (properties, leads), not a header. The built server handles this; if you are testing by hand, add `?agencyUid=...`.
 - **404 on a call that should work, or rc=1 with a key you trust:** Hostfully's help pages show two base paths, `https://api.hostfully.com/v3/` and `https://api.hostfully.com/api/v3/`, and its developer docs pin `https://api.hostfully.com/api/v3.3/`. The checker uses `/v3/`; the server Claude builds uses `/api/v3.3/` (that is what `build/build-pms-mcp.md` tells it to do). All three answered on 2026-09-21. Note that a wrong version under `/api/` comes back as 401, not 404, so a bad base path in the built server can look like a rejected key. If Hostfully moves things, the base URL constant in `$BUNDLE/mcp-servers/hostfully/` is the first line to change.
 - **Rate limit:** Hostfully's developer docs say 10,000 calls an hour; their FAQ says 1,000. Plan for the lower number. A handful of properties checked a few times a day stays well under either.
-- **Server shows Failed to connect after restart (Windows):** the registered path is probably a `/c/Users/...` form. Remove and re-register with the `cygpath -w` line above.
-- **Server connects, but every tool says the key is missing (often only from a different folder):** the built server is reading `.env` from the current directory instead of `$BUNDLE/mcp-servers/hostfully/.env`. Fix the dotenv path in `src/index.ts` to resolve relative to the file, rebuild (`npm run build --silent`), restart Claude Code.
+- **Server shows Failed to connect after restart (Windows):** the registered path is probably a `/c/Users/...` form. Re-run the Windows register line above; it overwrites the old entry with the `cygpath -w` form.
+- **Server connects, but every tool says the key is missing (often only from a different folder):** the built server is reading `.env` from the current directory instead of `$BUNDLE/mcp-servers/hostfully/.env`. Fix the dotenv path in `src/index.ts` to resolve relative to the file, rebuild (`npm run build --silent`), quit and reopen the Claude Code desktop app.
 
 ## 7. Sources
 help.hostfully.com articles 5520003 (API authentication: API key vs OAuth, base URL) and 3453789 (where the API key and agency UID live, api@hostfully.com for new keys, the in-app chat phrase for billing when the field is missing); dev.hostfully.com (header name, rate limit). Read 2026-09-21. No MCP found on any Hostfully property that day.

@@ -58,15 +58,14 @@ Then build and register:
 ```bash
 cd "$BUNDLE/mcp-servers/smoobu" && npm install --silent && npm run build --silent
 bash "$BUNDLE/fan-out-env.sh"
-claude mcp add --transport stdio smoobu --scope user -- node "$BUNDLE/mcp-servers/smoobu/dist/index.js" >/dev/null 2>&1 && echo "smoobu registered ✅" || echo "register failed ❌"
+uv run --python 3.13 python "$BUNDLE/lib/mcp_register.py" smoobu --stdio node "$BUNDLE/mcp-servers/smoobu/dist/index.js" && echo "smoobu registered ✅" || echo "register failed ❌"
 echo smoobu >> "$BUNDLE/.cache/needs-restart"
 ```
 
 **Windows note (Git Bash):** run the build line above as-is (the first line of the block, `cd ... && npm install ... && npm run build`), then use these lines INSTEAD of the register and needs-restart lines. Claude Code on Windows is a native Windows process, so it needs a `C:\...` path, not the `/c/Users/...` form Git Bash shows you. Convert it with `cygpath -w` and register the converted form:
 ```bash
 bash "$BUNDLE/fan-out-env.sh"
-claude mcp remove smoobu -s user >/dev/null 2>&1
-claude mcp add --transport stdio smoobu --scope user -- node "$(cygpath -w "$BUNDLE/mcp-servers/smoobu/dist/index.js")" >/dev/null 2>&1 && echo "smoobu registered ✅" || echo "register failed ❌"
+uv run --python 3.13 python "$BUNDLE/lib/mcp_register.py" smoobu --stdio node "$(cygpath -w "$BUNDLE/mcp-servers/smoobu/dist/index.js")" && echo "smoobu registered ✅" || echo "register failed ❌"
 echo smoobu >> "$BUNDLE/.cache/needs-restart"
 ```
 If Claude built the server in Python instead (airroi style, flat `server.py`), the interpreter on Windows is `$BUNDLE/mcp-servers/smoobu/.venv/Scripts/python.exe`, not `.venv/bin/python`, and both that path and `server.py` get the same `cygpath -w` treatment.
@@ -93,7 +92,7 @@ After the restart, the built server's own `smoobu_me` tool is the live test: ask
 - **Everything worked, then 401 across the board some day in late September or October 2026:** the legacy `Api-Key` header got switched off and something is still sending it. The built server does not, so this means a stale build. Rebuild (`npm run build` in the server folder) and restart.
 - **Lost the Secret:** it cannot be shown again. **Settings** > **Advanced** > **API Keys**, revoke the old key, **Create New**, paste both new values into `.env`, run `bash "$BUNDLE/fan-out-env.sh"`, restart.
 - **429 or sudden slowdowns:** the limit is 700 requests per minute. Normal summit use is nowhere near that; a runaway loop is. Stop the loop.
-- **Checker says the server failed to start (Windows):** the registered path is probably the `/c/Users/...` form. Remove it first (`claude mcp remove smoobu -s user`), then run the Windows register block in section 3 (it converts with `cygpath -w`), restart. Running `claude mcp add` again without the remove prints "register failed ❌" because the name already exists.
+- **Checker says the server failed to start (Windows):** the registered path is probably the `/c/Users/...` form. Re-run the Windows register block in section 3 (it converts with `cygpath -w` and overwrites the old entry), quit and reopen the Claude Code desktop app.
 
 ## 7. Sources
 docs.smoobu.com (#hmac-authentication; legacy header sunset note), support.smoobu.com articles 360003170740 (create an API key) and 38810363709330, smoobu.com/en/pricing. All read 2026-09-21.

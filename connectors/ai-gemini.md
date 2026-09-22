@@ -51,7 +51,7 @@ GEMINI_API_KEY=
 **FILLED:** `grep -q '^GEMINI_API_KEY=.\+' .env && echo "present ✅" || echo "still blank"`
 **WORKS:** `bash -c '. lib/env.sh; . lib/probes.sh; env_load .env; probe_gemini; echo rc=$?'` (0 works, 1 rejected, 2 blank, 3 unreachable)
 
-**Register:** nothing. There is no `claude mcp add` for Gemini, no server name, and no restart marker for this row. The Listing Optimizer reads the key from its own `.env`, and the fan-out script fills that from the root `.env`. Fan-out can only find the Listing Optimizer if the line `SKILL_PATH_LISTING_OPTIMIZER=` in the root `.env` holds the absolute path of the Listing Optimizer folder: the one that contains its `README.md`, `scripts/` and `.env.example`, not a folder above it (Claude fills it in Phase 0; if it is blank, fill it now). Then run it after any `.env` change:
+**Register:** nothing. There is no MCP server to register for Gemini, no server name, and no restart marker for this row. The Listing Optimizer reads the key from its own `.env`, and the fan-out script fills that from the root `.env`. Fan-out can only find the Listing Optimizer if the line `SKILL_PATH_LISTING_OPTIMIZER=` in the root `.env` holds the absolute path of the Listing Optimizer folder: the one that contains its `README.md`, `scripts/` and `.env.example`, not a folder above it (Claude fills it in Phase 0; if it is blank, fill it now). Then run it after any `.env` change:
 ```bash
 cd "$BUNDLE" && bash fan-out-env.sh
 ```
@@ -60,7 +60,7 @@ It prints a ✅ per folder it touched and never prints the values. You should se
 set -a; . "$BUNDLE/.env"; set +a; [ -n "${SKILL_PATH_LISTING_OPTIMIZER:-}" ] && grep -q '^GEMINI_API_KEY=.\+' "$SKILL_PATH_LISTING_OPTIMIZER/.env" && echo "listing optimizer has it ✅" || echo "run fan-out-env.sh once the Listing Optimizer folder path is set"
 ```
 
-**Windows note:** run the lines above in Git Bash (Claude's Bash tool). Nothing on this card is a file path handed to `claude mcp add`, so there is no `cygpath -w` and no `.venv/Scripts/python.exe` here.
+**Windows note:** run the lines above in Git Bash (Claude's Bash tool). Nothing on this card registers an MCP server or hands a path to anything, so there is no `cygpath -w` and no `.venv/Scripts/python.exe` here.
 
 ## 4. Path B: official MCP
 _None for this connector._ The Listing Optimizer calls the Gemini API directly with the key. There is no MCP server to register and nothing to authenticate in `/mcp`.

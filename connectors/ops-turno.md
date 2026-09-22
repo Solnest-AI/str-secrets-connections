@@ -58,21 +58,21 @@ cd "$BUNDLE" && bash fan-out-env.sh
 **Register (Mac):** build the server, register it, queue a restart. Windows users: skip this block and use the Windows block below instead.
 ```bash
 cd "$BUNDLE/mcp-servers/turno" && uv sync --quiet
-claude mcp add --transport stdio turno --scope user -- uv --directory "$BUNDLE/mcp-servers/turno" run turno-mcp >/dev/null 2>&1 && echo "turno registered ✅" || echo "turno register failed ❌ (run the same line again without the >/dev/null part to see why)"
+uv run --python 3.13 python "$BUNDLE/lib/mcp_register.py" turno --stdio uv --directory "$BUNDLE/mcp-servers/turno" run turno-mcp && echo "turno registered ✅" || echo "turno register failed ❌"
 echo turno >> "$BUNDLE/.cache/needs-restart"
 ```
 `uv` comes from `connectors/system-python-uv.md`; if `uv sync` says command not found, do that file first.
 
-**Register (Windows, Git Bash):** run this INSTEAD of the Mac block. Claude Code on Windows is a native Windows process, so every absolute path handed to `claude mcp add` must be the `C:\...` form. Build, convert the path, then register with the converted path:
+**Register (Windows, Git Bash):** run this INSTEAD of the Mac block. Claude Code on Windows is a native Windows process, so every absolute path handed to the register helper must be the `C:\...` form. Build, convert the path, then register with the converted path:
 ```bash
 cd "$BUNDLE/mcp-servers/turno" && uv sync --quiet
 BUNDLE_WIN="$(cygpath -w "$BUNDLE")"
-claude mcp add --transport stdio turno --scope user -- uv --directory "$BUNDLE_WIN\mcp-servers\turno" run turno-mcp >/dev/null 2>&1 && echo "turno registered ✅" || echo "turno register failed ❌ (already registered? run: claude mcp remove turno --scope user, then this line again)"
+uv run --python 3.13 python "$BUNDLE/lib/mcp_register.py" turno --stdio uv --directory "$BUNDLE_WIN\mcp-servers\turno" run turno-mcp && echo "turno registered ✅" || echo "turno register failed ❌"
 echo turno >> "$BUNDLE/.cache/needs-restart"
 ```
 Turno runs through `uv`, so no interpreter path is passed here. If you ever register a Python server by its venv interpreter instead, the Windows path is `.venv/Scripts/python.exe`, not `.venv/bin/python`.
 
-Then a full restart of Claude Code (quit and reopen in this same folder) so the new server loads. After it, say "Check my connections".
+Then quit and reopen the Claude Code desktop app so the new server loads. After it, say "Check my connections".
 
 ## 4. Path B: official MCP
 _None for this connector._ Turno has no MCP of its own (zero mentions across apidocs.turnoverbnb.com, turno.com and help.turno.com as of 2026-09-21). The bundled server is the only path.
@@ -94,10 +94,10 @@ After the restart, the real test: ask Claude "Turno, check the connection". It r
 - **JSON 401 right after pasting:** the usual cause is copying the short hex value instead of the long `eyJ` Secret Key. Make a new token, copy the `eyJ` one, re-paste. Second most common: a Partner ID from a different Turno account, or a trailing space.
 - **401 from your own curl test:** Turno's sample curl commands omit the `Authorization` line; you must add `Authorization: Bearer <token>` yourself. Also, `/api/v2/` instead of `/v2/` returns 401 too. The bundled server already uses `/v2/`; only hand-written calls hit this.
 - **HTML "Just a moment" instead of JSON:** Cloudflare challenge. The probe already sends a browser User-Agent; retry in a minute. If it keeps happening, try a different network (a phone hotspot); some venue wifi trips Cloudflare's challenge.
-- **`turno_check_connection` says sandbox:** `TURNO_ENV` in your root `.env` is set to `sandbox`. Blank it, run `bash fan-out-env.sh`, restart Claude Code. The summit runs production only.
+- **`turno_check_connection` says sandbox:** `TURNO_ENV` in your root `.env` is set to `sandbox`. Blank it, run `bash fan-out-env.sh`, quit and reopen the Claude Code desktop app. The summit runs production only.
 - **Sandbox hosts in Turno's docs:** every host printed on apidocs.turnoverbnb.com is `sandbox.turnoverbnb.com`. Production is `api.turnoverbnb.com`, confirmed live 2026-09-21. Your token from the Turno app is a production token.
-- **`uv: command not found` during register:** install uv per `connectors/system-python-uv.md`, open a NEW terminal window, run the register block again.
-- **Windows: server shows failed after restart:** the registered path was probably the `/c/Users/...` form. Run `claude mcp remove turno --scope user`, then re-register with the `cygpath -w` block above.
+- **`uv: command not found` during register:** install uv per `connectors/system-python-uv.md` (that step needs a real terminal, once, to install uv itself), then quit and reopen the Claude Code desktop app so its Bash tool picks up the new PATH, and run the register block again.
+- **Windows: server shows failed after restart:** the registered path was probably the `/c/Users/...` form. Re-run the Windows register block above; it overwrites the old entry with the `cygpath -w` form.
 - **You pasted a token into chat by accident:** rotate it. Create a new token in Turno, paste the new one into `.env`, run `bash fan-out-env.sh`, restart. Remove the exposed token in Turno if the page offers a delete.
 
 ## 7. Sources

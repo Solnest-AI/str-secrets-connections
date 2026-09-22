@@ -46,7 +46,7 @@ npx -v
 
 ## 6. Troubleshooting
 - **`npm.ps1 cannot be loaded because running scripts is disabled` (Windows):** run the `Set-ExecutionPolicy` line in section 3, or call `npm.cmd` and `npx.cmd` instead of `npm` and `npx`.
-- **A server shows `Failed to connect` the first time:** the first `npx` start downloads the package and can run past the 30 second startup timeout. Wait a moment and run `claude mcp list` again; it usually connects on the second try.
+- **A server shows `Failed to connect` the first time:** the first `npx` start downloads the package and can run past the 30 second startup timeout. Wait a moment and say "Check my connections" again; it usually connects on the second try.
 - **`command not found: node` on Mac after a Homebrew install:** you ran `brew install node@24`. Run `brew install node` instead.
 - **`node -v` still prints the old version after installing:** you are in the window you had open before the install. Open a NEW one.
 - **Which version is right:** v24 is the LTS today. v26 takes over as LTS on 2026-10-28. Either one works; the floor is v20.

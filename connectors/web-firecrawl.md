@@ -34,34 +34,34 @@ Then, from the bundle folder (`cd "$BUNDLE"`):
 **FILLED:** `grep -q '^FIRECRAWL_API_KEY=.\+' .env && echo "present ✅" || echo "still blank"`
 **WORKS:** `bash -c '. lib/env.sh; . lib/probes.sh; env_load .env; probe_firecrawl; echo rc=$?'` (0 works, 1 rejected, 2 blank, 3 unreachable)
 
-**Register** Firecrawl's hosted server with the key in a header. Load the `.env` through the kit's `env_load` first: it trims stray spaces and Windows line endings so the header goes out clean. The remove line is on purpose: it clears any older `firecrawl` entry (keyless, stdio, or a stale key) so the new one wins.
+**Register** Firecrawl's hosted server with the key in a header. Claude runs this from inside the desktop app, no terminal of your own needed. It reads the key straight out of `.env` and hands the helper only the NAME of the variable, never the value, so the key is never typed into this command and never shows up in chat. Re-running this block any time (a new key, a fresh install) just overwrites the old entry; nothing to remove first.
 ```bash
-. "$BUNDLE/lib/env.sh"; env_load "$BUNDLE/.env"
-if [ -z "$FIRECRAWL_API_KEY" ]; then echo "FIRECRAWL_API_KEY is blank in .env. Fill it first, then run this block again."; else
-claude mcp remove firecrawl -s user >/dev/null 2>&1 || true
-claude mcp add --transport http --scope user firecrawl https://mcp.firecrawl.dev/v2/mcp --header "Authorization: Bearer $FIRECRAWL_API_KEY" >/dev/null 2>&1 && { echo "firecrawl registered ✅"; echo firecrawl >> "$BUNDLE/.cache/needs-restart"; } || echo "firecrawl register failed ❌. Run the claude mcp add line again without the >/dev/null 2>&1 part to see the error."
-fi
+set -a; . "$BUNDLE/.env"; set +a
+uv run --python 3.13 python "$BUNDLE/lib/mcp_register.py" firecrawl --http https://mcp.firecrawl.dev/v2/mcp --header "Authorization: Bearer FIRECRAWL_API_KEY" && echo "firecrawl registered ✅" || echo "firecrawl failed ❌"
+echo firecrawl >> "$BUNDLE/.cache/needs-restart"
 ```
-Then fully quit and reopen Claude Code. New servers only show up after a restart.
+If `FIRECRAWL_API_KEY` is blank in `.env`, the helper says so on its own (`FIRECRAWL_API_KEY is blank`) and registers nothing; fill the line and run the block again.
 
-The header is stored in `~/.claude.json`, not in the URL. Firecrawl's own rule: "Configure the key through an environment variable or your client's secret storage, never in the MCP URL." So the `mcp.firecrawl.dev/<key>/` URL form is never used in this kit. And Claude never prints `claude mcp list` output to you, whatever is in it.
+Then quit and reopen the Claude Code desktop app. New servers only show up after a restart.
 
-**Windows note:** run this under Git Bash (that is what Claude's Bash tool is). `$BUNDLE/.env` and `$BUNDLE/.cache/needs-restart` are read by bash itself, so the Git Bash form (`/c/Users/...`) is right as-is. Nothing here needs `cygpath -w` or `.venv/Scripts/python.exe`: the only things handed to `claude mcp add` are a URL and a header, and those are the same on every OS. That is also why the hosted server is the primary path on Windows; the npx fallback in section 6 has a known env-var problem there.
+The header is stored in `~/.claude.json`, not in the URL. Firecrawl's own rule: "Configure the key through an environment variable or your client's secret storage, never in the MCP URL." So the `mcp.firecrawl.dev/<key>/` URL form is never used in this kit. And Claude never prints the raw contents of `~/.claude.json` to you, whatever is in it.
+
+**Windows note:** run this under Git Bash (that is what Claude's Bash tool is). `$BUNDLE/.env` and `$BUNDLE/.cache/needs-restart` are read by bash itself, so the Git Bash form (`/c/Users/...`) is right as-is. Nothing here needs `cygpath -w` or `.venv/Scripts/python.exe`: the only things handed to the register helper are a URL and a header, and those are the same on every OS. That is also why the hosted server is the primary path on Windows; the npx fallback in section 6 has a known env-var problem there.
 
 ## 4. Path B: official MCP
-This IS the official MCP. The register block in section 3 is the exact `claude mcp add --transport http` line, with the key as a `--header`. Auth is the header, not a browser login, so there is no `/mcp` > Authenticate step and no browser window opens.
+This IS the official MCP. The register block in section 3 registers it as an `http` server, with the key as a header. Auth is the header, not a browser login, so there is no `/mcp` > Authenticate step and no browser window opens.
 
 Firecrawl documents two other ways in for the same server, and we register neither:
-- **Keyless:** `claude mcp add --transport http firecrawl https://mcp.firecrawl.dev/v2/mcp` with no header. Three tools, daily limits. The Comping Agent needs more than that.
+- **Keyless:** the same helper with no `--header`. Three tools, daily limits. The Comping Agent needs more than that.
 - **Sign-in:** the `https://mcp.firecrawl.dev/v2/mcp-oauth` URL, authenticated through the browser. Works, but it leaves no key in `.env`, so the checker has nothing to probe and nothing to rotate. The header form gives you both.
 
-No beta, no waitlist as of 2026-09-21. After the restart, `/mcp` should list `firecrawl` as connected.
+No beta, no waitlist as of 2026-09-21. After the restart, type `/mcp` in the chat, pick `firecrawl`, and it should show connected. (If your app shows a Connectors (+) button instead of `/mcp`, use that and look for `firecrawl` there.)
 
 ## 5. Verify
 The checker runs `probe_firecrawl`, which makes one real call: `GET https://api.firecrawl.dev/v2/team/credit-usage` with your key in the `Authorization: Bearer` header. It reads your credit balance; it does not scrape anything. Outcomes (all confirmed live 2026-09-21):
 
 - **200** with a JSON body: works. Row shows ✅.
-- **401** `Unauthorized: Invalid token`: the key is wrong, revoked, or copied with a stray character. Re-copy it into `.env`, then re-run the whole register block in section 3 (the key lives inside the registered header, so fixing `.env` alone does not reach the server), restart Claude Code, then say "Check my connections".
+- **401** `Unauthorized: Invalid token`: the key is wrong, revoked, or copied with a stray character. Re-copy it into `.env`, then re-run the whole register block in section 3 (the key lives inside the registered header, so fixing `.env` alone does not reach the server), quit and reopen the Claude Code desktop app, then say "Check my connections".
 - **401** saying "This endpoint is not supported by the keyless free tier": no key reached Firecrawl at all. The `.env` line was blank when the call went out. Fill it, run the probe again, then the register block.
 - **Blank**: the `.env` line is empty. Paste the key into the file.
 - **Unreachable**: no network, or Firecrawl is down. Try again in a minute.
@@ -71,18 +71,15 @@ One thing to know about the "Connected" label: the hosted server accepts the han
 The in-chat test after restart: ask Claude "What is my Firecrawl credit usage?" It calls `firecrawl_credit_usage` and reports a number. That is the whole check.
 
 ## 6. Troubleshooting
-- **Tools answer "The Firecrawl API key is invalid or revoked":** that is Firecrawl's `CREDENTIAL_INVALID`. The server was registered with a bad key. Fix the line in `.env`, re-run the whole register block in section 3 (it removes and re-adds), restart. Firecrawl's own fix text says the same: "Replace the key on the existing Firecrawl MCP server, then start a new session."
+- **Tools answer "The Firecrawl API key is invalid or revoked":** that is Firecrawl's `CREDENTIAL_INVALID`. The server was registered with a bad key. Fix the line in `.env`, re-run the whole register block in section 3 (it overwrites the old entry), quit and reopen the Claude Code desktop app. Firecrawl's own fix text says the same: "Replace the key on the existing Firecrawl MCP server, then start a new session."
 - **Tools answer "This tool needs a Firecrawl account":** that is `KEYLESS_TOOL_NOT_AVAILABLE`. The server was registered without the header (the keyless form). Re-run the register block in section 3.
 - **`/mcp` warns "Leading or trailing whitespace in: headers.Authorization":** the `.env` line has a space or a newline hiding after the key. Claude Code does not trim it and the header goes out wrong. Open `.env`, delete anything after the last character of the key, re-run the register block.
 - **Worked last week, now every call fails:** the usual cause is credits. Free plan is 1,000 a month and it resets monthly. Ask Claude for your credit usage; if it is at the cap, wait for the reset or upgrade at https://www.firecrawl.dev/pricing.
-- **You already had a `firecrawl` server from before the summit:** the register block removes the user-scope one and replaces it. If yours lived in a project's `.mcp.json`, that copy stays and may win inside that project. Either is fine as long as it has a working key.
+- **You already had a `firecrawl` server from before the summit:** the register block overwrites the user-scope entry with a fresh one, key and all. If yours lived in a project's `.mcp.json`, that copy stays and may win inside that project. Either is fine as long as it has a working key.
 - **Hosted server unreachable and you need it now (fallback):** Firecrawl still supports a local server, vendor-pinned to 3.23.7. Needs Node 22 or newer (`node --version` to check; see the Node connector if it is older). The key goes in through `--env`, not the URL:
   ```bash
-  . "$BUNDLE/lib/env.sh"; env_load "$BUNDLE/.env"
-  if [ -z "$FIRECRAWL_API_KEY" ]; then echo "FIRECRAWL_API_KEY is blank in .env. Fill it first, then run this block again."; else
-  claude mcp remove firecrawl -s user >/dev/null 2>&1 || true
-  claude mcp add --transport stdio firecrawl --scope user --env FIRECRAWL_API_KEY="$FIRECRAWL_API_KEY" -- npx -y firecrawl-mcp@3.23.7 >/dev/null 2>&1 && { echo "firecrawl registered ✅"; echo firecrawl >> "$BUNDLE/.cache/needs-restart"; } || echo "firecrawl register failed ❌. Run the claude mcp add line again without the >/dev/null 2>&1 part to see the error."
-  fi
+  set -a; . "$BUNDLE/.env"; set +a
+  uv run --python 3.13 python "$BUNDLE/lib/mcp_register.py" firecrawl --stdio npx -y firecrawl-mcp@3.23.7 --env FIRECRAWL_API_KEY && { echo "firecrawl registered ✅"; echo firecrawl >> "$BUNDLE/.cache/needs-restart"; } || echo "firecrawl register failed ❌"
   ```
   Same server name, so the summit skills do not notice the swap. Windows: this path has a known problem passing the env var through npx; stay on the hosted server unless it is actually down.
 - **You found the `mcp.firecrawl.dev/<key>/` URL style in an old tutorial:** skip it. The key ends up in a URL, and URLs get logged. Firecrawl says header or secret storage, never the URL. The kit only ever registers the header form.

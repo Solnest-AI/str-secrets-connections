@@ -46,19 +46,19 @@ If `dist/index.js` is missing after the build step: `cd "$BUNDLE/mcp-servers/hos
 **Register (macOS / Linux):**
 ```bash
 bash "$BUNDLE/fan-out-env.sh"
-claude mcp remove hostaway --scope user >/dev/null 2>&1; claude mcp add --transport stdio hostaway --scope user -- node "$BUNDLE/mcp-servers/hostaway/dist/index.js" >/dev/null 2>&1 && echo "hostaway registered ✅" || echo "register failed ❌"
+uv run --python 3.13 python "$BUNDLE/lib/mcp_register.py" hostaway --stdio node "$BUNDLE/mcp-servers/hostaway/dist/index.js" && echo "hostaway registered ✅" || echo "register failed ❌"
 echo hostaway >> "$BUNDLE/.cache/needs-restart"
 ```
 
 **Register (Windows, Git Bash):** Claude Code is a native Windows process, so it must be handed a `C:\...` path. Convert with `cygpath -w` first and register the Windows form:
 ```bash
 bash "$BUNDLE/fan-out-env.sh"
-claude mcp remove hostaway --scope user >/dev/null 2>&1; claude mcp add --transport stdio hostaway --scope user -- node "$(cygpath -w "$BUNDLE/mcp-servers/hostaway/dist/index.js")" >/dev/null 2>&1 && echo "hostaway registered ✅" || echo "register failed ❌"
+uv run --python 3.13 python "$BUNDLE/lib/mcp_register.py" hostaway --stdio node "$(cygpath -w "$BUNDLE/mcp-servers/hostaway/dist/index.js")" && echo "hostaway registered ✅" || echo "register failed ❌"
 echo hostaway >> "$BUNDLE/.cache/needs-restart"
 ```
 If Claude built the Python flavour instead of Node, the interpreter on Windows is `.venv/Scripts/python.exe` (not `.venv/bin/python`), and both the interpreter path and the `server.py` path go through `cygpath -w` the same way.
 
-Then restart Claude Code in this folder and say "Check my connections".
+Then quit and reopen the Claude Code desktop app and say "Check my connections".
 
 ## 4. Path B: official MCP
 _None for this connector._ Hostaway publishes no MCP server as of 2026-09-21 (their API docs and help center have zero mentions). The built server above is the whole story for now.
@@ -85,7 +85,7 @@ Scoreboard row: **Hostaway API**. What the codes mean (checked against the live 
 - **403 on the very first call after a new token.** The 1-second rule. Hostaway: "Please wait at least 1 second before making API calls using a newly issued token." The built server sleeps 1 second after every exchange; if you wrote your own quick test, add the sleep.
 - **It worked last month, now every call is 403.** The server re-exchanges the token on its own. If it keeps failing, the pair was revoked in Settings > Hostaway API (the exchange answers 401): make a new one, paste it into `.env`, run `bash "$BUNDLE/fan-out-env.sh"`, re-check.
 - **429 `This error occurs because a server detects that your application has exceeded the rate limits`.** Hostaway's limits (their docs, 2026-09-21): **200 requests per 10 seconds per account** and **200 per 10 seconds per IP** for regular endpoints, 30 per minute for sending guest messages, 400 per 10 seconds for price details. Sliding window, not a fixed clock. The 429 carries `X-RateLimit-Retry-After`, which is a Unix timestamp, not a number of seconds to wait. The built server backs off and retries up to 3 times; if you are hammering it from a loop, slow the loop.
-- **Windows: `Failed to connect` after restart.** The server was registered with a `/c/Users/...` path. Re-run the Windows register block above; its first command removes the old entry, then the `cygpath -w` form gets stored. Restart Claude Code again.
+- **Windows: `Failed to connect` after restart.** The server was registered with a `/c/Users/...` path. Re-run the Windows register block above; it overwrites the old entry with the `cygpath -w` form. Quit and reopen the Claude Code desktop app again.
 - **The server can read but I want it to write (calendar, messages).** Every write tool is confirmation-gated: it previews the change and only sends it when Claude re-runs it with `confirm=true`. That is on purpose. Claude will always ask first.
 
 ## 7. Sources

@@ -5,10 +5,13 @@ set -u
 cd "$(dirname "$0")"
 . lib/env.sh; . lib/mcp.sh; . lib/probes.sh 2>/dev/null || true; . lib/matrix.sh 2>/dev/null || true
 
-if ! command -v claude >/dev/null 2>&1; then echo "❌ The 'claude' command is not on PATH. Open a new terminal, or install Claude Code (connectors/system-claude-code.md)."; exit 1; fi
+# No hard gate on a `claude` CLI here: the attendee runs this from inside the Claude Code
+# desktop app, where the CLI is not guaranteed to be on PATH. mcp_load() (lib/mcp.sh) uses
+# one if it finds one and otherwise reads ~/.claude.json directly, so the scoreboard still
+# works either way.
 if ! env_load ./.env; then echo "❌ No .env here. Run: cp .env.template .env"; exit 1; fi
 
-# row <label> <state> [hint]; state: ok|missing|auth|keyfail|vendor|na|restart
+# row <label> <state> [hint]; state: ok|missing|auth|keyfail|vendor|na|restart|live
 row() {
   local label="$1" state="$2" hint="${3:-}" glyph text
   case "$state" in
@@ -19,6 +22,7 @@ row() {
     vendor)  glyph="⏳"; text="waiting on vendor" ;;
     na)      glyph="➖"; text="not used" ;;
     restart) glyph="🔒"; text="needs a full restart of Claude Code" ;;
+    live)    glyph="🔎"; text="registered; Claude checks it live in this chat" ;;
     *)       glyph="❓"; text="$state" ;;
   esac
   printf '%s %-32s %s' "$glyph" "$label" "$text"
@@ -32,5 +36,6 @@ OUT="$(scoreboard)"
 printf '%s\n' "$OUT"
 c=$(printf '%s\n' "$OUT" | grep -c '^✅'); m=$(printf '%s\n' "$OUT" | grep -c '^❌')
 v=$(printf '%s\n' "$OUT" | grep -c '^⏳'); n=$(printf '%s\n' "$OUT" | grep -c '^➖'); r=$(printf '%s\n' "$OUT" | grep -c '^🔒')
-echo; echo "Summary: $c connected, $m missing, $v pending vendor, $n not used, $r need restart"
+l=$(printf '%s\n' "$OUT" | grep -c '^🔎')
+echo; echo "Summary: $c connected, $m missing, $v pending vendor, $n not used, $r need restart, $l need live check"
 exit 0
