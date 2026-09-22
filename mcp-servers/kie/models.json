@@ -1,0 +1,63 @@
+{
+  "_comment": "Model registry for /solnest-clone-ad. Every model runs through KIE.ai's one unified API (jobs/createTask), so adding a model = one entry here, no code change. Client-portable: one KIE key unlocks all of these. NOTE the per-model variance the registry absorbs: 'refs_key' is the input field a model expects reference images under (Nano Banana uses image_input, Flux uses input_urls, Seedream takes none); 'size_mode' is whether the model takes aspect_ratio (most) or image_size (Seedream enum). Slugs verified against docs.kie.ai 2026-06.",
+  "default_model": "gpt-image-2",
+  "_default_model_note": "Ryan's call after the I1 live test: GPT Image 2 won by a wide margin (best text, cleanest composition). A normal run uses ONLY this model x3. default_set below is opt-in comparison mode.",
+  "default_set": ["gpt-image-2", "nano-banana-pro", "nano-banana"],
+  "models": {
+    "nano-banana-pro": {
+      "slug": "nano-banana-pro",
+      "category": "image",
+      "size_mode": "aspect_ratio",
+      "refs_key": "image_input",
+      "defaults": { "resolution": "2K", "output_format": "png" },
+      "note": "Google Nano Banana Pro (Gemini 3). Best text rendering + face/character consistency, up to 4K. The default for face- or text-heavy ads."
+    },
+    "nano-banana": {
+      "slug": "google/nano-banana",
+      "category": "image",
+      "size_mode": "aspect_ratio",
+      "refs_key": "image_input",
+      "defaults": { "output_format": "png" },
+      "note": "Google Nano Banana (Gemini 2.5 Flash). Cheap + fast text-to-image. Good volume option."
+    },
+    "seedream": {
+      "slug": "bytedance/seedream",
+      "category": "image",
+      "size_mode": "image_size",
+      "refs_key": null,
+      "defaults": { "guidance_scale": 2.5 },
+      "note": "ByteDance Seedream. BROKEN as of 2026-06: slug 'bytedance/seedream' returns state=FAIL on KIE — slug likely rotated (try a Seedream 4.5/5 slug). Not in default_set until verified. Pure prompt (no refs)."
+    },
+    "flux-pro": {
+      "slug": "flux-2/pro-image-to-image",
+      "category": "image",
+      "size_mode": "aspect_ratio",
+      "refs_key": "input_urls",
+      "defaults": { "resolution": "2K" },
+      "note": "Black Forest Flux 2 Pro. Photoreal, strong lighting. Needs >=1 reference image (image-to-image)."
+    },
+    "gpt-image-2": {
+      "slug": "gpt-image-2-text-to-image",
+      "category": "image",
+      "size_mode": "aspect_ratio",
+      "refs_key": null,
+      "defaults": {},
+      "note": "ChatGPT Image 2 (text-to-image). Best on-image text rendering + polished composition. Blank-canvas; use gpt-image-2-edit to condition on a reference."
+    },
+    "gpt-image-2-edit": {
+      "slug": "gpt-image-2-image-to-image",
+      "category": "image",
+      "size_mode": "aspect_ratio",
+      "refs_key": "input_urls",
+      "defaults": {},
+      "note": "ChatGPT Image 2 image-to-image. Needs >=1 reference image. Best for faithful pixel-level clone (keep frame, swap text)."
+    }
+  },
+  "aspect_to_image_size": {
+    "1:1": "square_hd",
+    "4:5": "portrait_4_3",
+    "9:16": "portrait_16_9",
+    "16:9": "landscape_16_9",
+    "1.91:1": "landscape_16_9"
+  }
+}
