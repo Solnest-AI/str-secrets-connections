@@ -123,6 +123,12 @@ def clickpath_steps(section3: str) -> list[str]:
     numbered = re.findall(r"^\s*\d+\.\s+(.+)$", scope, re.M)
     if numbered:
         return [n.strip() for n in numbered]
+    # fallback: vendor steps quoted inline on one line, e.g. "1. Log in ... 2. Click ... 3. ..."
+    for line in scope.splitlines():
+        inline = re.split(r"\s(?=\d+\.\s)", line.strip().strip('"'))
+        inline = [re.sub(r"^\d+\.\s*", "", x).strip().strip('"') for x in inline if re.match(r"^\d+\.\s", x.strip())]
+        if len(inline) >= 2:
+            return inline
     # fallback: an arrow-separated recap line, e.g. "**Account Settings** > **API Details** > ..."
     for line in scope.splitlines():
         if line.count(" > ") >= 2:
@@ -185,8 +191,8 @@ def build_card(entry: dict) -> str:
     required = fm.get("required", "optional")
     badge_text, badge_class = BADGE.get(required, BADGE["optional"])
     vendor = html.escape(entry["vendor"])
-    what = trim(first_paragraph(entry["sections"].get(1, "")), 260)
-    gate = trim(gate_text(entry["sections"].get(2, "")), 200)
+    what = trim(first_paragraph(entry["sections"].get(1, "")), 420)
+    gate = trim(gate_text(entry["sections"].get(2, "")), 600)
     skills = html.escape(skills_for(entry))
     steps = clickpath_steps(entry["sections"].get(3, ""))
     link = direct_link(entry["sections"].get(3, ""))
@@ -212,7 +218,7 @@ def build_card(entry: dict) -> str:
     if steps:
         parts.append('  <ol>')
         for s in steps[:8]:
-            parts.append(f'    <li>{inline_html(trim(s, 220))}</li>')
+            parts.append(f'    <li>{inline_html(trim(s, 360))}</li>')
         parts.append('  </ol>')
     if env_vars:
         chips = " ".join(f"<code>{html.escape(v)}</code>" for v in env_vars)
