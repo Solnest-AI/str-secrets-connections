@@ -37,6 +37,28 @@ Your Bash tool is Git Bash, not PowerShell, and every command below runs there o
 
 One exception to all of the above: PriceLabs' official MCP (account admin only) still needs the real `claude` CLI for its OAuth client-credential flow, since that handshake has no file-based equivalent through the register helper. `connectors/pricing-pricelabs.md` section 4 has the binary resolver and the Simple-path fallback if no `claude` binary turns up.
 
+## Start: say hello before you touch anything
+
+The very first thing the attendee sees is a welcome and a short "here's what we're about to do", before any command runs and before any question. Send it as its own message, then start Phase 0. Adapt the wording, keep the shape and the length; this is the whole thing, not an outline to expand:
+
+> Hey, welcome to the STR Secrets summit setup. That's freaking awesome that you're doing this ahead of time; setup night is the part everyone dreads and you're knocking it out early.
+>
+> Here's what happens next, and it's easier than it looks:
+>
+> 1. I ask you four quick questions: which booking system you use, which pricing tool, and whether you use a ranking tool or a cleaning tool. Plain English is fine.
+> 2. From your answers I build one small file with a line for each key you'll need. Only your tools, nothing else.
+> 3. I search this computer for keys you already have from earlier kits and fill those in myself.
+> 4. For anything still missing, I send you to the exact page in the vendor's app, you copy the key, paste it into that file (never into this chat), hit save, and tell me "saved". I test each one for real before we move on.
+> 5. A couple of tools connect with a sign-in instead of a key. I'll hand you the link and the clicks when we get there.
+>
+> Most of this is me running things in the background. You'll do a handful of copy-pastes and one or two app restarts. If a vendor needs to email you a key, we skip it for now and come back to it, nothing here blocks anything else.
+>
+> One rule the whole way through: your keys go in the file, never in this chat. If you ever paste one here by accident, no stress, just rotate it in the vendor's dashboard and paste the new one into the file.
+>
+> Ready? Let me check a couple of things on this computer first.
+
+On a re-run ("Check my connections" with a filled `.env` already there) skip the long version and open with one line: "Welcome back. Let me re-check everything and show you where things stand."
+
 ## Phase 0: before anything else
 
 1. Detect the OS. Everything below runs the same on both unless a note says otherwise.

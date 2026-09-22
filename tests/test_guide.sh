@@ -50,7 +50,7 @@ t "directory table has no bundled or npm rows" "! grep -qE 'Bundled|@supabase|@g
 t "no em-dash"                 "! grep -q '—' '$HTML'"
 t "no claude mcp add"          "! grep -q 'claude mcp add' '$HTML'"
 t "no shell prompt text"       "! grep -q '\\$ ' '$HTML'"
-t "download link present once" "[ \"\$(grep -o 'releases/download/v[0-9.]*/str-secrets-connections-v[0-9.]*\.zip' '$HTML' | wc -l | tr -d ' ')\" = 1 ]"
+t "download link present once" "[ \"\$(grep -o 'releases/latest/download/str-secrets-connections\.zip' '$HTML' | wc -l | tr -d ' ')\" = 1 ]"
 
 # --- PDF ---
 t "pdf exists" "[ -f '$PDF' ]"

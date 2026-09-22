@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.0.3 (2026-09-22)
+- Claude opens with a welcome and a short "here's what happens next" before running anything (one line on re-runs).
+- Guide and README download link now point at the latest release, so kit updates no longer need a guide rebuild.
+
 ## 1.0.2 (2026-09-22)
 - The four stack questions come first. `lib/env_make.py` then builds a `.env` with only the slots that apply (one PMS, one pricing tool, ranking and ops only if used, plus the required keys), answers pre-filled. Re-running with new answers keeps every existing value.
 - Before asking for any key, `lib/env_discover.py` searches the computer for keys the attendee already has (other Solnest kits' `.env` files, registered MCP servers in `~/.claude.json`, the Claude Desktop config) and copies them in; names only, never values. "I already have that" now means Claude goes and looks.
