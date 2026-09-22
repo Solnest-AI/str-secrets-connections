@@ -108,6 +108,7 @@ def read_env(path: str | Path) -> dict[str, str]:
 
 def walk_env_files(roots: list[Path], own_env: Path) -> list[Path]:
     found: list[Path] = []
+    seen: set[Path] = set()
     count = 0
     for root in roots:
         base_depth = len(root.parts)
@@ -122,27 +123,47 @@ def walk_env_files(roots: list[Path], own_env: Path) -> list[Path]:
                     return found
                 if (fn in ENV_NAMES or fn.endswith(".env")) and not any(w in fn.lower() for w in SKIP_FILE_WORDS):
                     p = Path(dirpath) / fn
-                    if p.resolve() != own_env.resolve():
+                    rp = p.resolve()
+                    if rp != own_env.resolve() and rp not in seen:
+                        seen.add(rp)
                         found.append(p)
     return found
 
 
-def server_env_files(spec: dict) -> list[Path]:
+def server_env_files(spec: dict, own_env: Path | None = None) -> list[Path]:
     """.env files a registered stdio server would read: beside its script, one and two
-    levels up (dist/index.js -> repo root), and in its cwd."""
+    levels up (dist/index.js -> repo root), and in its cwd.
+
+    Only ABSOLUTE paths count. A package name like "@supabase/mcp-server-supabase@latest"
+    has a slash in it but is not a path; treating it as one walked ".", ".." and "../.."
+    relative to the current directory and read whatever .env sat there (found 2026-09-22:
+    it picked up this kit's own .env and labelled it as the Supabase server's). The home
+    folder is left out too: ~/.env is found by the ordinary walk and reported under its
+    own path, not as some unrelated server's."""
+    home = Path.home()
     dirs: list[Path] = []
     for a in spec.get("args") or []:
-        if isinstance(a, str) and (a.endswith((".js", ".py", ".mjs", ".cjs")) or os.path.sep in a):
-            d = Path(a).expanduser().parent
+        if not isinstance(a, str):
+            continue
+        cand = Path(a).expanduser()
+        if not cand.is_absolute():
+            continue
+        if a.endswith((".js", ".py", ".mjs", ".cjs")) or os.path.sep in a:
+            d = cand.parent
             dirs += [d, d.parent, d.parent.parent]
-        if isinstance(a, str) and os.path.isdir(os.path.expanduser(a)):
-            dirs.append(Path(a).expanduser())
-    if isinstance(spec.get("cwd"), str):
-        dirs.append(Path(spec["cwd"]).expanduser())
+        if cand.is_dir():
+            dirs.append(cand)
+    cwd = spec.get("cwd")
+    if isinstance(cwd, str) and Path(cwd).expanduser().is_absolute():
+        dirs.append(Path(cwd).expanduser())
     out, seen = [], set()
     for d in dirs:
+        if d == home or d == Path("/"):
+            continue
         for fn in (".env", ".env.local"):
             p = d / fn
+            if own_env is not None and p.resolve() == own_env.resolve():
+                continue
             if p.is_file() and p not in seen and not any(w in str(p).lower() for w in ("/tests/", "/fixtures/", "example", "template")):
                 seen.add(p)
                 out.append(p)
@@ -172,7 +193,7 @@ def spotlight_env_files() -> list[Path]:
     return out
 
 
-def claude_json_candidates() -> dict[str, tuple[str, str]]:
+def claude_json_candidates(own_env: Path | None = None) -> dict[str, tuple[str, str]]:
     """VAR -> (value, where) pulled from registered MCP servers."""
     out: dict[str, tuple[str, str]] = {}
     paths = [Path.home() / ".claude.json"]
@@ -210,7 +231,7 @@ def claude_json_candidates() -> dict[str, tuple[str, str]]:
                         if isinstance(a, str) and a.startswith(key) and a[len(key):]:
                             out.setdefault(var, (a[len(key):], f"{where}: {name}"))
             # stdio servers usually keep their key in a .env beside the script (or one level up)
-            for cand in server_env_files(spec):
+            for cand in server_env_files(spec, own_env):
                 for k, v in read_env(cand).items():
                     out.setdefault(k, (v, f"{where}: {name} -> {cand.parent.name}/{cand.name}"))
             kie_env = (spec.get("env") or {}).get("KIE_ENV_PATH")
@@ -262,7 +283,7 @@ def main() -> int:
 
     # 1. registered MCP servers
     cands: dict[str, tuple[str, str]] = {}
-    for k, (v, where) in claude_json_candidates().items():
+    for k, (v, where) in claude_json_candidates(own).items():
         cands.setdefault(k, (v, where))
     # 2. .env files around the machine
     files = walk_env_files(home_roots(a.env, a.extra_dir), own)

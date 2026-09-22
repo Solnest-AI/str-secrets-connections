@@ -52,16 +52,17 @@ GEMINI_API_KEY=
 **FILLED:** `grep -q '^GEMINI_API_KEY=.\+' .env && echo "present ✅" || echo "still blank"`
 **WORKS:** `bash -c '. lib/env.sh; . lib/probes.sh; env_load .env; probe_gemini; echo rc=$?'` (0 works, 1 rejected, 2 blank, 3 unreachable)
 
-**Register:** nothing. There is no MCP server to register for Gemini, no server name, and no restart marker for this row. The Listing Optimizer reads the key from its own `.env`, and the fan-out script fills that from the root `.env`. Fan-out can only find the Listing Optimizer if the line `SKILL_PATH_LISTING_OPTIMIZER=` in the root `.env` holds the absolute path of the Listing Optimizer folder: the one that contains its `README.md`, `scripts/` and `.env.example`, not a folder above it (Claude fills it in Phase 0; if it is blank, fill it now). Then run it after any `.env` change:
+**Register:** nothing. There is no MCP server to register for Gemini, no server name, and no restart marker for this row. Once WORKS passes, this row is done: the key sits in the root `.env` and the scoreboard shows it ✅.
+
+**Summit morning.** The Listing Optimizer is handed out in the room and reads the key from its own `.env`. When that folder lands, Claude writes its absolute path (the folder holding the Listing Optimizer's `README.md`, `scripts/` and `.env.example`, not a folder above it) on the `SKILL_PATH_LISTING_OPTIMIZER=` line of the root `.env`, then fans the keys out:
 ```bash
 cd "$BUNDLE" && bash fan-out-env.sh
 ```
-It prints a ✅ per folder it touched and never prints the values. You should see a line ending in `(skill)` for the Listing Optimizer; if that line is missing, the key did not reach it. Fan-out skips the folder silently when the path is blank, does not exist, or is not the folder that holds the Listing Optimizer's `.env.example`. Ignore the closing "Restart Claude Code fully" line for this row; it is for MCP servers, and Gemini has none. Proof the key landed (prints yes or no, never the value):
+It prints a ✅ per folder it touched and never prints the values; the Listing Optimizer shows up as a line ending in `(skill)`. Fan-out skips the folder silently when the path is blank, does not exist, or does not hold the Listing Optimizer's `.env.example`. Ignore the closing "Restart Claude Code fully" line for this row; it is for MCP servers, and Gemini has none. Proof the key landed (prints yes or no, never the value):
 ```bash
-set -a; . "$BUNDLE/.env"; set +a; [ -n "${SKILL_PATH_LISTING_OPTIMIZER:-}" ] && grep -q '^GEMINI_API_KEY=.\+' "$SKILL_PATH_LISTING_OPTIMIZER/.env" && echo "listing optimizer has it ✅" || echo "run fan-out-env.sh once the Listing Optimizer folder path is set"
+set -a; . "$BUNDLE/.env"; set +a; [ -n "${SKILL_PATH_LISTING_OPTIMIZER:-}" ] && grep -q '^GEMINI_API_KEY=.\+' "$SKILL_PATH_LISTING_OPTIMIZER/.env" && echo "listing optimizer has it ✅" || echo "not yet: the Listing Optimizer path is set on summit morning"
 ```
-
-**Windows note:** run the lines above in Git Bash (Claude's Bash tool). Nothing on this card registers an MCP server or hands a path to anything, so there is no `cygpath -w` and no `.venv/Scripts/python.exe` here.
+Before that morning there is nothing to fan out to, and nothing here is missing.
 
 ## 4. Path B: official MCP
 _None for this connector._ The Listing Optimizer calls the Gemini API directly with the key. There is no MCP server to register and nothing to authenticate in `/mcp`.

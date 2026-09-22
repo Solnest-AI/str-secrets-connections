@@ -45,7 +45,7 @@ Capability warning: what IntelliHost shows Claude depends on your plan. Without 
 As of 2026-09-21 the vendor names these MCP tools: account info, list properties, pricing recommendations, revenue reports, Helix predictions. We have not seen the full tool list, so whether search rank and funnel numbers come through the MCP (rather than only inside the IntelliHost app) is unverified. If the Revenue Manager asks for rank and IntelliHost has no tool for it, that is why. RankBreeze exposes rank directly; if rank is the number you care about, pick RankBreeze.
 
 ## 5. Verify
-This row is not driven by `~/.claude.json`. The app delivers a Connectors-UI sign-in straight to the chat session, invisible to the checker, so the row always prints `🔎 IntelliHost MCP   add it under + > Connectors; Claude checks it live`, whether or not you have added it yet, and even if you used the access-token fallback in section 6 (that path really is registered and working, the row text just cannot see it).
+This row is not driven by `~/.claude.json`. The app delivers a Connectors-UI sign-in straight to the chat session, invisible to the checker, so until its live check has passed once the row prints `🔎 IntelliHost MCP   add it under + > Connectors; Claude checks it live`, whether or not you have added it yet, and even if you used the access-token fallback in section 6 (that path really is registered and working, the row text just cannot see it). Once the live check passes, Claude records it in `.cache/live-ok` and the row shows ✅ with the date; "recheck intellihost" runs it again.
 
 - `➖ IntelliHost MCP   not used`: not used just means you told Claude you use RankBreeze or no ranking tool. Nothing to do.
 - Not added yet: run section 4, then tell Claude "connected".

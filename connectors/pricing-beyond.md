@@ -87,7 +87,7 @@ The checker runs two rows when your pricing tool is Beyond.
 - No answer: rc 3. Network, or Beyond is down. Retry later.
 (Codes verified live 2026-09-21.)
 
-**Beyond MCP (official, beta)** (`beyond-official`): this one never shows up in `~/.claude.json`, the app delivers it straight to the chat session, so the checker cannot see it. The row always prints `🔎 Beyond MCP (official, beta)   add it under + > Connectors; Claude checks it live`. Not added yet: run section 4. Added: the live check is the question in chat, "Ask Beyond what listings I have." An answer means it is working.
+**Beyond MCP (official, beta)** (`beyond-official`): this one never shows up in `~/.claude.json`, the app delivers it straight to the chat session, so the checker cannot see it. Until its live check has passed once, the row prints `🔎 Beyond MCP (official, beta)   add it under + > Connectors; Claude checks it live`; after that it shows ✅ with the date. Not added yet: run section 4. Added: the live check is the question in chat, "Ask Beyond what listings I have." An answer means it is working, and Claude records the pass in `.cache/live-ok`.
 
 Test the built server the same way after the restart: "List my Beyond listings." That is a read; nothing changes.
 

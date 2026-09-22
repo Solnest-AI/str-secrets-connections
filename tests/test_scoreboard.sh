@@ -29,6 +29,14 @@ t "blank STACK_PMS prompts"            "printf '%s' \"\$out2\" | grep -q '❌ PM
 mkdir -p .cache; echo "turno|2026-09-22" > .cache/pending-vendor; sed -i.bak 's/^STACK_OPS=.*/STACK_OPS=turno/' .env
 out3="$(bash check-connections.sh)"
 t "pending vendor row"                 "printf '%s' \"\$out3\" | grep -q '⏳ Turno API .*emailed 2026-09-22'"
+# a passed live check is remembered: the sign-in row turns ✅ with the date; the others stay 🔎
+printf 'meta-ads|2026-09-22\n' > .cache/live-ok
+out5="$(bash check-connections.sh)"
+t "live-ok: meta row goes green with the date"   "printf '%s' \"\$out5\" | grep -q '✅ Meta Ads MCP .*live check passed 2026-09-22'"
+t "live-ok: recheck hint names the server"       "printf '%s' \"\$out5\" | grep -q 'recheck meta-ads'"
+t "live-ok: unrecorded sign-in row still 🔎"     "printf '%s' \"\$out5\" | grep -q '🔎 PriceLabs MCP (official, beta)'"   # STACK_PMS was blanked two blocks up, so the Hospitable rows are not on this board
+t "live-ok: summary counts one fewer live check" "printf '%s' \"\$out5\" | grep -qE '^Summary: .* 1 need live check'"
+rm -f .cache/live-ok
 
 # --- no claude binary anywhere (desktop-app-only case): mcp_load reads ~/.claude.json ---
 # A PATH with a curl stub but no claude anywhere, and a HOME whose ~/.claude.json already

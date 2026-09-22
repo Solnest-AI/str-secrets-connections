@@ -29,6 +29,9 @@ header Authorization is "Bearer " followed by the value of
 $FIRECRAWL_API_KEY. Same blank-var rule as --env.
 
 --list prints "name<TAB>type" lines only. Never a url, env, header or arg.
+
+A successful register prints nothing (exit 0); the caller's own "&& echo" is
+the one confirmation line. --remove prints "NAME removed".
 """
 import argparse
 import json
@@ -159,7 +162,8 @@ def cmd_register(name, entry):
     data = load_config()
     data.setdefault("mcpServers", {})[name] = entry
     save_config(data)
-    print("%s registered" % name)
+    # Silent on success. Every register line in the connector files already echoes
+    # "<name> registered ✅" on exit 0, and printing here too showed it twice.
     return 0
 
 

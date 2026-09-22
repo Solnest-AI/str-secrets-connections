@@ -67,7 +67,7 @@ Claude runs the live check right after: "List my Lodgify properties." An answer 
 
 Then it reads the `lodgify` server's status from Claude Code (it never prints the raw list). Connected = ✅. If you just registered, the row says restart until you do.
 
-**Path B.** This one never shows up in `~/.claude.json`, the app delivers it straight to the chat session, so the checker cannot see it. The row always prints `🔎 Lodgify MCP (official, beta)   add it under + > Connectors; Claude checks it live`. Not added yet: run section 4. Added: Claude runs the live check ("List my Lodgify properties") in the chat.
+**Path B.** This one never shows up in `~/.claude.json`, the app delivers it straight to the chat session, so the checker cannot see it. Until its live check has passed once, the row prints `🔎 Lodgify MCP (official, beta)   add it under + > Connectors; Claude checks it live`; after that it shows ✅ with the date. Not added yet: run section 4. Added: Claude runs the live check ("List my Lodgify properties") in the chat and records the pass in `.cache/live-ok`.
 
 ## 6. Troubleshooting
 - **No "Public API" under Settings, or the page is there but locked:** most likely your plan does not include the API. Lodgify's pricing table: API endpoint included on Starter, Professional, Ultimate; not on Basic. Check your plan under Settings > Subscription first; if you are on Starter or above and the page is still missing, ask Lodgify support. Otherwise upgrade, or use Path B for now.

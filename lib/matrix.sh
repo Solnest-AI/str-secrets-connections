@@ -2,6 +2,7 @@
 # Scoreboard rows. Depends on row(), mcp_status(), probe_*(), env_filled().
 PENDING_FILE=.cache/pending-vendor
 RESTART_FILE=.cache/needs-restart
+LIVE_FILE=.cache/live-ok
 mkdir -p .cache 2>/dev/null; chmod 700 .cache 2>/dev/null
 
 # _cfile SERVER: the connector file that documents this server (hints used to glue the
@@ -26,6 +27,7 @@ _cfile() {
 }
 _pending_date() { [ -f "$PENDING_FILE" ] && awk -F'|' -v n="$1" '$1==n{print $2; exit}' "$PENDING_FILE"; }
 _needs_restart() { [ -f "$RESTART_FILE" ] && grep -qx "$1" "$RESTART_FILE"; }
+_live_date()    { [ -f "$LIVE_FILE" ] && awk -F'|' -v n="$1" '$1==n{print $2; exit}' "$LIVE_FILE"; }
 
 # check_api_row LABEL SERVER PROBE  (stdio server whose key is in .env)
 check_api_row() {
@@ -48,10 +50,13 @@ check_api_row() {
 }
 # check_oauth_row LABEL SERVER  (sign-in MCP the attendee adds in the app's Connectors UI.
 # The app delivers a connected connector straight to the chat session; it never appears in
-# ~/.claude.json, so there is nothing here for the checker to see. Always print the live-check
-# row regardless of registration state, and let Claude verify it live in the chat instead.)
+# ~/.claude.json, so there is nothing here for the checker to see. Claude verifies it live in
+# the chat and, when that passes, records "SERVER|DATE" in .cache/live-ok; from then on the
+# row shows ✅ with that date. No record yet = print the live-check row.)
 check_oauth_row() {
-  local label="$1"
+  local label="$1" server="$2" ld
+  ld=$(_live_date "$server")
+  if [ -n "$ld" ]; then row "$label" ok "live check passed $ld; say \"recheck $server\" to run it again"; return; fi
   row "$label" live
 }
 # check_env_row LABEL PROBE FILE  (key only, no server)

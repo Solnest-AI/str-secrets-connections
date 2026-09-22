@@ -98,7 +98,7 @@ Path B does not replace Path A. The checker's Path A row still runs for real, an
 - **rc 3:** no answer from `connect.uplisting.io` in 15 seconds. Network, VPN or a firewall. Try again.
 - Key works but the row says "server not registered yet": run the Register block for your OS in section 3.
 
-**Uplisting MCP (official)** (Path B). This one never shows up in `~/.claude.json`, the app delivers it straight to the chat session, so the checker cannot see it. The row always prints `🔎 Uplisting MCP (official)   add it under + > Connectors; Claude checks it live`. Not added yet: run section 4. Added: Claude runs the live check ("List my Uplisting properties") in the chat.
+**Uplisting MCP (official)** (Path B). This one never shows up in `~/.claude.json`, the app delivers it straight to the chat session, so the checker cannot see it. Until its live check has passed once, the row prints `🔎 Uplisting MCP (official)   add it under + > Connectors; Claude checks it live`; after that it shows ✅ with the date. Not added yet: run section 4. Added: Claude runs the live check ("List my Uplisting properties") in the chat and records the pass in `.cache/live-ok`.
 
 ## 6. Troubleshooting
 - **401 `Your API key does not appear to be valid`:** three usual causes. (1) A stray space or newline came along when you copied. Open `.env`, retype the line clean, save, re-run. (2) You tested by hand and encoded it as `key:` with a colon, the usual Basic auth shape. Uplisting's words: "Encode the key on its own, not in the usual key:password format." (3) You generated a new key at Uplisting after pasting the old one. Paste the current one.

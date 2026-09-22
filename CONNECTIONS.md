@@ -117,7 +117,7 @@ python3 "$BUNDLE/lib/env_make.py" --pms <pms> --pricing <pricing> --ranking <ran
 
 Do not ask where the Revenue Manager, Listing Optimizer, Comping Agent or Ad Spy skills live. Nobody has them yet: the four skills are handed out on summit morning and get wired up together in the room. The `SKILL_PATH_*` lines exist for that morning (`fan-out-env.sh` copies the keys into each skill's own `.env` once the paths are in); until then they are not in the attendee's file and nothing asks about them.
 
-**Now go find the keys they already have, before asking for a single one.** Plenty of attendees ran an earlier Solnest kit, or already registered a vendor's server. The helper reads every `.env`-style file in the usual places (Desktop, Documents, Downloads, the skill folders above, the folders of servers already registered in `~/.claude.json`, the Claude Desktop config), matches by name and by the other names the same key goes by, and copies anything it finds into the blank lines. It prints names and where each came from, never a value.
+**Now go find the keys they already have, before asking for a single one.** Plenty of attendees ran an earlier Solnest kit, or already registered a vendor's server. The helper reads every `.env`-style file in the usual places (Desktop, Documents, Downloads, the folders of servers already registered in `~/.claude.json`, the Claude Desktop config), matches by name and by the other names the same key goes by, and copies anything it finds into the blank lines. It prints names and where each came from, never a value.
 ```bash
 python3 "$BUNDLE/lib/env_discover.py" --env "$BUNDLE/.env" --apply
 ```
@@ -164,7 +164,14 @@ Everyone also gets the fixed rows: `connectors/market-airroi.md`, `connectors/ad
 
 For every ❌, ⚠️, or 🔎 row on the scoreboard:
 1. Open the connector file the table above points to.
-2. Follow section 3 (API key) for a key-shaped row, section 4 (official MCP) for a sign-in row, exactly as written. A 🔎 row is always a sign-in server: it shows that glyph whether or not it's been added yet, since the app never tells `~/.claude.json` about it. Hand the attendee the click path from section 4, wait for them to say "connected", then run the live check described there. No restart, no `.cache/needs-restart` marker, for this one.
+2. Follow section 3 (API key) for a key-shaped row, section 4 (official MCP) for a sign-in row, exactly as written. A 🔎 row is always a sign-in server: the app never tells `~/.claude.json` about it, so the checker cannot see it. Hand the attendee the click path from section 4, wait for them to say "connected", then run the live check described there. No restart, no `.cache/needs-restart` marker, for this one. When the live check passes, record it so the row turns ✅ on every board from now on:
+   ```bash
+   echo "<server>|$(date +%F)" >> "$BUNDLE/.cache/live-ok"
+   ```
+   "Recheck <server>" means clear that line and run the live check again:
+   ```bash
+   sed -i.bak '/^<server>|/d' "$BUNDLE/.cache/live-ok" && rm -f "$BUNDLE/.cache/live-ok.bak"
+   ```
 3. Any time `.env` changes, run this before moving on; it copies the new value into every connector and skill folder that keeps its own copy, and it never prints a value while doing it.
    ```bash
    cd "$BUNDLE" && bash fan-out-env.sh
@@ -204,9 +211,9 @@ bash "$BUNDLE/check-connections.sh"
 
 Meta is a sign-in server: no registration, no restart. After the click path in `connectors/ads-meta.md` section 4 and the sign-in, run the real test, which IS the live check:
 1. **"List my ad accounts."** Claude calls `ads_get_ad_accounts` and checks `is_ads_mcp_enabled` on what comes back.
-2. **"Search the Ad Library for 'vacation rental' ads in the US, limit 1."** Claude calls `ads_library_search`.
+2. **"Search the Ad Library for 'vacation rental' ads in the US, limit 3."** Claude calls `ads_library_search`. The Ad Library matches loosely on creative text, so one of the three can be an ad that has nothing to do with rentals; that is Meta's search, not a broken connection. Results of any kind mean it works.
 
-Three outcomes: results come back and the Ad Spy is live; an error says no active ad account, in which case point them at Ads Manager to add a payment method and try the search again, and if it still fails after that, move on, the Ad Spy just runs degraded and nothing else in the kit is affected; every account shows `is_ads_mcp_enabled: false`, meaning Meta hasn't rolled the MCP out to that account yet, nothing to do on their end, check back in a week or two.
+Three outcomes: results come back and the Ad Spy is live (record it: `echo "meta-ads|$(date +%F)" >> "$BUNDLE/.cache/live-ok"`); an error says no active ad account, in which case point them at Ads Manager to add a payment method and try the search again, and if it still fails after that, move on, the Ad Spy just runs degraded and nothing else in the kit is affected; every account shows `is_ads_mcp_enabled: false`, meaning Meta hasn't rolled the MCP out to that account yet, nothing to do on their end, check back in a week or two.
 
 ## Phase 4: final scoreboard and the done message
 
@@ -218,6 +225,7 @@ One more time. Once everything that matters is ✅ or ➖, send a done message, 
 > That's the whole kit wired up. Here's where things stand:
 > - [list every ✅ row, plainly, one per line]
 > - [any ⏳ pending-vendor row, with the date it was emailed, so they know to check back]
+> - [any 🔎 row still waiting on a sign-in: one line, "add it any time, nothing else waits on it"]
 >
 > Three things to try right now: ask me to pull your last 30 days of bookings, run a comp on your best listing, or spy on one competitor's ads.
 >

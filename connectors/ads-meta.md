@@ -44,7 +44,7 @@ If the browser does not open on its own, copy the link Claude Code prints and op
 Capability warning: what you get depends on your ad account. Read tools (ad accounts, campaigns, insights, Ad Library search) need one active ad account. Write tools exist but always create things paused. Meta is rolling the MCP out account by account. Their Business Suite page says it plainly: "1. Go to Settings within Meta Business Suite. 2. Below Integrations, select Ads MCP server. Note: If you don't see this, you do not have access to this feature yet." No waitlist form to fill, but not every account has it yet as of 2026-09-21.
 
 ## 5. Verify
-The row always prints `🔎 Meta Ads MCP   add it under + > Connectors; Claude checks it live`, whether or not you have added it yet, and even if you used the token fallback in section 6 (that path really does register in `~/.claude.json` and needs a restart, the row text just does not know to say so for this server).
+Until the real test below has passed once, the row prints `🔎 Meta Ads MCP   add it under + > Connectors; Claude checks it live`, whether or not you have added it yet, and even if you used the token fallback in section 6 (that path really does register in `~/.claude.json` and needs a restart, the row text just does not know to say so for this server). Once the test passes, Claude records it in `.cache/live-ok` and the row shows `✅ Meta Ads MCP   connected   → live check passed <date>` from then on. Say "recheck meta-ads" to run it again.
 
 - Not added yet: run section 4, then tell Claude "connected".
 - Added (or using the token fallback and restarted): run the real test below, in the chat. It IS the live check for this row.
@@ -53,7 +53,7 @@ The row always prints `🔎 Meta Ads MCP   add it under + > Connectors; Claude c
 The real test is two questions in chat, after the sign-in:
 
 1. **"List my ad accounts."** Claude calls `ads_get_ad_accounts`. Look at `is_ads_mcp_enabled` on each account that comes back.
-2. **"Search the Ad Library for 'vacation rental' ads in the US, limit 1."** Claude calls `ads_library_search`.
+2. **"Search the Ad Library for 'vacation rental' ads in the US, limit 3."** Claude calls `ads_library_search`. The Ad Library matches loosely on creative text, so one of the three can be an ad that has nothing to do with rentals; that is Meta's search, not a broken connection. Results of any kind mean it works.
 
 Outcomes:
 - **Results come back**: works. Row shows ✅. The Ad Spy is live.

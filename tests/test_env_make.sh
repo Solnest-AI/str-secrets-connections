@@ -62,4 +62,22 @@ t "discover ignores .env.example files"          "! grep -q 'kie_from_example' '
 t "discover reports the not-found ones"          "printf '%s' \"\$REPORT\" | grep -q '^not found GEMINI_API_KEY'"
 t "discover never overwrites a filled line"      "printf 'X\n' >/dev/null; grep -c '^PRICELABS_API_KEY=pl_from_rm$' '$OUT' | grep -q '^1$'"
 t "discover helper has no em-dash"               "! grep -q '—' lib/env_discover.py lib/env_make.py"
-rm -rf "$H"
+t "discover counts each env file once"           "printf '%s' \"\$REPORT\" | grep -q '^searched 3 env file(s)'"   # kit/.env from the first block, revenue-manager/.env (reached from two roots, counted once), the hospitable server dir
+t "discover reports home .env under its own path, not a server's" "printf '%s' \"\$REPORT\" | grep -q 'HOSPITABLE_API_KEY  <- .claude.json (registered MCP servers): hospitable -> hospitable/.env'"
+
+# ---- a package name is not a path: "@scope/pkg@latest" must never walk the current directory ----
+# (2026-09-22: it did, and read the kit's own .env plus whatever .env sat in CWD, labelled as that server's.)
+OUT="$H/kit3/.env"; mkdir -p "$H/kit3"
+CWD_OUTSIDE_HOME="$(mktemp -d)"   # must sit outside $HOME, or the ordinary home walk finds it legitimately
+$PY lib/env_make.py --pms hospitable --pricing pricelabs --ranking none --ops none --template .env.template --out "$OUT" >/dev/null
+printf 'GEMINI_API_KEY=leaked_from_cwd\nKIE_API_KEY=leaked_from_cwd\n' > "$CWD_OUTSIDE_HOME/.env"
+printf 'FIRECRAWL_API_KEY=leaked_from_home\n' > "$H/.env"
+cat > "$H/.claude.json" <<'EOF2'
+{"mcpServers":{"scoped":{"type":"stdio","command":"npx","args":["-y","@scope/some-server@latest","--flag=x"]}}}
+EOF2
+REPO="$PWD"
+REPORT3="$(cd "$CWD_OUTSIDE_HOME" && $PY "$REPO/lib/env_discover.py" --env "$OUT" --apply 2>&1)"
+t "discover ignores a scoped package name as a path"  "! grep -q 'leaked_from_cwd' '$OUT'"
+t "discover does not attribute ~/.env to a server"    "! printf '%s' \"\$REPORT3\" | grep -q 'scoped ->'"
+t "discover still finds ~/.env by the walk, under its own path" "grep -q '^FIRECRAWL_API_KEY=leaked_from_home$' '$OUT' && printf '%s' \"\$REPORT3\" | grep -qE 'FIRECRAWL_API_KEY  <- (/private)?'\"$H\"'/.env'"
+rm -rf "$H" "$CWD_OUTSIDE_HOME"
