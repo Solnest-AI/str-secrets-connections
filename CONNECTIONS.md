@@ -115,12 +115,7 @@ python3 "$BUNDLE/lib/env_make.py" --pms <pms> --pricing <pricing> --ranking <ran
 ```
 (`uv run --python 3.13 python` in place of `python3` if `python3` is missing.) Re-running it later with different answers is safe: every value already in the file is carried over, and a key for a vendor they no longer chose is kept at the bottom, never deleted.
 
-If they also have the Revenue Manager, Listing Optimizer, or Comping Agent skills unzipped somewhere, ask where and write the folder paths in. Plain paths, not secrets; `fan-out-env.sh` uses them later to reach those skills' own `.env` files, and the search in the next step looks inside them. Skip any they don't have.
-```bash
-. "$BUNDLE/lib/env.sh"; env_set_if_blank "$BUNDLE/.env" SKILL_PATH_REVENUE_MANAGER <path>
-. "$BUNDLE/lib/env.sh"; env_set_if_blank "$BUNDLE/.env" SKILL_PATH_LISTING_OPTIMIZER <path>
-. "$BUNDLE/lib/env.sh"; env_set_if_blank "$BUNDLE/.env" SKILL_PATH_COMPING_AGENT <path>
-```
+Do not ask where the Revenue Manager, Listing Optimizer, Comping Agent or Ad Spy skills live. Nobody has them yet: the four skills are handed out on summit morning and get wired up together in the room. The `SKILL_PATH_*` lines exist for that morning (`fan-out-env.sh` copies the keys into each skill's own `.env` once the paths are in); until then they are not in the attendee's file and nothing asks about them.
 
 **Now go find the keys they already have, before asking for a single one.** Plenty of attendees ran an earlier Solnest kit, or already registered a vendor's server. The helper reads every `.env`-style file in the usual places (Desktop, Documents, Downloads, the skill folders above, the folders of servers already registered in `~/.claude.json`, the Claude Desktop config), matches by name and by the other names the same key goes by, and copies anything it finds into the blank lines. It prints names and where each came from, never a value.
 ```bash

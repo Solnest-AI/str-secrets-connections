@@ -46,6 +46,11 @@ FALLBACK_VARS = {
     "PRICELABS_MCP_CLIENT_ID", "PRICELABS_MCP_CLIENT_SECRET",
 }
 STACK_VARS = ["STACK_PMS", "STACK_PRICING", "STACK_RANKING", "STACK_OPS"]
+# Claude fills these itself; they sit in their own block at the bottom so the attendee's
+# paste list is exactly the lines above it.
+CLAUDE_FILLS = {"TURNO_ENV": "production for the summit", "SUPABASE_PROJECT_REF": "the shared project Claude creates", "SUPABASE_DB_PASSWORD": "set when the project is created"}
+# The four summit skills arrive on summit morning; their folders get written then, not now.
+NOT_YET = ("SKILL_PATH_",)
 VAR_RE = re.compile(r"^([A-Z][A-Z0-9_]*)=(.*)$")
 SECTION_RE = re.compile(r"^# ---- .* ----\s*$")
 
@@ -64,6 +69,8 @@ def read_values(path: str) -> dict[str, str]:
 
 
 def keep_var(name: str, chosen: set[str]) -> bool:
+    if name.startswith(NOT_YET):
+        return False
     if name in STACK_VARS or name in FALLBACK_VARS:
         return name in STACK_VARS
     for prefix, vendor in VENDOR_PREFIX.items():
@@ -79,6 +86,7 @@ def build(template_lines: list[str], answers: dict[str, str], existing: dict[str
     section_header: str | None = None  # last section header, emitted lazily
     section_emitted = False
     written_vars: set[str] = set()
+    claude_filled: list[tuple[str, str]] = []
     key_lines = 0
 
     def emit_section():
@@ -116,6 +124,12 @@ def build(template_lines: list[str], answers: dict[str, str], existing: dict[str
         if not keep_var(name, chosen):
             pending_comments = []
             continue
+        if name in CLAUDE_FILLS:
+            # deferred to the bottom block; the template comment for it is dropped
+            claude_filled.append((name, existing.get(name, "")))
+            pending_comments = []
+            written_vars.add(name)
+            continue
         emit_section()
         out.extend(pending_comments)
         pending_comments = []
@@ -128,7 +142,13 @@ def build(template_lines: list[str], answers: dict[str, str], existing: dict[str
         out.append(f"{name}={value}")
         written_vars.add(name)
 
-    leftovers = [k for k in existing if k not in written_vars and k not in STACK_VARS]
+    if claude_filled:
+        out.append("")
+        out.append("# ---- Claude fills these. Leave them alone. ----")
+        for name, value in claude_filled:
+            out.append(f"# {name}: {CLAUDE_FILLS[name]}")
+            out.append(f"{name}={value}")
+    leftovers = [k for k in existing if k not in written_vars and k not in STACK_VARS and not k.startswith(NOT_YET)]
     if leftovers:
         out.append("")
         out.append("# ---- Kept from before (a vendor you no longer chose; safe to delete) ----")
@@ -170,7 +190,7 @@ def main() -> int:
             os.unlink(tmp)
     chosen = ", ".join(v for v in answers.values() if v != "none")
     carried = len([k for k in existing if k not in STACK_VARS])
-    print(f"wrote {a.out}: {key_lines} blank key line(s) to fill for {chosen}; {carried} value(s) carried over")
+    print(f"wrote {a.out}: {key_lines} key(s) for you to paste ({chosen}); {carried} value(s) carried over; the Claude-filled lines sit at the bottom")
     return 0
 
 

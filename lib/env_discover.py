@@ -251,7 +251,8 @@ def main() -> int:
     blank = []
     for line in own.read_text(encoding="utf-8").splitlines():
         m = re.match(r"^([A-Z][A-Z0-9_]*)=$", line)
-        if m and not m.group(1).startswith("STACK_") and not m.group(1).startswith("SKILL_PATH_"):
+        # STACK_* are answers, SKILL_PATH_* come on summit morning, and two Supabase/Turno lines are Claude's to fill
+        if m and not m.group(1).startswith(("STACK_", "SKILL_PATH_")) and m.group(1) not in ("TURNO_ENV", "SUPABASE_DB_PASSWORD"):
             blank.append(m.group(1))
     if a.only:
         blank = [v for v in blank if v in set(a.only)]

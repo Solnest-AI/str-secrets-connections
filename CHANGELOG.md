@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.0.4 (2026-09-22)
+- The generated `.env` lists only what the attendee pastes; the lines Claude fills (TURNO_ENV, the two Supabase lines) sit in their own block at the bottom, and the count Claude reports matches.
+- No more "where do your other skills live" question: the four summit skills are handed out on summit morning and wired up together then.
+- Section headers no longer say "fill ONLY the one you use" (there is only one to see).
+
 ## 1.0.3 (2026-09-22)
 - Claude opens with a welcome and a short "here's what happens next" before running anything (one line on re-runs).
 - Guide and README download link now point at the latest release, so kit updates no longer need a guide rebuild.

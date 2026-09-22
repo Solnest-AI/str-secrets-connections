@@ -18,9 +18,9 @@ Already have a key somewhere and Claude is asking for it anyway? Say so ("I alre
 
 ## Every variable, what it's for, and where to get it
 
-Claude fills `STACK_PMS`, `STACK_PRICING`, `STACK_RANKING`, `STACK_OPS`, `SUPABASE_PROJECT_REF`, `SUPABASE_DB_PASSWORD`, and the three `SKILL_PATH_*` lines for you, from answers you give in chat or from what it finds on your machine. None of those are secrets and none of them need a vendor site. Everything below is a real credential you go get yourself.
+Claude fills `STACK_PMS`, `STACK_PRICING`, `STACK_RANKING`, `STACK_OPS`, `TURNO_ENV`, `SUPABASE_PROJECT_REF` and `SUPABASE_DB_PASSWORD` for you, from answers you give in chat or from what it does on your behalf; they sit in their own block at the bottom of the file. The `SKILL_PATH_*` lines only appear on summit morning, when you get the four skills. None of those are secrets and none of them need a vendor site. Everything below is a real credential you go get yourself.
 
-### PMS: fill only the one you use
+### PMS: your booking system
 
 | Variable | For | Required? | Where to get it | Cost / gate |
 |---|---|---|---|---|
