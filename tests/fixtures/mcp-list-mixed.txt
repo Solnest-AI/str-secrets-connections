@@ -1,0 +1,8 @@
+Checking MCP server health…
+
+hospitable: /opt/homebrew/bin/node /abs/mcp-servers/hospitable/dist/index.js - ✔ Connected
+rankbreeze: https://app.rankbreeze.com/api/mcp/rb_mcp_SECRETSECRET123 - ✔ Connected
+meta-ads: https://mcp.facebook.com/ads - ! Needs authentication
+firecrawl: npx -y firecrawl-mcp - ✘ Failed to connect — -32000: MCP error -32000: Connection closed
+shared-server: https://example.com/mcp - ⏸ Pending approval
+old-thing: npx old - ⊘ Disabled for this project

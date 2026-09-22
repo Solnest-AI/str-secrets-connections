@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+# Test stub for the `claude` CLI. Only `mcp list` is supported.
+if [ "${1:-}" = "mcp" ] && [ "${2:-}" = "list" ]; then
+  cat "${CLAUDE_STUB_FIXTURE:?set CLAUDE_STUB_FIXTURE}"; exit 0
+fi
+echo "stub: unsupported: $*" >&2; exit 2
