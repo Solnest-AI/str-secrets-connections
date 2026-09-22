@@ -6,7 +6,7 @@ RM="/Users/ryan_/Documents/Claude Code Repo/revenue-manager-next"
 KIE="$HOME/.claude/skills/solnest-install-kie-mcp/resources"
 # rsync: first matching rule wins, so .env.example is whitelisted before the .env.* exclude that would otherwise swallow it.
 EX=(--include=.env.example --exclude=.env --exclude='.env.*' --exclude=session.txt --exclude=node_modules --exclude=dist --exclude=.venv --exclude=__pycache__ --exclude='*.pyc' --exclude=.DS_Store --exclude=.cache --exclude=.pytest_cache)
-mkdir -p mcp-servers build
+mkdir -p mcp-servers
 for s in hospitable pricelabs turno airroi; do
   rm -rf "mcp-servers/$s"; rsync -a "${EX[@]}" "$RM/mcp-servers/$s/" "mcp-servers/$s/"
   [ -f "mcp-servers/$s/.env.example" ] || { echo "missing .env.example in $s"; exit 1; }
@@ -19,16 +19,14 @@ printf 'KIE_API_KEY=\n' > mcp-servers/kie/.env.example
 printf 'httpx\nmcp>=1.2,<2\npython-dotenv\n' > mcp-servers/airroi/requirements.txt
 printf 'mcp[cli]>=1.2,<2\n' > mcp-servers/kie/requirements.txt
 printf '.env\n.env.*\n!.env.example\n.venv/\n__pycache__/\n' > mcp-servers/kie/.gitignore
-cp "$RM/build-pms-mcp.md" "$RM/build-pricing-ops-mcp.md" build/
-cat > build/README.md <<'EOR'
-# Build-from-research files: read this first (Claude)
-
-These two files came from the Revenue Manager bundle. Three overrides apply here:
-1. Wherever they say `revenue-manager-plugin/references/<platform>.md`, write to `$BUNDLE/build/references/<platform>.md` instead.
-2. Wherever they say `<BUNDLE_ROOT>/mcp-servers/<platform>/`, `$BUNDLE/mcp-servers/<platform>/` is correct (same layout).
-3. Guesty For Hosts is sunset (2026-01-15). Do not build it; route the operator to Guesty Pro or tell them Lite has no API.
-Register every built server with `--scope user`, the server name from CONNECTIONS.md, and (Windows) `cygpath -w` paths.
-EOR
+# build/*.md are NOT synced. They were seeded from $RM once, then curated in this repo
+# (em-dashes removed, register lines moved to lib/mcp_register.py, handoff section added).
+# Re-copying from $RM would silently undo that (it did, 2026-09-22). Only warn if upstream drifts.
+for b in build-pms-mcp.md build-pricing-ops-mcp.md; do
+  if [ -f "$RM/$b" ] && [ -f "build/$b" ] && ! diff -q "$RM/$b" "build/$b" >/dev/null 2>&1; then
+    echo "note: $RM/$b differs from build/$b (expected: build/ is curated). Diff by hand if RM shipped a real change."
+  fi
+done
 # Force TURNO_ENV example to production for the summit
 sed -i.bak 's/^TURNO_ENV=.*/TURNO_ENV=production/' mcp-servers/turno/.env.example && rm -f mcp-servers/turno/.env.example.bak
 {
