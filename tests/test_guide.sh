@@ -54,7 +54,7 @@ t "every server name appears in the directory table" "[ $missing_servers -eq 0 ]
 t "no em-dash"                 "! grep -q '—' '$HTML'"
 t "no claude mcp add"          "! grep -q 'claude mcp add' '$HTML'"
 t "no shell prompt text"       "! grep -q '\\$ ' '$HTML'"
-t "DOWNLOAD_URL_PLACEHOLDER once" "[ \"\$(grep -o 'DOWNLOAD_URL_PLACEHOLDER' '$HTML' | wc -l | tr -d ' ')\" = '1' ]"
+t "download link present once" "[ \"\$(grep -o 'releases/download/v[0-9.]*/str-secrets-connections-v[0-9.]*\.zip' '$HTML' | wc -l | tr -d ' ')\" = 1 ]"
 
 # --- PDF ---
 t "pdf exists" "[ -f '$PDF' ]"

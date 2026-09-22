@@ -6,7 +6,7 @@ A free setup kit from **Solnest AI** for **STR Secrets AI Summit 2.0**. For the 
 
 ## How to use it
 
-1. Download the zip (link in your Connections Setup Guide PDF) and unzip it somewhere easy, like your Desktop.
+1. [Download the zip](https://github.com/Solnest-AI/str-secrets-connections/releases/download/v1.0.0/str-secrets-connections-v1.0.0.zip) and unzip it somewhere easy, like your Desktop. The guide with pictures is at https://str-secrets-connections.netlify.app
 2. Open **Claude Code** in that folder (or drag the folder into the Claude Code window).
 3. Say: **"Set up my connections."**
 
