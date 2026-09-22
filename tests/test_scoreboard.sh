@@ -38,14 +38,6 @@ t "live-ok: recheck hint names the server"       "printf '%s' \"\$out5\" | grep 
 t "live-ok: unrecorded sign-in row still 🔎"     "printf '%s' \"\$out5\" | grep -q '🔎 PriceLabs MCP (official, beta)'"   # STACK_PMS was blanked two blocks up, so the Hospitable rows are not on this board
 t "live-ok: summary counts one fewer live check" "printf '%s' \"\$out5\" | grep -qE '^Summary: .* 1 need live check'"
 rm -f .cache/live-ok
-# demo mode (lib/env_discover.py --no-discover) is announced on the board's first lines
-touch .cache/no-discover
-out6="$(bash check-connections.sh)"
-t "demo mode: board says the computer is not searched" "printf '%s' \"\$out6\" | grep -q '^🎬 demo mode: this computer is not searched for keys'"
-t "demo mode: rows unaffected"                          "printf '%s' \"\$out6\" | grep -q '✅ Gemini API key'"
-rm -f .cache/no-discover
-out7="$(bash check-connections.sh)"
-t "demo mode off: no 🎬 line"                           "! printf '%s' \"\$out7\" | grep -q '^🎬'"
 
 # --- no claude binary anywhere (desktop-app-only case): mcp_load reads ~/.claude.json ---
 # A PATH with a curl stub but no claude anywhere, and a HOME whose ~/.claude.json already
@@ -61,7 +53,7 @@ NOBIN_STUBS="$(mktemp -d)"
 cp tests/stubs/curl "$NOBIN_STUBS/curl"; chmod +x "$NOBIN_STUBS/curl"
 # Git Bash's /usr/bin has no python; the config-reading fallback needs one, so add its dir.
 PYDIR="$(python_dir)"
-out4="$(SSC_NO_CLAUDE_BIN=1 HOME="$NOBIN_HOME" PATH="$NOBIN_STUBS:${PYDIR:+$PYDIR:}/usr/bin:/bin" CURL_STUB_DIR="$PWD/tests/fixtures/curl" bash check-connections.sh)"; rc4=$?
+out4="$(HOME="$NOBIN_HOME" PATH="$NOBIN_STUBS:${PYDIR:+$PYDIR:}/usr/bin:/bin" CURL_STUB_DIR="$PWD/tests/fixtures/curl" bash check-connections.sh)"; rc4=$?
 t "no-binary: exits 0"                 "[ $rc4 -eq 0 ]"
 t "no-binary: meta-ads shows live-check glyph" "printf '%s' \"\$out4\" | grep -q '🔎 Meta Ads MCP.*add it under + > Connectors; Claude checks it live'"
 t "no-binary: keyed row with a passing probe is ok" "printf '%s' \"\$out4\" | grep -q '✅ Hospitable API'"

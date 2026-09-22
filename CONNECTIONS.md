@@ -37,14 +37,6 @@ Your Bash tool is Git Bash, not PowerShell, and every command below runs there o
 
 One exception to all of the above: PriceLabs' official MCP (account admin only) still needs the real `claude` CLI for its OAuth client-credential flow, since that handshake has no file-based equivalent through the register helper. `connectors/pricing-pricelabs.md` section 4 has the binary resolver and the Simple-path fallback if no `claude` binary turns up.
 
-### Demo mode: `--no-discover`
-
-For a recording or a live walkthrough on a machine that already holds the keys (Ryan's, a coach's), the key search in Phase 1 would find everything and leave nothing to paste on camera. When the opening message carries `--no-discover` (or says "no discover", "demo mode", "don't search my computer for keys"), run this once in Phase 0, right after `BUNDLE` is set and before anything else:
-```bash
-python3 "$BUNDLE/lib/env_discover.py" --env "$BUNDLE/.env" --no-discover
-```
-From then on the search is off for this folder: skip the `env_discover.py --apply` step in Phase 1, drop point 3 from the welcome message, and "I already have that" means "paste it into the file" rather than "let me find it". The helper refuses to search while the marker (`.cache/no-discover`) is there, so a stray run finds nothing, and the scoreboard says "demo mode" on its first lines. Swap `--no-discover` for `--discover` to turn it back on. What it does not hide: servers already registered in `~/.claude.json` still count on the board, so a truly blank take needs a fresh macOS user or a machine that never ran a Solnest kit.
-
 ## Start: say hello before you touch anything
 
 The very first thing the attendee sees is a welcome and a short "here's what we're about to do", before any command runs and before any question. Send it as its own message, then start Phase 0. Adapt the wording, keep the shape and the length; this is the whole thing, not an outline to expand:
@@ -125,7 +117,7 @@ python3 "$BUNDLE/lib/env_make.py" --pms <pms> --pricing <pricing> --ranking <ran
 
 Do not ask where the Revenue Manager, Listing Optimizer, Comping Agent or Ad Spy skills live. Nobody has them yet: the four skills are handed out on summit morning and get wired up together in the room. The `SKILL_PATH_*` lines exist for that morning (`fan-out-env.sh` copies the keys into each skill's own `.env` once the paths are in); until then they are not in the attendee's file and nothing asks about them.
 
-**Now go find the keys they already have, before asking for a single one** (demo mode: skip this step, they paste everything). Plenty of attendees ran an earlier Solnest kit, or already registered a vendor's server. The helper reads every `.env`-style file in the usual places (Desktop, Documents, Downloads, the folders of servers already registered in `~/.claude.json`, the Claude Desktop config), matches by name and by the other names the same key goes by, and copies anything it finds into the blank lines. It prints names and where each came from, never a value.
+**Now go find the keys they already have, before asking for a single one.** Plenty of attendees ran an earlier Solnest kit, or already registered a vendor's server. The helper reads every `.env`-style file in the usual places (Desktop, Documents, Downloads, the folders of servers already registered in `~/.claude.json`, the Claude Desktop config), matches by name and by the other names the same key goes by, and copies anything it finds into the blank lines. It prints names and where each came from, never a value.
 ```bash
 python3 "$BUNDLE/lib/env_discover.py" --env "$BUNDLE/.env" --apply
 ```

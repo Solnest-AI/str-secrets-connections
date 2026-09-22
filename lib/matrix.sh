@@ -3,7 +3,6 @@
 PENDING_FILE=.cache/pending-vendor
 RESTART_FILE=.cache/needs-restart
 LIVE_FILE=.cache/live-ok
-NO_DISCOVER_FILE=.cache/no-discover   # demo mode: lib/env_discover.py --no-discover
 mkdir -p .cache 2>/dev/null; chmod 700 .cache 2>/dev/null
 
 # _cfile SERVER: the connector file that documents this server (hints used to glue the
@@ -81,9 +80,7 @@ check_url_mcp_row() {
 }
 
 scoreboard() {
-  echo "STR Secrets Connections: scoreboard ($(date '+%Y-%m-%d %H:%M'))"
-  [ -f "$NO_DISCOVER_FILE" ] && echo "🎬 demo mode: this computer is not searched for keys; every key gets pasted by hand"
-  echo
+  echo "STR Secrets Connections: scoreboard ($(date '+%Y-%m-%d %H:%M'))"; echo
   echo "System"
   command -v git >/dev/null    && row "Git" ok || row "Git" missing "connectors/system-git.md"
   command -v node >/dev/null   && row "Node.js" ok || row "Node.js" missing "connectors/system-node.md"

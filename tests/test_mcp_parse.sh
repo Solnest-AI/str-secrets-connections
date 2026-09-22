@@ -24,7 +24,7 @@ cat > "$NOBIN_HOME/.claude.json" <<'JSON'
 {"mcpServers":{"hospitable":{"type":"stdio","command":"node","args":["x"]}}}
 JSON
 PYDIR="$(python_dir)"
-nobin_out="$(SSC_NO_CLAUDE_BIN=1 HOME="$NOBIN_HOME" PATH="${PYDIR:+$PYDIR:}/usr/bin:/bin" bash -c '. lib/mcp.sh; mcp_load; printf "%s|%s" "$(mcp_status hospitable)" "$(mcp_status nothere)"')"
+nobin_out="$(HOME="$NOBIN_HOME" PATH="${PYDIR:+$PYDIR:}/usr/bin:/bin" bash -c '. lib/mcp.sh; mcp_load; printf "%s|%s" "$(mcp_status hospitable)" "$(mcp_status nothere)"')"
 t "no-binary: present name is registered" "[ \"\$nobin_out\" = 'registered|absent' ]"
 rm -rf "$NOBIN_HOME"
 
