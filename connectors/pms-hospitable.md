@@ -21,7 +21,7 @@ Tokens last one year. Put a reminder in your calendar for 12 months out. No emai
 ## 3. Path A: API key
 Hospitable calls it a Personal Access Token (PAT). No app to create, no OAuth. Their steps, word for word:
 
-"1. Log in to my.hospitable.com. 2. In the sidebar, click Apps (or Settings > Integrations) 3. Choose API access 4. In the Access tokens tab, click '+ Add new'. 5. Give your access token a name. ... 6. Choose the permissions ... Read ... Write"
+"1. Log in to my.hospitable.com. 2. In the sidebar, click Apps (or Settings > Integrations). 3. Choose API access. 4. In the Access tokens tab, click '+ Add new'. 5. Give your access token a name (use STR Secrets). 6. Choose the permissions: tick both Read and Write, then save and copy the token."
 
 Direct link: https://my.hospitable.com/apps/api-access
 

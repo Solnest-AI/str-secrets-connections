@@ -14,7 +14,7 @@ Supabase is a hosted Postgres database. The summit skills keep their tables in i
 Three values end up in `.env`. You supply one (the access token). Claude fills the other two (the project ref and the database password) when it creates the project, so there's no need to type those two by hand. If the kit joins a project that already exists (an existing Revenue Manager registration, or a project you chose to reuse, both in section 3), only the ref is filled and the password line stays blank; the skills do not need it.
 
 ## 2. Required, cost, gate
-Required. Free. Supabase's free tier, in their words: "Free ... Limit of 2 active projects." Also: "Free projects are paused after 1 week of inactivity." and "Branching (experimental) Requires a paid plan." We need one project, no branching, so the free tier covers the summit. No card, no email to anyone.
+Required. Free. Supabase's free tier allows 2 active projects (their pricing page: "Limit of 2 active projects"). Also: "Free projects are paused after 1 week of inactivity." and "Branching (experimental) Requires a paid plan." We need one project, no branching, so the free tier covers the summit. No card, no email to anyone.
 
 The one gate is the token. Supabase now defaults new tokens to **7 days** and **No access**, and both defaults break this kit. A 7-day token made on September 22 dies September 29, which is summit morning. A no-access token is rejected outright; a project-scoped or read-only token passes the token check and then fails the moment a skill tries to create the project or apply a migration. Section 3 walks around both traps. Follow it exactly.
 
@@ -24,7 +24,7 @@ Supabase calls it a personal access token. It starts with `sbp_` and is shown on
 1. Go to https://supabase.com/dashboard/account/tokens (sign in, or sign up free first) and click **Generate new token**.
 2. The dialog that opens is a two-step scoped wizard ("Step 1 of 2 · Configure"). Skip filling it in. Under Resource access there is a line: "Need a token with full access to your account? Create legacy token". Click **Create legacy token**. Supabase's warning on that screen is real: "Access tokens can be used to control your whole account. Be careful when sharing your tokens." Their API reference says the same: "PATs carry the same privileges as your user account, so be sure to keep it secret." That is why it only ever goes into `.env`.
 3. **Name:** `STR Secrets`. **Expires in:** open the dropdown (24 hours / 7 days / 30 days / 90 days / Custom) and pick **Custom**, then the furthest date the picker allows. It caps at exactly one year; on 2026-09-21 the picker offered 21 Sep 2027. The one thing to avoid is leaving it on 7 days. Non-expiring tokens can no longer be created, for either kind of token. Legacy and scoped differ in permissions, not expiry.
-4. Click **Generate token**. Copy the `sbp_...` value now; it is shown once. Claude opens `.env` for you. Put the token after the equals sign on this line, save, close:
+4. Click **Generate token**. Copy the token now (it starts with `sbp_`); it is shown once. Claude opens `.env` for you. Put the token after the equals sign on this line, save, close:
 ```
 SUPABASE_ACCESS_TOKEN=
 ```

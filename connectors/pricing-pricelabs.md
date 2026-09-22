@@ -30,7 +30,7 @@ Path B's Claude Code route has a second gate: "Only the account admin (superadmi
 ## 3. Path A: API key
 Direct link: https://app.pricelabs.co/account_settings?tab=api_details
 
-PriceLabs' own steps: "1. Go to Account Settings 2. Click API Details 3. Click Enable 4. Select I Need API Access 5. Enter API in the confirmation field, then click Continue". So: **Account Settings** > **API Details** > **Enable** > pick **I Need API Access** > type `API` in the box > **Continue**.
+PriceLabs' own steps: "1. Go to Account Settings. 2. Click API Details. 3. Click Enable. 4. Select I Need API Access. 5. Enter API in the confirmation field, then click Continue." So: **Account Settings** > **API Details** > **Enable** > pick **I Need API Access** > type `API` in the box > **Continue**.
 
 The key shows up on that same page. Hit **Copy API Key**. It is not a one-time reveal; you can come back and copy it again whenever. **Regenerate API Key** makes a new one, so assume the old one stops working if you press it.
 

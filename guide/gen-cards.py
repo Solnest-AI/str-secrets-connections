@@ -122,13 +122,16 @@ def clickpath_steps(section3: str) -> list[str]:
     scope = section3[:safe_idx] if safe_idx != -1 else section3
     numbered = re.findall(r"^\s*\d+\.\s+(.+)$", scope, re.M)
     if numbered:
-        return [n.strip() for n in numbered]
+        return [re.sub(r":\s*$", ".", n.strip()) for n in numbered]
     # fallback: vendor steps quoted inline on one line, e.g. "1. Log in ... 2. Click ... 3. ..."
     for line in scope.splitlines():
-        inline = re.split(r"\s(?=\d+\.\s)", line.strip().strip('"'))
+        # vendor steps are usually quoted: "1. ... 2. ..."; split only inside the quotes
+        q = re.search(r'"(1\.\s.*?)"', line)
+        span = q.group(1) if q else line.strip().strip('"')
+        inline = re.split(r"\s(?=\d+\.\s)", span)
         inline = [re.sub(r"^\d+\.\s*", "", x).strip().strip('"') for x in inline if re.match(r"^\d+\.\s", x.strip())]
         if len(inline) >= 2:
-            return inline
+            return [re.sub(r":\s*$", ".", x) for x in inline]
     # fallback: an arrow-separated recap line, e.g. "**Account Settings** > **API Details** > ..."
     for line in scope.splitlines():
         if line.count(" > ") >= 2:
@@ -230,13 +233,20 @@ def build_card(entry: dict) -> str:
         for s in steps[:8]:
             parts.append(f'    <li>{inline_html(trim(s, 360))}</li>')
         parts.append('  </ol>')
-    if env_vars:
-        chips = " ".join(f"<code>{html.escape(v)}</code>" for v in env_vars)
+    sign_in = has_official and official.strip().startswith("http") and entry["vendor"] not in CLAUDE_ADDS
+    sign_in_only = sign_in and all(v in SIGN_IN_FALLBACK_VARS for v in env_vars)
+    if env_vars and not sign_in_only:
+        chips = " ".join(f"<code>{html.escape(v)}</code>" for v in env_vars if v not in SIGN_IN_FALLBACK_VARS)
         parts.append(f'  <p class="grab"><b>Goes in .env as</b> {chips}</p>')
+    elif sign_in_only:
+        parts.append('  <p class="grab"><b>Nothing to paste.</b> This one is a sign-in, not a key.</p>')
     if gate:
         parts.append(f'  <p class="note">{inline_html(gate)}</p>')
-    if has_official:
-        parts.append('  <p class="note">An official vendor MCP exists too. Claude registers whichever path it needs.</p>')
+    if sign_in:
+        url = re.sub(r"\s*\(.*\)\s*$", "", official).strip()
+        parts.append(f'  <p class="note">The official {vendor} MCP is a sign-in connector. When Claude hands you the URL (<code>{html.escape(url)}</code>), add it under + &gt; Connectors &gt; Manage connectors, step 7 above.</p>')
+    elif has_official:
+        parts.append('  <p class="note">An official vendor MCP exists too. Claude registers it for you once the key is in.</p>')
     parts.append('</article>')
     return "\n".join(parts)
 
@@ -354,6 +364,7 @@ def directory_row(entry: dict, name: str, transport: str, rest: str) -> dict:
 # Servers Claude registers itself from a key in .env (URL in ~/.claude.json).
 # Every other URL server is a sign-in connector the attendee adds in the app.
 CLAUDE_ADDS = {"Firecrawl": "key", "AirROI": "key", "RankBreeze": "url"}
+SIGN_IN_FALLBACK_VARS = {"META_ADS_TOKEN", "INTELLIHOST_MCP_TOKEN", "HOSPITABLE_OFFICIAL_TOKEN"}
 
 
 def build_directory_rows(entries: list[dict]) -> list[dict]:
