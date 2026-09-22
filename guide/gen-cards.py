@@ -341,13 +341,38 @@ def directory_row(entry: dict, name: str, transport: str, rest: str) -> dict:
     }
 
 
+# Servers Claude registers itself from a key in .env (URL in ~/.claude.json).
+# Every other URL server is a sign-in connector the attendee adds in the app.
+CLAUDE_ADDS = {"Firecrawl": "key", "AirROI": "key", "RankBreeze": "url"}
+
+
 def build_directory_rows(entries: list[dict]) -> list[dict]:
+    """One row per connector whose frontmatter `official_mcp` is a real URL.
+    Built from frontmatter, not from register lines, because sign-in servers
+    no longer have a register line (they are added in the app's Connectors
+    screen, 2026-09-22)."""
     rows = []
     for e in entries:
-        for name, transport, rest in find_register_lines(e):
-            rows.append(directory_row(e, name, transport, rest))
+        official = (e["frontmatter"].get("official_mcp") or "").strip()
+        if not official.startswith("http") or "reference only" in official:
+            continue
+        url = re.sub(r"\s*\(.*\)\s*$", "", official).strip()
+        vendor = e["vendor"]
+        if vendor in CLAUDE_ADDS:
+            auth = "key in .env (header)" if CLAUDE_ADDS[vendor] == "key" else "key in .env"
+        else:
+            auth = "OAuth sign-in"
+        rows.append({
+            "name": e["frontmatter"].get("server", ""),
+            "vendor": vendor,
+            "value": url,
+            "auth": auth,
+            "kind": "url",
+            "linkable": url.startswith("http") and "<" not in url,
+            "slot": e["frontmatter"].get("slot", "other"),
+        })
     order = {s: i for i, s in enumerate(SLOT_ORDER)}
-    rows.sort(key=lambda r: (order.get(r["slot"], 99), r["name"]))
+    rows.sort(key=lambda r: (order.get(r["slot"], 99), r["vendor"]))
     return rows
 
 

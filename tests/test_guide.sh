@@ -34,15 +34,16 @@ for f in connectors/*.md; do
 done
 t "every connector has a card" "[ $missing_cards -eq 0 ]"
 
-# --- every http (URL) server shows up in the MCP directory table; bundled ones stay out ---
+# --- every connector with a real official_mcp URL shows up in the directory table; bundled ones stay out ---
 missing_urls=0
-for url in $(grep -ho 'mcp_register.py [a-z-]* --http https\?://[^ "]*' connectors/*.md | awk '{print $4}' | sort -u); do
-  if ! grep -qF "$url" "$DIRECTORY"; then
+for url in $(grep -h '^official_mcp:[[:space:]]*http' connectors/*.md | grep -v 'reference only' | awk '{print $2}' | sort -u); do
+  if ! grep -qF "$(printf '%s' "$url" | sed 's/</\&lt;/g; s/>/\&gt;/g')" "$DIRECTORY"; then
     echo "  missing directory row for url: $url"
     missing_urls=$((missing_urls + 1))
   fi
 done
-t "every http server URL appears in the directory table" "[ $missing_urls -eq 0 ]"
+t "every official_mcp URL appears in the directory table" "[ $missing_urls -eq 0 ]"
+t "sign-in servers say the attendee adds them" "[ \"\$(grep -c 'You add it' '$DIRECTORY')\" = 7 ]"
 t "directory table has no bundled or npm rows" "! grep -qE 'Bundled|@supabase|@guestyorg' '$DIRECTORY'"
 
 # --- attendee-facing hygiene ---
