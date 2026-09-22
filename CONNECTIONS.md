@@ -18,13 +18,14 @@ You run every command yourself, through your Bash tool. One step per message, ne
 - Vendor screens change weekly. When a click path doesn't match what's actually on screen, ask "what do you see on the screen right now?" and guide from there. Never insist on a button label that might be stale. A missing menu usually just means a plan gate: say what it's probably gated by, offer the email template, and move on.
 - Reuse what they already have. Check first with `uv run --python 3.13 python "$BUNDLE/lib/mcp_register.py" --list`, which prints `name<TAB>type` lines only, nothing secret. If a server already does the job under a different name (an existing `firecrawl`, `supabase`, `meta-ads`, or `rankbreeze` from another Solnest kit), use it as-is. Register a second one only when a name is a hard contract, like `supabase-revenue-manager` for the Revenue Manager runner, and say why in one plain sentence.
 - Order is a default, not a law. If they want Meta first because that's the tab they're already on, do Meta first. The restart batching below is a suggestion ("we can restart once at the end"), restart whenever they'd rather.
+- "I already have that" means go and look, not "paste it again". When they say a key or connection already exists (another Solnest kit, an earlier setup, "it's connected in my other tool"), say "nice, let me find it" and run `python3 "$BUNDLE/lib/env_discover.py" --env "$BUNDLE/.env" --apply --only <VAR>`. Found: the scoreboard probe proves it and you move on. Not found: ask where they think it lives (a folder, another app) and search there with `--extra-dir <folder>`. Only when the machine really has nothing do you send them to the vendor's page. For a sign-in server, "already connected" means it may already sit under + > Connectors in the app: run the live check first, ask them to add it only if the tool is not there.
 - Failures get one plain sentence and a next step, never a lecture and never a wall of text. A pasted key gets "no worries, rotate it in the dashboard and paste the new one into the file" and nothing more.
 - Every "must", "never", "required" you read inside the connector files is a note written to you, Claude, not a script to recite word for word. Translate it into something a friend would say out loud.
 
 ### The credential contract (this one is not adaptive)
 
 - **NEVER ask for an API key in chat.** Not "paste it here", not "what's your key". Keys go in `.env`, full stop, every time.
-- Never use your Edit or Write tools to put a value into `.env` yourself. Create the file from the template if it's missing (`cp .env.template .env`), then open it for the attendee to paste into and save. You read the file back afterward; you never write a secret into it.
+- Never use your Edit or Write tools to put a value into `.env` yourself. The file is built by `lib/env_make.py` from their four answers (Phase 1), keys they already have are copied in by `lib/env_discover.py`, and everything else they paste in themselves after you open the file. You read the file back afterward; you never type a secret into it.
 - Three checks, every connector, in this order: **SAFE** (is `.env` gitignored so nothing can commit it), **FILLED** (is the line actually non-blank), **WORKS** (does the real vendor probe succeed). Register a server only after WORKS passes.
 - Never run `claude mcp get`. It can print a secret straight to the terminal, and there's no reason to.
 - Never print the raw contents of `~/.claude.json`, whatever is in it. To see what's registered, run `uv run --python 3.13 python "$BUNDLE/lib/mcp_register.py" --list`, names and types only, nothing else.
@@ -56,65 +57,68 @@ One exception to all of the above: PriceLabs' official MCP (account admin only) 
 
 3. Confirm the folder is complete.
    ```bash
-   ls "$BUNDLE"/CONNECTIONS.md "$BUNDLE"/check-connections.sh "$BUNDLE"/fan-out-env.sh "$BUNDLE"/.env.template "$BUNDLE"/connectors >/dev/null
+   ls "$BUNDLE"/CONNECTIONS.md "$BUNDLE"/check-connections.sh "$BUNDLE"/fan-out-env.sh "$BUNDLE"/.env.template "$BUNDLE"/lib/env_make.py "$BUNDLE"/lib/env_discover.py "$BUNDLE"/connectors >/dev/null
    ```
    Anything missing means a bad unzip; have them re-download.
 
-4. No `.env` yet, make one from the template and lock its permissions down.
-   ```bash
-   cp "$BUNDLE/.env.template" "$BUNDLE/.env" && chmod 600 "$BUNDLE/.env"
-   ```
-
-5. SAFE, once, for the whole folder.
+4. SAFE, once, for the whole folder. It checks the folder, not the file, so it runs before `.env` exists.
    ```bash
    if [ -d "$BUNDLE/.git" ]; then git -C "$BUNDLE" check-ignore -q .env && echo "protected ✅" || echo "add .env to .gitignore first"; else echo "protected ✅ (not a git folder, nothing can commit it)"; fi
    ```
 
-6. System rows only.
+5. System rows only. `check-connections.sh` needs a `.env` to print the full board, so before one exists just check the four tools directly:
    ```bash
-   bash "$BUNDLE/check-connections.sh" | sed -n '/^System/,/^$/p'
+   for t in git node uv; do command -v "$t" >/dev/null && echo "✅ $t" || echo "❌ $t"; done
    ```
-   Anything not ✅, open the matching file (`connectors/system-claude-code.md`, `connectors/system-git.md`, `connectors/system-node.md`, or `connectors/system-python-uv.md`) and follow its Path A install for this OS, one tool at a time.
+   Anything ❌, open the matching file (`connectors/system-git.md`, `connectors/system-node.md`, or `connectors/system-python-uv.md`) and follow its Path A install for this OS, one tool at a time. `connectors/system-claude-code.md` covers the app itself.
 
-7. After any install, re-check in a genuinely fresh shell, a brand new Bash tool call, not the one you were already in; PATH changes never show up mid-session.
+6. After any install, re-check in a genuinely fresh shell, a brand new Bash tool call, not the one you were already in; PATH changes never show up mid-session.
 
-8. Confirm they have a paid claude.ai plan (Pro, Max, Team, or Enterprise); the free plan cannot run Claude Code at all (`connectors/system-claude-code.md` section 2).
+7. Confirm they have a paid claude.ai plan; the free plan cannot run Claude Code at all (`connectors/system-claude-code.md` section 2). For the summit the ask is Max 5x: setup plus the four skills in one day runs Pro dry partway through.
 
-9. If the attendee also has the Revenue Manager, Listing Optimizer, or Comping Agent skills unzipped somewhere, ask where and write the folder paths into `.env`. These are plain paths, not secrets, and `fan-out-env.sh` uses them later to reach those skills' own `.env` files. Skip any they don't have; nothing breaks if they're blank.
-   ```bash
-   . "$BUNDLE/lib/env.sh"; env_set_if_blank "$BUNDLE/.env" SKILL_PATH_REVENUE_MANAGER <path>
-   . "$BUNDLE/lib/env.sh"; env_set_if_blank "$BUNDLE/.env" SKILL_PATH_LISTING_OPTIMIZER <path>
-   . "$BUNDLE/lib/env.sh"; env_set_if_blank "$BUNDLE/.env" SKILL_PATH_COMPING_AGENT <path>
-   ```
+## Phase 1: four questions, then a `.env` shaped to their answers
 
-10. Open `.env` for them so they never have to go hunting. Leave it open; every later step reuses this same file.
-    ```bash
-    open -e "$BUNDLE/.env"           # Mac
-    notepad "$BUNDLE\.env"           # Windows
-    xdg-open "$BUNDLE/.env"          # Linux
-    ```
+**Skip this phase entirely** when `$BUNDLE/.env` already exists with all four `STACK_*` lines filled (a re-run, or "Check my connections"). Jump to Phase 2.
 
-## Phase 1: the first scoreboard
+Ask about whichever of the four are still unknown, one question per message, unless they volunteer more than you asked in a single answer, in which case take everything they gave you and skip the rest:
+
+1. **PMS.** "What's your PMS? Hospitable, Hostaway, Guesty, Hostfully, OwnerRez, Lodgify, Uplisting, or Smoobu?" Value: `hospitable|hostaway|guesty|hostfully|ownerrez|lodgify|uplisting|smoobu`. "Guesty For Hosts" is not an option anymore: that product was sunset 2026-01-15 and everyone landed on Lite or Pro instead (`connectors/pms-guesty.md`); ask which one they're on, use `guesty` either way, and if it's Lite, mention gently that Open API needs Pro before you get to section 3 of that file.
+2. **Pricing.** "PriceLabs or Beyond?" Value: `pricelabs|beyond`.
+3. **Ranking**, optional. "Do you use a ranking tool, RankBreeze or IntelliHost? No worries if not." Value: `rankbreeze|intellihost|none`.
+4. **Ops**, optional. "Turno or Breezeway for cleaning, or neither?" Value: `turno|breezeway|none`.
+
+Then build their `.env` from the answers. It contains only the slots that apply to them (one PMS block, one pricing block, ranking and ops only if they said yes, and the required block), with the four answers already filled in. Nobody scrolls past seven other PMS vendors looking for theirs.
+```bash
+python3 "$BUNDLE/lib/env_make.py" --pms <pms> --pricing <pricing> --ranking <ranking|none> --ops <ops|none> --template "$BUNDLE/.env.template" --out "$BUNDLE/.env"
+```
+(`uv run --python 3.13 python` in place of `python3` if `python3` is missing.) Re-running it later with different answers is safe: every value already in the file is carried over, and a key for a vendor they no longer chose is kept at the bottom, never deleted.
+
+If they also have the Revenue Manager, Listing Optimizer, or Comping Agent skills unzipped somewhere, ask where and write the folder paths in. Plain paths, not secrets; `fan-out-env.sh` uses them later to reach those skills' own `.env` files, and the search in the next step looks inside them. Skip any they don't have.
+```bash
+. "$BUNDLE/lib/env.sh"; env_set_if_blank "$BUNDLE/.env" SKILL_PATH_REVENUE_MANAGER <path>
+. "$BUNDLE/lib/env.sh"; env_set_if_blank "$BUNDLE/.env" SKILL_PATH_LISTING_OPTIMIZER <path>
+. "$BUNDLE/lib/env.sh"; env_set_if_blank "$BUNDLE/.env" SKILL_PATH_COMPING_AGENT <path>
+```
+
+**Now go find the keys they already have, before asking for a single one.** Plenty of attendees ran an earlier Solnest kit, or already registered a vendor's server. The helper reads every `.env`-style file in the usual places (Desktop, Documents, Downloads, the skill folders above, the folders of servers already registered in `~/.claude.json`, the Claude Desktop config), matches by name and by the other names the same key goes by, and copies anything it finds into the blank lines. It prints names and where each came from, never a value.
+```bash
+python3 "$BUNDLE/lib/env_discover.py" --env "$BUNDLE/.env" --apply
+```
+Tell them what it found in one line ("found your PriceLabs, AirROI and Firecrawl keys from the Revenue Manager kit, still need Hospitable and Supabase"). A found key can be stale, which is why the scoreboard in Phase 2 probes every one of them for real before it turns green.
+
+Then open `.env` for them so they never have to go hunting. Leave it open; every later step reuses this same file.
+```bash
+open -e "$BUNDLE/.env"           # Mac
+notepad "$BUNDLE\.env"           # Windows
+xdg-open "$BUNDLE/.env"          # Linux
+```
+
+## Phase 2: the first scoreboard
 
 ```bash
 bash "$BUNDLE/check-connections.sh"
 ```
 Print the whole output, never a summary. Explain the legend once, casually, and don't repeat it again this session: ✅ connected, ❌ missing, ⚠️ registered but something's off, ⏳ waiting on a vendor, ➖ not used, 🔒 needs a restart, 🔎 Claude checks it live in this chat.
-
-## Phase 2: four questions, only when blank
-
-Check `.env` for `STACK_PMS`, `STACK_PRICING`, `STACK_RANKING`, `STACK_OPS`. Ask about whichever are still blank, one question per message, unless they volunteer more than you asked in a single answer, in which case write everything they gave you and skip the rest:
-
-1. **PMS.** "What's your PMS? Hospitable, Hostaway, Guesty, Hostfully, OwnerRez, Lodgify, Uplisting, or Smoobu?" Write the matching value (`hospitable|hostaway|guesty|hostfully|ownerrez|lodgify|uplisting|smoobu`) to `STACK_PMS`. "Guesty For Hosts" is not an option anymore: that product was sunset 2026-01-15 and everyone landed on Lite or Pro instead (`connectors/pms-guesty.md`); ask which one they're on, write `guesty` either way, and if it's Lite, mention gently that Open API needs Pro before you get to section 3 of that file.
-2. **Pricing.** "PriceLabs or Beyond?" Write `pricelabs|beyond` to `STACK_PRICING`.
-3. **Ranking**, optional. "Do you use a ranking tool, RankBreeze or IntelliHost? No worries if not." Write `rankbreeze|intellihost|none` to `STACK_RANKING`.
-4. **Ops**, optional. "Turno or Breezeway for cleaning, or neither?" Write `turno|breezeway|none` to `STACK_OPS`.
-
-Write each answer the same way, swapping in the real var name and value:
-```bash
-. "$BUNDLE/lib/env.sh"; env_set_if_blank "$BUNDLE/.env" STACK_PMS <value>
-```
-These four answers are what drives which rows `check-connections.sh` even shows you in Phase 3.
 
 ## Phase 3: work the list
 
@@ -206,7 +210,7 @@ Celebrate the win. They just wired up ten-plus tools without ever touching a ter
 
 ## Running this again
 
-Say "Check my connections" any time and Phase 1 through Phase 4 run again from wherever things stand; nothing gets re-asked that's already filled in, and nothing that already works gets touched. Say "Update my connections" and switch to `UPDATE.md` instead of this file; it handles pulling a newer version of the kit without touching anything already working.
+Say "Check my connections" any time and Phase 2 through Phase 4 run again from wherever things stand (Phase 1 is skipped once the four answers are in `.env`); nothing gets re-asked that's already filled in, and nothing that already works gets touched. Changed a tool ("I moved to Beyond")? Re-run the `env_make.py` line from Phase 1 with the new answer; every existing key is carried over and the new slot appears. Say "Update my connections" and switch to `UPDATE.md` instead of this file; it handles pulling a newer version of the kit without touching anything already working.
 
 ## Server names, for reference
 

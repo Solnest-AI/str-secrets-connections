@@ -9,7 +9,7 @@ cd "$(dirname "$0")"
 # desktop app, where the CLI is not guaranteed to be on PATH. mcp_load() (lib/mcp.sh) uses
 # one if it finds one and otherwise reads ~/.claude.json directly, so the scoreboard still
 # works either way.
-if ! env_load ./.env; then echo "❌ No .env here. Run: cp .env.template .env"; exit 1; fi
+if ! env_load ./.env; then echo "❌ No .env yet. Claude builds it from your four answers (CONNECTIONS.md Phase 1, lib/env_make.py)"; exit 1; fi
 
 # row <label> <state> [hint]; state: ok|missing|auth|keyfail|vendor|na|restart|live
 row() {
@@ -17,7 +17,7 @@ row() {
   case "$state" in
     ok)      glyph="✅"; text="connected" ;;
     missing) glyph="❌"; text="missing" ;;
-    auth)    glyph="⚠️"; text="registered, not authenticated (/mcp > Authenticate)" ;;
+    auth)    glyph="⚠️"; text="sign-in not finished; add it under + > Connectors" ;;
     keyfail) glyph="⚠️"; text="registered, key fails" ;;
     vendor)  glyph="⏳"; text="waiting on vendor" ;;
     na)      glyph="➖"; text="not used" ;;

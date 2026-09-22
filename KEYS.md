@@ -8,11 +8,13 @@ If this folder lives on a Desktop or Documents that syncs to iCloud or OneDrive,
 
 ## The 2-minute how-to
 
-1. Claude opens `.env` for you. If it's not already open, ask it to.
+1. Claude builds `.env` from your four answers (only the tools you actually use are in it) and, before asking you for anything, searches your computer for keys you already have from an earlier Solnest kit or a server you set up before. Anything it finds is already filled in when the file opens.
 2. Find the line for the key you have (each one ends in `=`, nothing after it yet).
 3. Paste the key right after the `=`. No quotes, no spaces before or after it.
 4. Save the file (Cmd+S on Mac, Ctrl+S on Windows).
 5. Tell Claude "saved". It picks it up from there.
+
+Already have a key somewhere and Claude is asking for it anyway? Say so ("I already have that one") and it goes looking on your machine before it sends you to the vendor's page.
 
 ## Every variable, what it's for, and where to get it
 

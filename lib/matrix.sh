@@ -4,25 +4,46 @@ PENDING_FILE=.cache/pending-vendor
 RESTART_FILE=.cache/needs-restart
 mkdir -p .cache 2>/dev/null; chmod 700 .cache 2>/dev/null
 
+# _cfile SERVER: the connector file that documents this server (hints used to glue the
+# server name into a path, which pointed at files that do not exist; Ryan's test run 2026-09-22)
+_cfile() {
+  case "$1" in
+    hospitable|hospitable-official) echo pms-hospitable ;;
+    hostaway) echo pms-hostaway ;;   guesty|guesty-official) echo pms-guesty ;;
+    hostfully) echo pms-hostfully ;; ownerrez) echo pms-ownerrez ;;
+    lodgify|lodgify-official) echo pms-lodgify ;;
+    uplisting|uplisting-official) echo pms-uplisting ;;
+    smoobu) echo pms-smoobu ;;
+    pricelabs|pricelabs-official) echo pricing-pricelabs ;;
+    beyond|beyond-official) echo pricing-beyond ;;
+    rankbreeze) echo ranking-rankbreeze ;; intellihost) echo ranking-intellihost ;;
+    turno) echo ops-turno ;;         breezeway) echo ops-breezeway ;;
+    airroi|airroi-official) echo market-airroi ;;
+    meta-ads) echo ads-meta ;;       kie) echo ai-kie ;;
+    firecrawl) echo web-firecrawl ;; supabase-revenue-manager) echo db-supabase ;;
+    *) echo "$1" ;;
+  esac
+}
 _pending_date() { [ -f "$PENDING_FILE" ] && awk -F'|' -v n="$1" '$1==n{print $2; exit}' "$PENDING_FILE"; }
 _needs_restart() { [ -f "$RESTART_FILE" ] && grep -qx "$1" "$RESTART_FILE"; }
 
 # check_api_row LABEL SERVER PROBE  (stdio server whose key is in .env)
 check_api_row() {
-  local label="$1" server="$2" probe="$3" pd st
-  pd=$(_pending_date "$server"); if [ -n "$pd" ]; then row "$label" vendor "emailed $pd; connectors/$server.md"; return; fi
+  local label="$1" server="$2" probe="$3" pd st f
+  f=$(_cfile "$server")
+  pd=$(_pending_date "$server"); if [ -n "$pd" ]; then row "$label" vendor "emailed $pd; connectors/$f.md"; return; fi
   "$probe"; local prc=$?
   case $prc in
-    2) row "$label" missing "paste the key into .env (connectors/$server.md)"; return ;;
-    1) row "$label" keyfail "re-check the line in .env (connectors/$server.md)"; return ;;
-    3) row "$label" keyfail "vendor unreachable or blocked; try again, then connectors/$server.md"; return ;;
+    2) row "$label" missing "paste the key into .env (connectors/$f.md)"; return ;;
+    1) row "$label" keyfail "re-check the line in .env (connectors/$f.md)"; return ;;
+    3) row "$label" keyfail "vendor unreachable or blocked; try again, then connectors/$f.md"; return ;;
   esac
   st=$(mcp_status "$server")
   if _needs_restart "$server"; then row "$label" restart; return; fi
   case "$st" in
     connected|registered) row "$label" ok ;;
-    absent)    row "$label" missing "key works; server not registered yet (connectors/$server.md)" ;;
-    *)         row "$label" keyfail "server status: $st (connectors/$server.md)" ;;
+    absent)    row "$label" missing "key works; server not registered yet (connectors/$f.md)" ;;
+    *)         row "$label" keyfail "server status: $st (connectors/$f.md)" ;;
   esac
 }
 # check_oauth_row LABEL SERVER  (sign-in MCP the attendee adds in the app's Connectors UI.
@@ -45,11 +66,12 @@ check_env_row() {
 }
 # check_url_mcp_row LABEL SERVER VAR  (hosted MCP whose auth is a URL/header from .env)
 check_url_mcp_row() {
-  local label="$1" server="$2" var="$3" st
-  env_filled "$var" || { row "$label" missing "paste it into .env (connectors/$server.md)"; return; }
+  local label="$1" server="$2" var="$3" st f
+  f=$(_cfile "$server")
+  env_filled "$var" || { row "$label" missing "paste it into .env (connectors/$f.md)"; return; }
   if _needs_restart "$server"; then row "$label" restart; return; fi
   st=$(mcp_status "$server")
-  case "$st" in connected|registered) row "$label" ok ;; absent) row "$label" missing "not registered (connectors/$server.md)" ;; *) row "$label" keyfail "server status: $st" ;; esac
+  case "$st" in connected|registered) row "$label" ok ;; absent) row "$label" missing "not registered (connectors/$f.md)" ;; *) row "$label" keyfail "server status: $st" ;; esac
 }
 
 scoreboard() {
