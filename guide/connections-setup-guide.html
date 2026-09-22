@@ -618,7 +618,7 @@ Summary: 14 connected, 0 missing, 1 pending vendor, 2 not used, 0 need restart, 
     <span class="badge badge-oneof">ONE OF</span>
   </div>
   <p class="login">Needs: Revenue Manager</p>
-  <p>Guesty is a property management system. If your listings, reservations, calendar and guest messages live at app.guesty.com, this is your PMS row. The Revenue Manager reads your listings, reservations and calendar through it, and can write back (calendar changes, guest messages) only after you approve each one. This kit wires Guesty up twice: a server Claude builds on your machine from Guesty's Open API (<code>guesty</code>…</p>
+  <p>Guesty is a property management system. If your listings, reservations, calendar and guest messages live at app.guesty.com, this is your PMS row. The Revenue Manager reads your listings, reservations and calendar through it, and can write back (calendar changes, guest messages) only after you approve each one.</p>
   <p class="login">Get it at <a href="https://app.guesty.com/main/integrations/open-api/applications" target="_blank" rel="noopener">https://app.guesty.com/main/integrations/open-api/applications</a></p>
   <ol>
     <li>"Sign in to your Guesty account."</li>
@@ -638,7 +638,7 @@ Summary: 14 connected, 0 missing, 1 pending vendor, 2 not used, 0 need restart, 
     <span class="badge badge-oneof">ONE OF</span>
   </div>
   <p class="login">Needs: Revenue Manager, Listing Optimizer</p>
-  <p>Hospitable is the PMS that holds your properties, calendar, reservations, guest messages and reviews. The Revenue Manager reads it for occupancy, ADR, RevPAR, booking pace and calendar state. The Listing Optimizer reads it too (fan-out copies the same token into that skill's <code>.env</code> under the name it expects, <code>HOSPITABLE_TOKEN</code>). You connect it two ways because they do different jobs: the bundled <code>hospitable</code> server…</p>
+  <p>Hospitable is the PMS that holds your properties, calendar, reservations, guest messages and reviews. The Revenue Manager reads it for occupancy, ADR, RevPAR, booking pace and calendar state. The Listing Optimizer reads it too (fan-out copies the same token into that skill's <code>.env</code> under the name it expects, <code>HOSPITABLE_TOKEN</code>).</p>
   <p class="login">Get it at <a href="https://my.hospitable.com/apps/api-access" target="_blank" rel="noopener">https://my.hospitable.com/apps/api-access</a></p>
   <ol>
     <li>Log in to my.hospitable.com.</li>
@@ -658,7 +658,7 @@ Summary: 14 connected, 0 missing, 1 pending vendor, 2 not used, 0 need restart, 
     <span class="badge badge-oneof">ONE OF</span>
   </div>
   <p class="login">Needs: Revenue Manager</p>
-  <p>Hostaway is your property management system, so it is where your listings, reservations and calendar live. The Revenue Manager reads all of that through this connection, and any other summit skill that needs your listing data goes through the same door. There is no pre-built Hostaway server in the kit: Claude builds a small local MCP server on your machine from Hostaway's live API docs, following…</p>
+  <p>Hostaway is your property management system, so it is where your listings, reservations and calendar live. The Revenue Manager reads all of that through this connection, and any other summit skill that needs your listing data goes through the same door.</p>
   <ol>
     <li>Log in at <code><a href="https://dashboard.hostaway.com/" target="_blank" rel="noopener">https://dashboard.hostaway.com/</a></code>, then go to <strong>Settings</strong> &gt; <strong>Hostaway API</strong>.</li>
     <li>Click <strong>Create</strong>. Choose a <strong>Name</strong> (use <code>STR Secrets</code>) and a <strong>Partner</strong>. Partner selection is mandatory. Pick the generic option called <strong>Hostaway Public API</strong> (Hostaway describes it as the option "for software that is not part of our official partners").</li>
@@ -675,13 +675,13 @@ Summary: 14 connected, 0 missing, 1 pending vendor, 2 not used, 0 need restart, 
     <span class="badge badge-oneof">ONE OF</span>
   </div>
   <p class="login">Needs: Revenue Manager</p>
-  <p>Hostfully is your property management system. The summit Revenue Manager skill reads your properties, calendar, nightly rates and reservations through it (Hostfully calls reservations "leads", so do not panic when you see that word). Hostfully does not ship an MCP server, so Claude builds a small one for you from Hostfully's API docs, points it at your agency, and registers it as <code>hostfully</code>. You never touch the…</p>
+  <p>Hostfully is your property management system. The summit Revenue Manager skill reads your properties, calendar, nightly rates and reservations through it (Hostfully calls reservations "leads", so do not panic when you see that word). Hostfully does not ship an MCP server, so Claude builds a small one for you from Hostfully's API docs, points it at your agency, and registers it as <code>hostfully</code>.</p>
   <ol>
     <li><strong>API Key.</strong> A long opaque string sitting in a field. It is displayed, not shown once, so you can come back for it. Copy it.</li>
     <li><strong>Agency UID.</strong> Scroll to the very bottom of the same page. Another long opaque string. Copy it.</li>
   </ol>
   <p class="grab"><b>Goes in .env as</b> <code>HOSTFULLY_API_KEY</code> <code>HOSTFULLY_AGENCY_UID</code></p>
-  <p class="note">One PMS is required and this is one of the eight. Two things to know before you start: <strong>The API is a paid add-on.</strong> If the API Key field is not on your Agency Settings page, it is not turned on yet. Hostfully's words: "If you don't see API key, it might be because you haven't added API access to your subscription - in this case, please contact our billing team by typing 'Talk to a human - need help with billing' for further help." So: open the Hostfully chat (their words: 'that little chat box on the bottom right corner of your screen'; it is on the help site and in the PMS), type exactly…</p>
+  <p class="note">One PMS is required and this is one of the eight. Two things to know before you start: <strong>The API is a paid add-on.</strong> If the API Key field is not on your Agency Settings page, it is not turned on yet. Hostfully's words: "If you don't see API key, it might be because you haven't added API access to your subscription - in this case, please contact our billing team by typing 'Talk to a human - need help with billing' for further help."</p>
 </article>
 <article class="card">
   <div class="card-top">
@@ -689,7 +689,7 @@ Summary: 14 connected, 0 missing, 1 pending vendor, 2 not used, 0 need restart, 
     <span class="badge badge-oneof">ONE OF</span>
   </div>
   <p class="login">Needs: Revenue Manager</p>
-  <p>Lodgify is your property management system: the place your listings, calendar, rates and bookings live. The Revenue Manager skill reads your properties, bookings and rate calendar through it, and pushes rate changes back (only after you approve each one). Two ways in. Path A is your Public API key running a small server Claude builds on your machine (reads and writes). Path B is Lodgify's own hosted MCP (read-only…</p>
+  <p>Lodgify is your property management system: the place your listings, calendar, rates and bookings live. The Revenue Manager skill reads your properties, bookings and rate calendar through it, and pushes rate changes back (only after you approve each one). Two ways in. Path A is your Public API key running a small server Claude builds on your machine (reads and writes).</p>
   <p class="login">Get it at <a href="https://app.lodgify.com/#/reservation/settings/publicApiToken" target="_blank" rel="noopener">https://app.lodgify.com/#/reservation/settings/publicApiToken</a></p>
   <ol>
     <li>Go to your left-hand menu and select Settings.</li>
@@ -697,7 +697,7 @@ Summary: 14 connected, 0 missing, 1 pending vendor, 2 not used, 0 need restart, 
     <li>Your API key will be displayed there. Use the copy function.</li>
   </ol>
   <p class="grab"><b>Goes in .env as</b> <code>LODGIFY_API_KEY</code></p>
-  <p class="note">One PMS is required for the summit, and this is the file if yours is Lodgify. Lodgify does not charge extra for the API, but it is plan-gated: their pricing table lists the API endpoint as included on Starter, Professional and Ultimate, and not included on Basic. On Basic, Path A will not work (Lodgify has not published what the Public API page shows on that plan, so it may be missing, locked, or present with a key the API rejects). Upgrade, or use Path B. The official MCP (Path B) has no plan gate, in Lodgify's words: "You can use this connection with any of our subscription plans." It does…</p>
+  <p class="note">One PMS is required for the summit, and this is the file if yours is Lodgify. Lodgify does not charge extra for the API, but it is plan-gated: their pricing table lists the API endpoint as included on Starter, Professional and Ultimate, and not included on Basic. On Basic, Path A will not work (Lodgify has not published what the Public API page shows on that plan, so it may be missing, locked, or present with a key the API rejects). Upgrade, or use Path B. The official MCP (Path B) has no plan gate, in Lodgify's words: "You can use this connection with any of our subscription plans."</p>
   <p class="note">An official vendor MCP exists too. Claude registers whichever path it needs.</p>
 </article>
 <article class="card">
@@ -723,7 +723,7 @@ Summary: 14 connected, 0 missing, 1 pending vendor, 2 not used, 0 need restart, 
     <span class="badge badge-oneof">ONE OF</span>
   </div>
   <p class="login">Needs: Revenue Manager</p>
-  <p>Smoobu is a channel manager and PMS (it calls your properties "apartments"). If it is your PMS, this is the connection the Revenue Manager reads reservations, availability and rates through, and the one every other summit skill leans on for "what do I actually have booked". Smoobu ships no MCP server, so Claude builds a small one for you from Smoobu's own API docs. That server signs every request with Smoobu's new…</p>
+  <p>Smoobu is a channel manager and PMS (it calls your properties "apartments"). If it is your PMS, this is the connection the Revenue Manager reads reservations, availability and rates through, and the one every other summit skill leans on for "what do I actually have booked". Smoobu ships no MCP server, so Claude builds a small one for you from Smoobu's own API docs.</p>
   <ol>
     <li>Log in to Smoobu (login.smoobu.com). Open <strong>Settings</strong> &gt; <strong>Advanced</strong> &gt; <strong>API Keys</strong>. Smoobu's help article says it as "open Advanced, then API Keys". Same screen.</li>
     <li>Click <strong>Create New</strong>, top-right corner. The developer docs call this button <strong>Create API Key</strong>. Same thing.</li>
@@ -740,7 +740,7 @@ Summary: 14 connected, 0 missing, 1 pending vendor, 2 not used, 0 need restart, 
     <span class="badge badge-oneof">ONE OF</span>
   </div>
   <p class="login">Needs: Revenue Manager</p>
-  <p>Uplisting is a property management system (channel manager plus booking engine) for short-term rental operators. It is part of AirDNA now. The Revenue Manager skill reads your properties, bookings and calendar through it, so pricing and occupancy work is grounded in your real numbers. There are two ways in: a built connector that uses your API key (Path A), and Uplisting's own hosted MCP that you sign into in the…</p>
+  <p>Uplisting is a property management system (channel manager plus booking engine) for short-term rental operators. It is part of AirDNA now. The Revenue Manager skill reads your properties, bookings and calendar through it, so pricing and occupancy work is grounded in your real numbers.</p>
   <ol>
     <li>Log in to <a href="https://app.uplisting.io" target="_blank" rel="noopener">https://app.uplisting.io</a>.</li>
     <li>In the sidebar, click <strong>Connect</strong>, then the <strong>API</strong> tab (or use the direct link above).</li>
@@ -760,7 +760,7 @@ Summary: 14 connected, 0 missing, 1 pending vendor, 2 not used, 0 need restart, 
     <span class="badge badge-oneof">ONE OF</span>
   </div>
   <p class="login">Needs: Revenue Manager</p>
-  <p>Beyond (formerly Beyond Pricing) is a dynamic pricing engine. It reads your PMS calendar and pushes nightly rates. The Revenue Manager uses it as the pricing spoke: it pulls Beyond's recommendations, your calendar, and your per-listing customizations (base, floor, ceiling, min stay) and cross-checks them against what is really on your PMS calendar. You need one pricing tool, PriceLabs or Beyond. If you use Beyond…</p>
+  <p>Beyond (formerly Beyond Pricing) is a dynamic pricing engine. It reads your PMS calendar and pushes nightly rates. The Revenue Manager uses it as the pricing spoke: it pulls Beyond's recommendations, your calendar, and your per-listing customizations (base, floor, ceiling, min stay) and cross-checks them against what is really on your PMS calendar. You need one pricing tool, PriceLabs or Beyond.</p>
   <p class="login">Get it at <a href="https://v2.beyondpricing.com/dashboard/user/personal-access-tokens" target="_blank" rel="noopener">https://v2.beyondpricing.com/dashboard/user/personal-access-tokens</a></p>
   <ol>
     <li>Log in to Beyond.</li>
@@ -778,7 +778,7 @@ Summary: 14 connected, 0 missing, 1 pending vendor, 2 not used, 0 need restart, 
     <span class="badge badge-oneof">ONE OF</span>
   </div>
   <p class="login">Needs: Revenue Manager</p>
-  <p>PriceLabs sets your nightly prices. The Revenue Manager skill reads your listings, the prices PriceLabs recommends, your min / base / max, your overrides, neighborhood data and reservations, then talks you through what to change. Two ways in, and you can have both. Heads up: the API key is read AND write. The bundled server can set, change and delete price overrides and edit listing settings on your live account…</p>
+  <p>PriceLabs sets your nightly prices. The Revenue Manager skill reads your listings, the prices PriceLabs recommends, your min / base / max, your overrides, neighborhood data and reservations, then talks you through what to change. Two ways in, and you can have both. Heads up: the API key is read AND write. The bundled server can set, change and delete price overrides and edit listing settings on your live account.</p>
   <p class="login">Get it at <a href="https://app.pricelabs.co/account_settings?tab=api_details" target="_blank" rel="noopener">https://app.pricelabs.co/account_settings?tab=api_details</a></p>
   <ol>
     <li>Click API Details</li>
@@ -799,7 +799,7 @@ Summary: 14 connected, 0 missing, 1 pending vendor, 2 not used, 0 need restart, 
     <span class="badge badge-optional">OPTIONAL</span>
   </div>
   <p class="login">Needs: Revenue Manager</p>
-  <p>IntelliHost is a listing-performance tool for Airbnb hosts. In the summit kit it fills the same slot as RankBreeze: the visibility spoke (search rank, listing performance) that the Revenue Manager skill leans on when it asks "why is this listing not getting booked". IntelliHost ships its own MCP server, so there is nothing to build and nothing to paste. Claude signs in through your browser and gets your account info…</p>
+  <p>IntelliHost is a listing-performance tool for Airbnb hosts. In the summit kit it fills the same slot as RankBreeze: the visibility spoke (search rank, listing performance) that the Revenue Manager skill leans on when it asks "why is this listing not getting booked". IntelliHost ships its own MCP server, so there is nothing to build and nothing to paste.</p>
   <p class="grab"><b>Goes in .env as</b> <code>INTELLIHOST_MCP_TOKEN</code></p>
   <p class="note">Optional. Pick RankBreeze, IntelliHost, or neither. If you run neither, the Revenue Manager still works, it just cannot see your search rank.</p>
   <p class="note">An official vendor MCP exists too. Claude registers whichever path it needs.</p>
@@ -810,7 +810,7 @@ Summary: 14 connected, 0 missing, 1 pending vendor, 2 not used, 0 need restart, 
     <span class="badge badge-optional">OPTIONAL</span>
   </div>
   <p class="login">Needs: Revenue Manager</p>
-  <p>RankBreeze tracks your Airbnb search rank, first-page impressions, click-through rate, page views, wishlists and booking rate, per listing, per day. It is the visibility spoke of the Revenue Manager: pricing tells you what to charge, RankBreeze tells you whether anyone is seeing the listing at that price. The Revenue Manager reads it through RankBreeze's own hosted MCP server, registered in Claude Code as…</p>
+  <p>RankBreeze tracks your Airbnb search rank, first-page impressions, click-through rate, page views, wishlists and booking rate, per listing, per day. It is the visibility spoke of the Revenue Manager: pricing tells you what to charge, RankBreeze tells you whether anyone is seeing the listing at that price.</p>
   <ol>
     <li>Log in at <code><a href="https://app.rankbreeze.com" target="_blank" rel="noopener">https://app.rankbreeze.com</a></code> and click <strong>Settings</strong> in the left sidebar.</li>
     <li>Under <strong>MCP Credentials</strong>, open <strong>MCP Access</strong>.</li>
@@ -829,7 +829,7 @@ Summary: 14 connected, 0 missing, 1 pending vendor, 2 not used, 0 need restart, 
     <span class="badge badge-optional">OPTIONAL</span>
   </div>
   <p class="login">Needs: Revenue Manager</p>
-  <p>Breezeway is the ops board a lot of STR operators run their turnovers on: cleans, inspections, maintenance tickets, task costs, all tied to a property and a reservation. In the summit kit it fills the optional ops slot (same slot as Turno). The Revenue Manager and the other summit skills use it to read your properties, reservations and tasks, and to draft new tasks that you confirm before anything gets created…</p>
+  <p>Breezeway is the ops board a lot of STR operators run their turnovers on: cleans, inspections, maintenance tickets, task costs, all tied to a property and a reservation. In the summit kit it fills the optional ops slot (same slot as Turno). The Revenue Manager and the other summit skills use it to read your properties, reservations and tasks, and to draft new tasks that you confirm before anything gets created.</p>
   <p class="grab"><b>Goes in .env as</b> <code>BREEZEWAY_CLIENT_ID</code> <code>BREEZEWAY_CLIENT_SECRET</code></p>
   <p class="note">Optional. Turno, Breezeway, or neither. Skip it and the summit skills still run; they just cannot see your cleaning and maintenance board.</p>
 </article>
@@ -839,7 +839,7 @@ Summary: 14 connected, 0 missing, 1 pending vendor, 2 not used, 0 need restart, 
     <span class="badge badge-optional">OPTIONAL</span>
   </div>
   <p class="login">Needs: Revenue Manager</p>
-  <p>Turno (the app formerly called TurnoverBnB) is where your cleaners, turnover projects and checklists live. The Revenue Manager reads it for operational signals: turnover cost per stay, too many one-night bookings eating your margin, cleans that did not get assigned. We bundle a small Python MCP server (<code>mcp-servers/turno</code>, ~47 tools, one per Turno endpoint) that talks to Turno's External API v2 on your behalf…</p>
+  <p>Turno (the app formerly called TurnoverBnB) is where your cleaners, turnover projects and checklists live. The Revenue Manager reads it for operational signals: turnover cost per stay, too many one-night bookings eating your margin, cleans that did not get assigned. We bundle a small Python MCP server (<code>mcp-servers/turno</code>, ~47 tools, one per Turno endpoint) that talks to Turno's External API v2 on your behalf.</p>
   <ol>
     <li>Log in to Turno in your browser. Top-right initials &gt; <strong>Settings</strong> &gt; <strong>Turno API</strong> (or <strong>API</strong> &gt; <strong>Tokens</strong>).</li>
     <li><strong>Create New Token</strong>.</li>
@@ -859,7 +859,7 @@ Summary: 14 connected, 0 missing, 1 pending vendor, 2 not used, 0 need restart, 
     <span class="badge badge-required">REQUIRED</span>
   </div>
   <p class="login">Needs: Revenue Manager, Listing Optimizer, Comping Agent</p>
-  <p>AirROI is the market-data feed behind the summit. Search a market, pull comps, get revenue and occupancy numbers for a listing or an area. The Comping Agent, the Listing Optimizer and the Revenue Manager all read from it. This kit wires it up twice: a bundled Python server (<code>airroi</code>, ours, runs on uv) and AirROI's own hosted MCP (<code>airroi-official</code>). Both use the same key and the same credit balance, so one deposit…</p>
+  <p>AirROI is the market-data feed behind the summit. Search a market, pull comps, get revenue and occupancy numbers for a listing or an area. The Comping Agent, the Listing Optimizer and the Revenue Manager all read from it. This kit wires it up twice: a bundled Python server (<code>airroi</code>, ours, runs on uv) and AirROI's own hosted MCP (<code>airroi-official</code>).</p>
   <ol>
     <li>Go to <a href="https://www.airroi.com/api/developer/activate" target="_blank" rel="noopener">https://www.airroi.com/api/developer/activate</a> and sign up with email, Google or GitHub.</li>
     <li>Add API credits. Deposit at least $10. AirROI says the key "is activated instantly after deposit."</li>
@@ -878,7 +878,7 @@ Summary: 14 connected, 0 missing, 1 pending vendor, 2 not used, 0 need restart, 
     <span class="badge badge-required">REQUIRED</span>
   </div>
   <p class="login">Needs: Ad Spy</p>
-  <p>Meta runs an official MCP server for ads at <a href="https://mcp.facebook.com/ads" target="_blank" rel="noopener">https://mcp.facebook.com/ads</a>. Claude signs in with your Facebook profile and gets tools for your ad accounts, campaigns, insights, and the public Ad Library. The Ad Spy skill searches the Ad Library through it: what your competitors are running, what their hooks say, what offers they push. Nothing to build, nothing to paste, nothing goes in <code>.env</code>. Claude signs in through…</p>
+  <p>Meta runs an official MCP server for ads at <a href="https://mcp.facebook.com/ads" target="_blank" rel="noopener">https://mcp.facebook.com/ads</a>. Claude signs in with your Facebook profile and gets tools for your ad accounts, campaigns, insights, and the public Ad Library. The Ad Spy skill searches the Ad Library through it: what your competitors are running, what their hooks say, what offers they push. Nothing to build, nothing to paste, nothing goes in <code>.env</code>.</p>
   <p class="grab"><b>Goes in .env as</b> <code>META_ADS_TOKEN</code></p>
   <p class="note">Required. The Ad Spy does not work without it.</p>
   <p class="note">An official vendor MCP exists too. Claude registers whichever path it needs.</p>
@@ -892,7 +892,7 @@ Summary: 14 connected, 0 missing, 1 pending vendor, 2 not used, 0 need restart, 
     <span class="badge badge-required">REQUIRED</span>
   </div>
   <p class="login">Needs: Listing Optimizer</p>
-  <p>Gemini is Google's AI model. The Listing Optimizer sends your listing photos to it and gets back a score and notes per photo: what is working, what is dark, what is cluttered, what to reshoot. That is the only job it has in the summit kit. Photo scoring, nothing else. There is no server to build and no MCP to register. You make one free key in Google AI Studio, it goes in <code>.env</code>, and <code>fan-out-env.sh</code> copies it into…</p>
+  <p>Gemini is Google's AI model. The Listing Optimizer sends your listing photos to it and gets back a score and notes per photo: what is working, what is dark, what is cluttered, what to reshoot. That is the only job it has in the summit kit. Photo scoring, nothing else. There is no server to build and no MCP to register.</p>
   <p class="login">Get it at <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">https://aistudio.google.com/apikey</a></p>
   <ol>
     <li>Go to Google AI Studio.</li>
@@ -917,7 +917,7 @@ Summary: 14 connected, 0 missing, 1 pending vendor, 2 not used, 0 need restart, 
   <ol>
     <li>Go to <a href="https://kie.ai/api-key" target="_blank" rel="noopener">https://kie.ai/api-key</a> and sign in with Google or Microsoft.</li>
     <li>Click <strong>Create New Key</strong>. Name it <code>STR Secrets</code>.</li>
-    <li>The key table has columns for Name, Key, Created Date, Created by, IP Whitelist, Allowed Models and Safe-Spend Limits. Leave <strong>IP Whitelist</strong> empty: your house and the venue have different IPs, and a whitelisted key stops working the moment your IP changes. Leave Allowed Models unrestricted; the skills pick the model and Kie changes the lineup often. A…</li>
+    <li>The key table has columns for Name, Key, Created Date, Created by, IP Whitelist, Allowed Models and Safe-Spend Limits. Leave <strong>IP Whitelist</strong> empty: your house and the venue have different IPs, and a whitelisted key stops working the moment your IP changes. Leave Allowed Models unrestricted; the skills pick the model and Kie changes the lineup often.</li>
     <li>Copy the key now. Kie does not say whether it shows the full key again later, so treat it as a one-time view.</li>
   </ol>
   <p class="grab"><b>Goes in .env as</b> <code>KIE_API_KEY</code></p>
@@ -951,11 +951,11 @@ Summary: 14 connected, 0 missing, 1 pending vendor, 2 not used, 0 need restart, 
     <span class="badge badge-required">REQUIRED</span>
   </div>
   <p class="login">Needs: Revenue Manager</p>
-  <p>Supabase is a hosted Postgres database. The summit skills keep their tables in it. One shared project, named <code>str-secrets-summit</code>, holds all of it. Claude reaches it through Supabase's MCP server (<code>supabase-revenue-manager</code>), which runs on Node through <code>npx</code>. It is not read-only. The skills create their own tables and apply migrations through it, and the Revenue Manager's runner reads this exact server entry out of…</p>
+  <p>Supabase is a hosted Postgres database. The summit skills keep their tables in it. One shared project, named <code>str-secrets-summit</code>, holds all of it. Claude reaches it through Supabase's MCP server (<code>supabase-revenue-manager</code>), which runs on Node through <code>npx</code>. It is not read-only.</p>
   <ol>
     <li>Go to <a href="https://supabase.com/dashboard/account/tokens" target="_blank" rel="noopener">https://supabase.com/dashboard/account/tokens</a> (sign in, or sign up free first) and click <strong>Generate new token</strong>.</li>
-    <li>The dialog that opens is a two-step scoped wizard ("Step 1 of 2 · Configure"). Skip filling it in. Under Resource access there is a line: "Need a token with full access to your account? Create legacy token". Click <strong>Create legacy token</strong>. Supabase's warning on that screen is real: "Access tokens can be used to control your whole account. Be careful when…</li>
-    <li><strong>Name:</strong> <code>STR Secrets</code>. <strong>Expires in:</strong> open the dropdown (24 hours / 7 days / 30 days / 90 days / Custom) and pick <strong>Custom</strong>, then the furthest date the picker allows. It caps at exactly one year; on 2026-09-21 the picker offered 21 Sep 2027. The one thing to avoid is leaving it on 7 days. Non-expiring tokens can no longer be created, for either kind of…</li>
+    <li>The dialog that opens is a two-step scoped wizard ("Step 1 of 2 · Configure"). Skip filling it in. Under Resource access there is a line: "Need a token with full access to your account? Create legacy token". Click <strong>Create legacy token</strong>. Supabase's warning on that screen is real: "Access tokens can be used to control your whole account.</li>
+    <li><strong>Name:</strong> <code>STR Secrets</code>. <strong>Expires in:</strong> open the dropdown (24 hours / 7 days / 30 days / 90 days / Custom) and pick <strong>Custom</strong>, then the furthest date the picker allows. It caps at exactly one year; on 2026-09-21 the picker offered 21 Sep 2027. The one thing to avoid is leaving it on 7 days.</li>
     <li>Click <strong>Generate token</strong>. Copy the <code>sbp_...</code> value now; it is shown once. Claude opens <code>.env</code> for you. Put the token after the equals sign on this line, save, close:</li>
   </ol>
   <p class="grab"><b>Goes in .env as</b> <code>SUPABASE_ACCESS_TOKEN</code> <code>SUPABASE_PROJECT_REF</code> <code>SUPABASE_DB_PASSWORD</code></p>

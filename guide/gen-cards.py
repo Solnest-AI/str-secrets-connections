@@ -177,11 +177,21 @@ def inline_html(text: str) -> str:
 
 
 def trim(text: str, max_chars: int) -> str:
+    """Cut at a sentence boundary, never mid-sentence and never with an
+    ellipsis (cards looked unfinished, Ryan 2026-09-22). Keeps whole
+    sentences up to max_chars; if the first sentence alone is longer than
+    that, it is kept whole anyway."""
     text = re.sub(r"\s+", " ", text).strip()
     if len(text) <= max_chars:
         return text
-    cut = text[:max_chars].rsplit(" ", 1)[0]
-    return cut.rstrip(",.;:") + "…"
+    sentences = re.split(r"(?<=[.!?])\s+(?=[A-Z0-9\"'(])|(?<=[.!?][\"')\]])\s+(?=[A-Z0-9\"'(])", text)
+    out = ""
+    for sent in sentences:
+        candidate = (out + " " + sent).strip()
+        if out and len(candidate) > max_chars:
+            break
+        out = candidate
+    return out
 
 
 # ------------------------------------------------------------------ cards --
