@@ -41,6 +41,8 @@ if isinstance(servers, dict):
 '
   if command -v python3 >/dev/null 2>&1; then
     python3 -c "$py_snippet" "$cfg" 2>/dev/null
+  elif command -v python >/dev/null 2>&1; then
+    python -c "$py_snippet" "$cfg" 2>/dev/null
   elif command -v uv >/dev/null 2>&1; then
     uv run python -c "$py_snippet" "$cfg" 2>/dev/null
   fi

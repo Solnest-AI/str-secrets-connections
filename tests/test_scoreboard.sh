@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 set -u; cd "$(dirname "$0")/.."
+. tests/_helpers.sh
 export CURL_STUB_DIR="$PWD/tests/fixtures/curl"
 export CLAUDE_STUB_FIXTURE="$PWD/tests/fixtures/mcp-list-hospitable-full.txt"
 fail=0; t(){ if eval "$2"; then echo "ok   $1"; else echo "FAIL $1"; fail=1; fi; }
@@ -50,7 +51,9 @@ cat > "$NOBIN_HOME/.claude.json" <<'JSON'
 JSON
 NOBIN_STUBS="$(mktemp -d)"
 cp tests/stubs/curl "$NOBIN_STUBS/curl"; chmod +x "$NOBIN_STUBS/curl"
-out4="$(HOME="$NOBIN_HOME" PATH="$NOBIN_STUBS:/usr/bin:/bin" CURL_STUB_DIR="$PWD/tests/fixtures/curl" bash check-connections.sh)"; rc4=$?
+# Git Bash's /usr/bin has no python; the config-reading fallback needs one, so add its dir.
+PYDIR="$(python_dir)"
+out4="$(HOME="$NOBIN_HOME" PATH="$NOBIN_STUBS:${PYDIR:+$PYDIR:}/usr/bin:/bin" CURL_STUB_DIR="$PWD/tests/fixtures/curl" bash check-connections.sh)"; rc4=$?
 t "no-binary: exits 0"                 "[ $rc4 -eq 0 ]"
 t "no-binary: meta-ads shows live-check glyph" "printf '%s' \"\$out4\" | grep -q '🔎 Meta Ads MCP.*add it under + > Connectors; Claude checks it live'"
 t "no-binary: keyed row with a passing probe is ok" "printf '%s' \"\$out4\" | grep -q '✅ Hospitable API'"

@@ -457,7 +457,7 @@ If you'd rather use Python, **mirror the `mcp-servers/airroi/` server exactly** 
 - **Recommend-only / write-gating (REQUIRED):** split tools into **reads** (auto-run) and **writes** (confirmation-gated). Every write/mutating tool (`update_rates`, `update_calendar`, `block_dates`, create/update reservation/booking/lead, `send_message`, etc.) takes a `confirm` boolean. When `confirm` is missing/false, the tool returns a **preview of the exact change** (property, dates, old→new value, message text) and does NOT call the API. It only writes when re-invoked with `confirm=true`. Mirror the bundled Turno server's `confirm=true` pattern.
 - **Smoke test:** write one smoke test that hits a **read/list** endpoint and returns real data. Wire it so you can run it directly:
   - **Node:** add a `"test"` script to `package.json` that runs your smoke test (e.g. `"test": "node dist/smoke-test.js"`), AND make the file runnable by direct path. (The bundled `hospitable` package has no `test` script: do not assume one exists; create it.)
-  - **Python:** put the smoke test at `smoke_test.py` (flat, like airroi) so it runs with `.venv/bin/python smoke_test.py`.
+  - **Python:** put the smoke test at `smoke_test.py` (flat, like airroi) so it runs with `uv run --python .venv python smoke_test.py` (cross-platform; the raw interpreter is `.venv/bin/python` on Mac, `.venv/Scripts/python.exe` on Windows).
 - **`.env.example`** with the env var names for that PMS.
 - **`.gitignore`:** `.env`, `node_modules/`, `dist/` (Node) or `.env`, `__pycache__/`, `.venv/` (Python). The `.env` line is mandatory. Sanity Check 1 depends on it.
 - **README** with env vars, install, build/run, and the tool list: **split into a Read tools section and a Write tools (confirmation-gated) section.**
@@ -563,7 +563,7 @@ If you'd rather use Python, **mirror the `mcp-servers/airroi/` server exactly** 
 
 7. **Build/install** (use the set that matches the style you chose):
    - **Node (hospitable style):** `cd "<BUNDLE_ROOT>/mcp-servers/<pms>" && npm install && npm run build`
-   - **Python (airroi style):** `cd "<BUNDLE_ROOT>/mcp-servers/<pms>" && python3 -m venv .venv && .venv/bin/pip install -r requirements.txt`
+   - **Python (airroi style):** `cd "<BUNDLE_ROOT>/mcp-servers/<pms>" && uv venv .venv && uv pip install -r requirements.txt --python .venv` (uv builds the right layout on both OSes: `.venv/bin` on Mac, `.venv/Scripts` on Windows. Do not rely on a bare `python3` on Windows: it may be the Microsoft Store stub. This is why the kit standardizes on `uv`.)
 
 8. **Verify the folder** has: `package.json` + `src/` + `dist/` (Node) or `server.py` + `requirements.txt` + `.venv/` (Python), plus `.env.example`, `.gitignore`, `README.md`, and the smoke test.
 
@@ -581,6 +581,8 @@ claude mcp add <pms-lowercase> --scope user -- "<BUNDLE_ROOT>/mcp-servers/<pms>/
 
 If the `claude` CLI isn't available, add the entry under `mcpServers` in `~/.claude.json` by hand (same command + args).
 
+**Windows:** the Python interpreter is `.venv/Scripts/python.exe` (never `.venv/bin/python`), and Claude Code is a native Windows process, so hand it `cygpath -w`-converted `C:\...` paths, not the `/c/Users/...` form Git Bash shows. In the summit kit, registration is done from the matching `connectors/<name>.md` file via `lib/mcp_register.py`, which already carries these Windows forms (see `build/README.md`).
+
 #### Step B5: Smoke test
 
 Run the smoke test by **direct path**: the install/entry/test invocation all come from the one style you chose. Don't run a bare `npm test` unless you wired a `test` script in Step B3.
@@ -590,8 +592,9 @@ Run the smoke test by **direct path**: the install/entry/test invocation all com
 cd "<BUNDLE_ROOT>/mcp-servers/<pms>" && npm test
 #   (or run it directly: node "<BUNDLE_ROOT>/mcp-servers/<pms>/dist/smoke-test.js")
 
-# Python (airroi style), flat smoke_test.py:
-cd "<BUNDLE_ROOT>/mcp-servers/<pms>" && .venv/bin/python smoke_test.py
+# Python (airroi style), flat smoke_test.py (cross-platform; raw interpreter is
+# .venv/bin/python on Mac, .venv/Scripts/python.exe on Windows):
+cd "<BUNDLE_ROOT>/mcp-servers/<pms>" && uv run --python .venv python smoke_test.py
 ```
 
 Must return real data from a **read/list** endpoint (or a confirmed-expected empty result for a brand-new account). The smoke test reads its credentials from `.env` (never hardcoded) and only ever reads. It never writes.

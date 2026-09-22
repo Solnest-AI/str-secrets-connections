@@ -195,7 +195,7 @@ cd "<BUNDLE_ROOT>/mcp-servers/turno"
 uv sync
 ```
 
-If `uv` isn't installed, install it first (`curl -LsSf https://astral.sh/uv/install.sh | sh` on Mac/Linux, or `pip install uv`), then re-run `uv sync`. (A plain `python3 -m venv .venv && .venv/bin/pip install -e .` also works as a fallback: Turno ships a `pyproject.toml`, not a `requirements.txt`.)
+If `uv` isn't installed, install it first (`curl -LsSf https://astral.sh/uv/install.sh | sh` on Mac/Linux, `irm https://astral.sh/uv/install.ps1 | iex` on Windows), then re-run `uv sync`. Prefer `uv`: it works the same on both OSes. (A plain venv fallback also works, but note the venv pip is `.venv/bin/pip` on Mac and `.venv\Scripts\pip.exe` on Windows, and a bare `python3` on Windows may be the Microsoft Store stub.)
 
 #### A3: Get the operator's credential (the contract, step by step)
 
@@ -570,7 +570,7 @@ curl -sS -H "Authorization: JWT $TOKEN" "https://api.breezeway.io/public/invento
 1. The operator's `.env` is already created and filled per the credential walkthrough above (from the `.env.example` you generated): the **operator pasted the values into the file**, you never typed them. If a value still needs to go in, re-run that tool's walkthrough (open the file, walk them to the key, paste-on-line, save, 3 sanity checks). Never echo a value in chat, never write one with the Edit/Write tool.
 2. Install deps and confirm it builds:
    - **If the project uses `pyproject.toml` / uv** (the Turno-style Python pattern): `cd <folder> && uv sync`, and register later with `uv --directory <folder> run <console-script-name>`.
-   - **If the project uses `requirements.txt`** (plain Python): `cd <folder> && python3 -m venv .venv && .venv/bin/pip install -r requirements.txt`, and register later with the absolute venv python + entry file.
+   - **If the project uses `requirements.txt`** (plain Python): `cd <folder> && uv venv .venv && uv pip install -r requirements.txt --python .venv` (cross-platform; uv makes `.venv/bin` on Mac, `.venv/Scripts` on Windows, and avoids the bare-`python3` Microsoft Store stub), and register later with the absolute venv python + entry file.
    - **If the project is Node/TS** (the PriceLabs-style pattern): `cd <folder> && npm install && npm run build`, and register later with `node <folder>/dist/index.js`.
 3. Confirm folder structure (entry point, `src/`, `.env.example`, `.gitignore`, README, and for Node a built `dist/`).
 
@@ -599,7 +599,7 @@ claude mcp add <tool-lowercase> --scope user -- uv --directory "<BUNDLE_ROOT>/mc
 claude mcp add <tool-lowercase> --scope user -- "<BUNDLE_ROOT>/mcp-servers/<tool>/.venv/bin/python" "<BUNDLE_ROOT>/mcp-servers/<tool>/server.py"
 ```
 
-Pick the line that matches what you built. Then: **fully close and reopen Claude Code**, and verify the tools appear in a new chat with a **list/read** call (never a write call): e.g. "list my <tool> listings/properties". Then go to **Step Done**.
+Pick the line that matches what you built. **Windows:** the venv interpreter is `.venv/Scripts/python.exe` (never `.venv/bin/python`), and every absolute path handed to Claude Code needs the `cygpath -w` `C:\...` form, not `/c/Users/...`. In the summit kit, registration is done from the matching `connectors/<name>.md` file via `lib/mcp_register.py`, which already carries the Windows forms (see `build/README.md`). Then: **fully close and reopen Claude Code**, and verify the tools appear in a new chat with a **list/read** call (never a write call): e.g. "list my <tool> listings/properties". Then go to **Step Done**.
 
 ---
 

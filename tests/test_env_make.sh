@@ -3,16 +3,17 @@
 # the attendee already has. Both run against a throwaway HOME so nothing real is touched.
 set -u
 cd "$(dirname "$0")/.."
+. tests/_helpers.sh
 fail=0; t(){ if eval "$2" >/dev/null 2>&1; then echo "ok   $1"; else echo "FAIL $1"; fail=1; fi; }
 
 PY=python3; command -v python3 >/dev/null || PY="uv run --python 3.13 python"
-H="$(mktemp -d)"; export HOME="$H"; mkdir -p "$H/Desktop" "$H/Documents"
+H="$(mktemp -d)"; iso_home "$H"; mkdir -p "$H/Desktop" "$H/Documents"
 OUT="$H/kit/.env"; mkdir -p "$H/kit"
 
 # ---- env_make: only the chosen slots ----
 $PY lib/env_make.py --pms hospitable --pricing pricelabs --ranking none --ops turno --template .env.template --out "$OUT" >/dev/null
 t "env_make writes the file"                      "[ -f '$OUT' ]"
-t "env_make chmod 600"                            "[ \"\$(stat -f '%Lp' '$OUT' 2>/dev/null || stat -c '%a' '$OUT')\" = 600 ]"
+t "env_make chmod 600"                            "mode_is_600 '$OUT'"
 t "env_make fills the four answers"               "grep -q '^STACK_PMS=hospitable$' '$OUT' && grep -q '^STACK_PRICING=pricelabs$' '$OUT' && grep -q '^STACK_RANKING=none$' '$OUT' && grep -q '^STACK_OPS=turno$' '$OUT'"
 t "env_make keeps the chosen PMS slot"            "grep -q '^HOSPITABLE_API_KEY=$' '$OUT'"
 t "env_make drops the other seven PMS"            "! grep -qE '^(HOSTAWAY|GUESTY|HOSTFULLY|OWNERREZ|LODGIFY|UPLISTING|SMOOBU)_' '$OUT'"
@@ -48,7 +49,7 @@ cat > "$H/.claude.json" <<'EOF'
  "hospitable":{"type":"stdio","command":"node","args":["HOMEDIR/Documents/revenue-manager/mcp-servers/hospitable/dist/index.js"]}
 }}
 EOF
-sed -i.bak "s#HOMEDIR#$H#" "$H/.claude.json" && rm -f "$H/.claude.json.bak"
+sed -i.bak "s#HOMEDIR#$(native_path "$H")#" "$H/.claude.json" && rm -f "$H/.claude.json.bak"
 printf 'HOSPITABLE_API_KEY=hosp_from_server_dir\n' > "$H/Documents/revenue-manager/mcp-servers/hospitable/.env"
 REPORT="$($PY lib/env_discover.py --env "$OUT" --apply 2>&1)"
 t "discover reports names only"                  "! printf '%s' \"\$REPORT\" | grep -q 'from_rm\\|from_json\\|from_server_dir\\|from_fixture'"
@@ -79,5 +80,12 @@ REPO="$PWD"
 REPORT3="$(cd "$CWD_OUTSIDE_HOME" && $PY "$REPO/lib/env_discover.py" --env "$OUT" --apply 2>&1)"
 t "discover ignores a scoped package name as a path"  "! grep -q 'leaked_from_cwd' '$OUT'"
 t "discover does not attribute ~/.env to a server"    "! printf '%s' \"\$REPORT3\" | grep -q 'scoped ->'"
-t "discover still finds ~/.env by the walk, under its own path" "grep -q '^FIRECRAWL_API_KEY=leaked_from_home$' '$OUT' && printf '%s' \"\$REPORT3\" | grep -qE 'FIRECRAWL_API_KEY  <- (/private)?'\"$H\"'/.env'"
+# env_discover prints the native path of the found file: (/private)?<H>/.env on Mac,
+# the C:\...\.env form on Windows. Match whichever this OS produces.
+if is_windows; then
+  _fc_env="$(cygpath -w "$H/.env")"
+  t "discover still finds ~/.env by the walk, under its own path" "grep -q '^FIRECRAWL_API_KEY=leaked_from_home$' '$OUT' && printf '%s' \"\$REPORT3\" | grep -qF 'FIRECRAWL_API_KEY  <- $_fc_env'"
+else
+  t "discover still finds ~/.env by the walk, under its own path" "grep -q '^FIRECRAWL_API_KEY=leaked_from_home$' '$OUT' && printf '%s' \"\$REPORT3\" | grep -qE 'FIRECRAWL_API_KEY  <- (/private)?'\"$H\"'/.env'"
+fi
 rm -rf "$H" "$CWD_OUTSIDE_HOME"
