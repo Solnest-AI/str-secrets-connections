@@ -5,6 +5,10 @@ export CURL_STUB_DIR="$PWD/tests/fixtures/curl"
 export CLAUDE_STUB_FIXTURE="$PWD/tests/fixtures/mcp-list-hospitable-full.txt"
 fail=0; t(){ if eval "$2"; then echo "ok   $1"; else echo "FAIL $1"; fail=1; fi; }
 tmp=$(mktemp -d); cp -R . "$tmp/repo" >/dev/null 2>&1; cd "$tmp/repo"
+# Start from a clean slate: a real setup on this machine leaves .cache/live-ok and
+# .cache/needs-restart behind, and the copy above would carry them in and pre-green the
+# sign-in rows these cases assert on.
+rm -rf .cache
 cp tests/fixtures/env-hospitable-full.env .env
 out="$(bash check-connections.sh)"; rc=$?
 t "exit 0 when it ran"                 "[ $rc -eq 0 ]"
@@ -53,7 +57,7 @@ NOBIN_STUBS="$(mktemp -d)"
 cp tests/stubs/curl "$NOBIN_STUBS/curl"; chmod +x "$NOBIN_STUBS/curl"
 # Git Bash's /usr/bin has no python; the config-reading fallback needs one, so add its dir.
 PYDIR="$(python_dir)"
-out4="$(HOME="$NOBIN_HOME" PATH="$NOBIN_STUBS:${PYDIR:+$PYDIR:}/usr/bin:/bin" CURL_STUB_DIR="$PWD/tests/fixtures/curl" bash check-connections.sh)"; rc4=$?
+out4="$(SSC_NO_CLAUDE_BIN=1 HOME="$NOBIN_HOME" PATH="$NOBIN_STUBS:${PYDIR:+$PYDIR:}/usr/bin:/bin" CURL_STUB_DIR="$PWD/tests/fixtures/curl" bash check-connections.sh)"; rc4=$?
 t "no-binary: exits 0"                 "[ $rc4 -eq 0 ]"
 t "no-binary: meta-ads shows live-check glyph" "printf '%s' \"\$out4\" | grep -q '🔎 Meta Ads MCP.*add it under + > Connectors; Claude checks it live'"
 t "no-binary: keyed row with a passing probe is ok" "printf '%s' \"\$out4\" | grep -q '✅ Hospitable API'"

@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.0.6 (2026-09-22)
+- The setup walkthrough video is the first thing on the guide page: a Start here band above the title with the player embedded, a Play button and the plain URL under it (the PDF drops the player and keeps the link). It is also the first section of the README, above the download.
+- Support contact is Ryan directly: ryan.lefebvre@strsecrets.com, FB Ryan Lefebvre, IG ryan_le5, in the done message, the README and the guide. The Skool link is gone from the attendee-facing files.
+- A vendor's official sign-in row is worked the moment its API row is done, never parked for later. The conductor said both "PMS API, PMS official" and "do this whenever it's convenient, in this pass or later", and the second sentence won often enough that attendees finished setup with the official Hospitable, PriceLabs and Meta connectors never added.
+- The done message names each row exactly as the scoreboard printed it ("Hospitable API", then "Hospitable MCP"), instead of rewording it.
+- The test suite is hermetic again. `test_bundle.sh` asked the working folder whether a server had a `.env` or a build folder, and `test_scoreboard.sh` copied `.cache` into its fixture, so running the kit for real broke its own tests: 13 failures purely from a completed setup. Both now check what git ships and start from a clean cache.
+- Guide version string matches VERSION (it was stuck at 1.0.3).
+
 ## 1.0.5 (2026-09-22)
 - Fixed a key leak in `lib/env_discover.py`: a registered server whose argument was a package name with a slash in it (`@supabase/mcp-server-supabase@latest`) was treated as a file path, so the search walked the current folder and its parents and read whatever `.env` sat there, attributing it to that server. Only absolute paths count now, the home folder and the kit's own `.env` are never read that way, and a regression test puts a sentinel `.env` in the working folder and asserts it stays out.
 - A key found in `~/.env` is reported under its own path, not as some unrelated server's ("secondbrain-vault -> .env" is gone). Each `.env` file is counted once in the "searched N files" line.

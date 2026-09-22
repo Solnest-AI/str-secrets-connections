@@ -11,6 +11,10 @@ MCP_LIST_CACHE=""
 # binary under ~/Library/Application Support/Claude/claude-code/<ver>/claude.app/... on Mac.
 _mcp_resolve_claude_bin() {
   local p
+  # SSC_NO_CLAUDE_BIN=1 (tests only): pretend there is no binary anywhere. The suite's
+  # "no-binary" cases build a minimal PATH, but on a Mac the python dir they keep is
+  # Homebrew's, which also holds the npm-global `claude`, so the fallback never ran.
+  [ "${SSC_NO_CLAUDE_BIN:-}" = 1 ] && return 1
   p="$(command -v claude 2>/dev/null)"
   if [ -n "$p" ]; then printf '%s\n' "$p"; return 0; fi
   local dir="$HOME/Library/Application Support/Claude/claude-code"

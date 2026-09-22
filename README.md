@@ -6,6 +6,12 @@ Get every tool the summit skills need wired into Claude Code, on Mac or Windows,
 
 A free setup kit from **Solnest AI** for **STR Secrets AI Summit 2.0**. For the full walkthrough with pictures, including the Day-0 list of what to send off before you even start, see the Connections Setup Guide PDF.
 
+## Watch this first
+
+**[Play the walkthrough](https://www.loom.com/share/7789c06b5b5e455aaf28035151733453)** (https://www.loom.com/share/7789c06b5b5e455aaf28035151733453)
+
+Ryan walks the whole setup end to end. Do this before step 1.
+
 ## How to use it
 
 Claude asks four questions, builds a `.env` with only your tools in it, finds any keys you already have on the machine, and walks you through the rest one key at a time.
@@ -28,4 +34,5 @@ Paste this into Claude Code:
 
 ## Stuck?
 
-Skool: https://www.skool.com/solnest-ai
+Email Ryan: ryan.lefebvre@strsecrets.com
+FB: Ryan Lefebvre · IG: ryan_le5

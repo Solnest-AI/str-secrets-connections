@@ -74,6 +74,66 @@
     margin:0 auto;
   }
 
+  /* ---------- Watch this first (top of page, above the hero) ---------- */
+  .watch-first{
+    background:var(--header-bg);
+    background-image:radial-gradient(900px 260px at 50% -30%, rgba(198,93,59,.30), transparent 72%);
+    border-top:3px solid var(--terra);
+    border-bottom:3px solid var(--terra);
+    padding:26px 16px 30px;
+    text-align:center;
+  }
+  .watch-first .wf-kicker{
+    display:inline-block;
+    background:var(--terra);
+    color:#fff;
+    font-weight:800;
+    letter-spacing:.08em;
+    text-transform:uppercase;
+    font-size:.78rem;
+    padding:5px 13px;
+    border-radius:999px;
+    margin:0 0 12px;
+  }
+  .watch-first h2{
+    font-family:var(--serif);
+    color:#fff;
+    font-weight:700;
+    font-size:clamp(1.5rem,4vw,2.1rem);
+    line-height:1.12;
+    margin:0 0 8px;
+  }
+  .watch-first p.wf-sub{
+    color:#e8ded2;
+    font-size:clamp(.95rem,2.2vw,1.06rem);
+    margin:0 auto 18px;
+    max-width:54ch;
+  }
+  .wf-frame{
+    position:relative;
+    width:100%;
+    max-width:760px;
+    margin:0 auto 16px;
+    padding-top:56.25%;
+    border-radius:12px;
+    overflow:hidden;
+    border:1px solid rgba(255,255,255,.18);
+    box-shadow:0 18px 44px rgba(0,0,0,.45);
+    background:#000;
+  }
+  .wf-frame iframe{position:absolute;inset:0;width:100%;height:100%;border:0;}
+  .wf-btn{
+    display:inline-block;
+    background:var(--terra);
+    color:#fff !important;
+    font-weight:800;
+    font-size:1rem;
+    padding:12px 24px;
+    border-radius:999px;
+    text-decoration:none;
+  }
+  .wf-url{color:#b9ada0;font-size:.82rem;margin:12px 0 0;word-break:break-all;}
+
   /* ---------- Hero ---------- */
   .hero{padding:44px 0 8px;}
   .hero .kicker{
@@ -314,6 +374,13 @@
     .wrap{max-width:100%;padding:0;}
     .site-header{padding:12px 16px 14px;}
     .site-header img{max-width:220px;}
+    .watch-first{padding:12px 16px 14px;border-top-width:2px;border-bottom-width:2px;}
+    .watch-first .wf-kicker{font-size:.66rem;margin-bottom:6px;padding:3px 9px;}
+    .watch-first h2{font-size:16px;margin:0 0 5px;}
+    .watch-first p.wf-sub{font-size:10.5px;margin-bottom:8px;}
+    .wf-frame{display:none;}
+    .wf-btn{font-size:11px;padding:7px 14px;}
+    .wf-url{font-size:9.6px;margin-top:8px;color:#8d8278;}
     .hero{padding:14px 0 4px;}
     .hero .kicker{font-size:.72rem;margin-bottom:4px;}
     .hero h1{font-size:22px;margin:0 0 8px;}
@@ -367,6 +434,18 @@
   <header class="site-header">
     <img src="assets/solnest-logo.png" alt="Solnest AI">
   </header>
+
+  <!-- WATCH THIS FIRST -->
+  <section class="watch-first">
+    <p class="wf-kicker">Start here</p>
+    <h2>Watch this first</h2>
+    <p class="wf-sub">Ryan walks the whole setup end to end, start to finish. Five minutes here saves you an hour of guessing further down this page.</p>
+    <div class="wf-frame">
+      <iframe src="https://www.loom.com/embed/7789c06b5b5e455aaf28035151733453" title="Connections setup walkthrough" allowfullscreen loading="lazy"></iframe>
+    </div>
+    <p><a class="wf-btn" href="https://www.loom.com/share/7789c06b5b5e455aaf28035151733453" target="_blank" rel="noopener">Play the walkthrough</a></p>
+    <p class="wf-url">https://www.loom.com/share/7789c06b5b5e455aaf28035151733453</p>
+  </section>
 
   <main class="wrap">
 
@@ -1030,7 +1109,7 @@ Summary: 14 connected, 0 missing, 1 pending vendor, 2 not used, 0 need restart, 
     <section id="help">
       <h2 class="display">Get help</h2>
       <div class="feature">
-        <p>Stuck on a vendor's screen, or a step doesn't match what you're seeing? Email Ryan directly at <a href="mailto:ryan.lefebvre@strsecrets.com">ryan.lefebvre@strsecrets.com</a>, or ask in the Solnest AI community: <a href="https://www.skool.com/solnest-ai" target="_blank" rel="noopener">skool.com/solnest-ai</a>. Bring your laptop to the summit with the scoreboard green.</p>
+        <p>Stuck on a vendor's screen, or a step doesn't match what you're seeing? Email Ryan directly at <a href="mailto:ryan.lefebvre@strsecrets.com">ryan.lefebvre@strsecrets.com</a>, or reach him on Facebook (Ryan Lefebvre) or Instagram (<a href="https://www.instagram.com/ryan_le5" target="_blank" rel="noopener">ryan_le5</a>). Bring your laptop to the summit with the scoreboard green.</p>
         <p>Already set up and just want the newest version? Open Claude Code in the same folder and say <b>"Update my connections."</b> Claude pulls the latest kit and re-checks everything, your keys and registered servers are left alone.</p>
       </div>
     </section>
@@ -1039,8 +1118,8 @@ Summary: 14 connected, 0 missing, 1 pending vendor, 2 not used, 0 need restart, 
 
   <footer>
     <p class="promise-line">Built by <b>Solnest AI</b>. Your keys stay on your own computer, always. That's the whole promise.</p>
-    <p><a href="https://www.skool.com/solnest-ai" target="_blank" rel="noopener">skool.com/solnest-ai</a></p>
-    <p class="version">Version 1.0.3</p>
+    <p><a href="mailto:ryan.lefebvre@strsecrets.com">ryan.lefebvre@strsecrets.com</a> · FB: Ryan Lefebvre · IG: <a href="https://www.instagram.com/ryan_le5" target="_blank" rel="noopener">ryan_le5</a></p>
+    <p class="version">Version 1.0.6</p>
   </footer>
 
 </body>

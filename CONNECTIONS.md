@@ -139,7 +139,7 @@ Print the whole output, never a summary. Explain the legend once, casually, and 
 
 ## Phase 3: work the list
 
-Default order: PMS API, PMS official, pricing API, pricing official, Supabase (token, project, register), AirROI (both), Meta, Kie, Gemini, Firecrawl, ranking, ops. It's a default, not a law; chase whichever tab they're already on first.
+Default order: PMS API, PMS official, pricing API, pricing official, Supabase (token, project, register), AirROI (both), Meta, Kie, Gemini, Firecrawl, ranking, ops. It's a default, not a law; chase whichever tab they're already on first. One part of it is not optional: a vendor's official sign-in row (🔎) is worked the moment its API row is done, in the same breath, before you move to the next vendor. Never park it for later on your own; only the attendee saying "skip for now" moves it, and then it comes back at the end before the done message.
 
 Which connector file a row maps to:
 
@@ -195,7 +195,7 @@ AirROI registers twice from the same key and the same $10 deposit: the bundled `
 
 Batch restarts instead of one per server: one after every API-key (stdio/header) server in this pass is registered. Restart sooner if they'd rather, they're the one running this, not you.
 
-The sign-in servers (hospitable-official, lodgify-official, uplisting-official, beyond-official, pricelabs-official, intellihost, meta-ads) are different: Claude never registers them and they never need a restart. Hand them the click path from that connector file's section 4, wait for them to say "connected", then run the live check. Do this whenever it's convenient, in this pass or later; it doesn't need to line up with a restart batch.
+The sign-in servers (hospitable-official, lodgify-official, uplisting-official, beyond-official, pricelabs-official, intellihost, meta-ads) are different: Claude never registers them and they never need a restart. Hand them the click path from that connector file's section 4, wait for them to say "connected", then run the live check. Do it right after that vendor's API row, not at the end: they are already logged in to that vendor, the tab is open, and a sign-in row left for "later" is the one that never gets done. It does not need to line up with a restart batch, so it never waits for one.
 
 Before each restart (API-key/stdio/header servers only), print the "After you restart" checklist:
 - Quit and reopen the Claude Code desktop app, open this same folder.
@@ -223,13 +223,13 @@ bash "$BUNDLE/check-connections.sh"
 One more time. Once everything that matters is ✅ or ➖, send a done message, Solnest voice, no corporate tone, something in this shape:
 
 > That's the whole kit wired up. Here's where things stand:
-> - [list every ✅ row, plainly, one per line]
+> - [list every ✅ row, plainly, one per line, using the exact label the scoreboard printed for it, e.g. "Hospitable API" then "Hospitable MCP", never a rewording of your own]
 > - [any ⏳ pending-vendor row, with the date it was emailed, so they know to check back]
 > - [any 🔎 row still waiting on a sign-in: one line, "add it any time, nothing else waits on it"]
 >
 > Three things to try right now: ask me to pull your last 30 days of bookings, run a comp on your best listing, or spy on one competitor's ads.
 >
-> Questions, or something looks off? Skool: https://www.skool.com/solnest-ai
+> Questions, or something looks off? Email Ryan: ryan.lefebvre@strsecrets.com · FB: Ryan Lefebvre · IG: ryan_le5
 
 Celebrate the win. They just wired up ten-plus tools without ever touching a terminal.
 
