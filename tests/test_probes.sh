@@ -14,6 +14,6 @@ t "turno html 403 → 3 (cloudflare)" "probe_turno; [ \$? -eq 3 ]"
 t "supabase 200 → 0"              "probe_supabase; [ \$? -eq 0 ]"
 t "gemini 200 → 0"                "probe_gemini; [ \$? -eq 0 ]"
 t "blank key → 2"                 "unset HOSPITABLE_API_KEY; probe_hospitable; [ \$? -eq 2 ]"
-t "unknown host → 3"              "export FIRECRAWL_API_KEY=x; probe_firecrawl; [ \$? -eq 3 ]"
+t "unknown host → 3"              "export BEYOND_TOKEN=x; probe_beyond; [ \$? -eq 3 ]"
 t "probes print nothing"          "export HOSPITABLE_API_KEY=x; [ -z \"\$(probe_hospitable 2>&1; probe_pricelabs 2>&1; probe_kie 2>&1)\" ]"
 exit $fail

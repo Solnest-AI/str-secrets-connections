@@ -28,3 +28,9 @@ row() {
 }
 NOT_OK=0
 mcp_load
+OUT="$(scoreboard)"
+printf '%s\n' "$OUT"
+c=$(printf '%s\n' "$OUT" | grep -c '^✅'); m=$(printf '%s\n' "$OUT" | grep -c '^❌')
+v=$(printf '%s\n' "$OUT" | grep -c '^⏳'); n=$(printf '%s\n' "$OUT" | grep -c '^➖'); r=$(printf '%s\n' "$OUT" | grep -c '^🔒')
+echo; echo "Summary: $c connected, $m missing, $v pending vendor, $n not used, $r need restart"
+exit 0

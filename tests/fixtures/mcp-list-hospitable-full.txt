@@ -1,0 +1,12 @@
+Checking MCP server health…
+
+hospitable: node /abs/dist/index.js - ✔ Connected
+hospitable-official: https://mcp.hospitable.com/mcp - ✔ Connected
+pricelabs: node /abs/dist/index.js - ✔ Connected
+rankbreeze: https://app.rankbreeze.com/api/mcp/rb_mcp_FIXTURESECRET - ✔ Connected
+airroi: /abs/.venv/bin/python /abs/server.py - ✔ Connected
+airroi-official: https://mcp.airroi.com - ✔ Connected
+meta-ads: https://mcp.facebook.com/ads - ! Needs authentication
+kie: /abs/.venv/bin/python /abs/server.py - ✔ Connected
+firecrawl: npx -y firecrawl-mcp - ✔ Connected
+supabase-revenue-manager: npx -y @supabase/mcp-server-supabase@latest --project-ref=abcdefghijklmnopqrst - ✔ Connected
