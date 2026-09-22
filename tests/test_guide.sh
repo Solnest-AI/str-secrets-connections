@@ -34,21 +34,16 @@ for f in connectors/*.md; do
 done
 t "every connector has a card" "[ $missing_cards -eq 0 ]"
 
-# --- every registered server name shows up in the MCP directory table ---
-missing_servers=0
-for f in connectors/*.md; do
-  base="$(basename "$f")"
-  [ "$base" = "_template.md" ] && continue
-  case "$base" in system-*) continue ;; esac
-  server="$(sed -n 's/^server:[[:space:]]*//p' "$f" | head -1)"
-  [ -z "$server" ] && continue
-  [ "$server" = "none" ] && continue
-  if ! grep -qF "<code>$server</code>" "$DIRECTORY"; then
-    echo "  missing directory row for server: $server ($base)"
-    missing_servers=$((missing_servers + 1))
+# --- every http (URL) server shows up in the MCP directory table; bundled ones stay out ---
+missing_urls=0
+for url in $(grep -ho 'mcp_register.py [a-z-]* --http https\?://[^ "]*' connectors/*.md | awk '{print $4}' | sort -u); do
+  if ! grep -qF "$url" "$DIRECTORY"; then
+    echo "  missing directory row for url: $url"
+    missing_urls=$((missing_urls + 1))
   fi
 done
-t "every server name appears in the directory table" "[ $missing_servers -eq 0 ]"
+t "every http server URL appears in the directory table" "[ $missing_urls -eq 0 ]"
+t "directory table has no bundled or npm rows" "! grep -qE 'Bundled|@supabase|@guestyorg' '$DIRECTORY'"
 
 # --- attendee-facing hygiene ---
 t "no em-dash"                 "! grep -q '—' '$HTML'"

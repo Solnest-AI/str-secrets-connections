@@ -351,20 +351,30 @@ def build_directory_rows(entries: list[dict]) -> list[dict]:
     return rows
 
 
+def how_it_connects(r: dict) -> str:
+    if r["auth"] == "OAuth sign-in":
+        return "You add it: Customize > Connectors > + > Add custom connector, paste the URL, Connect, sign in"
+    if r["auth"] == "key in .env (header)":
+        return "Claude adds it for you once the key is in your .env"
+    return "Claude adds it for you once the URL is in your .env"
+
+
 def build_directory_fragment(rows: list[dict]) -> str:
+    """Only servers with a real URL. Bundled and npm-package servers are
+    Claude's business and only confused people in the table (Ryan, 2026-09-22)."""
     out = ['<table class="mcp-directory">']
-    out.append("  <thead><tr><th>Server</th><th>Vendor</th><th>URL or package</th><th>Auth</th></tr></thead>")
+    out.append("  <thead><tr><th>Vendor</th><th>URL</th><th>How it gets connected</th></tr></thead>")
     out.append("  <tbody>")
     for r in rows:
-        name = html.escape(r["name"])
+        if r["kind"] != "url":
+            continue
         vendor = html.escape(r["vendor"])
         value = html.escape(r["value"])
-        auth = html.escape(r["auth"])
         if r["linkable"]:
             value_html = f'<a href="{value}" target="_blank" rel="noopener">{value}</a>'
         else:
             value_html = f"<code>{value}</code>"
-        out.append(f"    <tr><td><code>{name}</code></td><td>{vendor}</td><td>{value_html}</td><td>{auth}</td></tr>")
+        out.append(f"    <tr><td>{vendor}</td><td>{value_html}</td><td>{html.escape(how_it_connects(r))}</td></tr>")
     out.append("  </tbody>")
     out.append("</table>")
     return "\n".join(out)

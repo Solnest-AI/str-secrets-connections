@@ -205,6 +205,11 @@
     background:var(--brick);color:#fff;
   }
   .btn:hover{background:#7a3227;text-decoration:none;}
+  .btn-row{display:flex;flex-wrap:wrap;gap:12px;margin-top:6px;}
+  .download p{text-align:left;margin:.45em 0;}
+  .download .dl-label{font-weight:700;color:var(--brick);}
+  .download code.paste{display:block;padding:.7em .9em;background:#1a1512;color:#f6edd8;border-radius:9px;font-size:.92em;word-break:break-word;}
+  .download .dl-btn{margin-top:10px;}
 
   /* ---------- Timeline / steps ---------- */
   .timeline{list-style:none;margin:8px 0 0;padding:0;position:relative;}
@@ -379,7 +384,7 @@
     <!-- DO THESE TODAY -->
     <section class="section" id="today">
       <h2 class="section-head">Do these today</h2>
-      <p class="section-sub">A few of your keys are gated by a vendor, cost a little to turn on, or need something specific set up on your account before Claude can connect to them. None of that is technical, it just takes calendar time. Send these today so the reply is sitting in your inbox before setup night. Everything else in this guide, Claude does for you.</p>
+      <p class="section-sub">The first three are emails to a vendor, and vendors take days, so send those tonight. The rest are two-minute account things. None of it is technical. Everything else in this guide, Claude does for you.</p>
 
       <div class="callout today">
         <p><span class="tag">1. Turno (only if you use Turno for cleaning)</span> email <a href="mailto:help@turno.com">help@turno.com</a> and ask for External API v2 access. Copy this in:</p>
@@ -408,15 +413,7 @@
       </div>
 
       <div class="callout today">
-        <p><span class="tag">3. RankBreeze</span> nothing to send. RankBreeze hands you a URL straight from your account settings, instantly, on every plan. If you use RankBreeze for search ranking, there is no advance step, you grab it the night you run setup.</p>
-      </div>
-
-      <div class="callout today">
-        <p><span class="tag">4. AirROI</span> create your free account and deposit at least $10 in API credits today at <a href="https://www.airroi.com/api/developer/activate" target="_blank" rel="noopener">airroi.com/api/developer/activate</a>. AirROI says credits never expire, and your key does nothing until the deposit lands, so this is the one to knock out early.</p>
-      </div>
-
-      <div class="callout today">
-        <p><span class="tag">5. PriceLabs (if PriceLabs is your pricing tool)</span> log in and click Enable on Account Settings &gt; API Details today. It costs about $1 per listing per month on listings that sync. If Enable throws an error instead of handing you a key, email <a href="mailto:support@pricelabs.co">support@pricelabs.co</a>:</p>
+        <p><span class="tag">3. PriceLabs (if PriceLabs is your pricing tool)</span> log in and click Enable on Account Settings &gt; API Details today. It costs about $1 per listing per month on listings that sync. If Enable throws an error instead of handing you a key, email <a href="mailto:support@pricelabs.co">support@pricelabs.co</a>:</p>
         <p><code>To: support@pricelabs.co</code><br>
         <code>Subject: Please enable the Customer API on my account</code></p>
         <p>Hi PriceLabs team,<br><br>
@@ -428,13 +425,21 @@
       </div>
 
       <div class="callout today">
-        <p><span class="tag">6. Meta</span> log in to Ads Manager with the Facebook profile that owns your ad account and make sure you have at least one <b>active</b> ad account. Every Facebook profile gets one by default. If Ads Manager asks for a payment method, add one now. Nothing runs or spends until you say so, this just proves the account is active so the Ad Spy skill can search the Ad Library later.</p>
+        <p><span class="tag">4. AirROI</span> create your free account and deposit at least $10 in API credits today at <a href="https://www.airroi.com/api/developer/activate" target="_blank" rel="noopener">airroi.com/api/developer/activate</a>. AirROI says credits never expire, and your key does nothing until the deposit lands, so this is the one to knock out early.</p>
       </div>
 
       <div class="callout today">
-        <p><span class="tag">7. Supabase</span> make your free account at <a href="https://supabase.com/" target="_blank" rel="noopener">supabase.com</a> today. No credit card needed. Claude creates the actual database for you during setup, you just need the login ready.</p>
+        <p><span class="tag">5. Meta</span> log in to Ads Manager with the Facebook profile that owns your ad account and make sure you have at least one <b>active</b> ad account. Every Facebook profile gets one by default. If Ads Manager asks for a payment method, add one now. Nothing runs or spends until you say so, this just proves the account is active so the Ad Spy skill can search the Ad Library later.</p>
       </div>
-    </section>
+
+      <div class="callout today">
+        <p><span class="tag">6. Supabase</span> make your free account at <a href="https://supabase.com/" target="_blank" rel="noopener">supabase.com</a> today. No credit card needed. Claude creates the actual database for you during setup, you just need the login ready.</p>
+      </div>
+
+      <div class="callout today">
+        <p><span class="tag">7. RankBreeze</span> nothing to send. RankBreeze hands you a URL straight from your account settings, instantly, on every plan. If you use RankBreeze for search ranking, there is no advance step, you grab it the night you run setup.</p>
+      </div>
+</section>
 
     <!-- STEP 0 INSTALL -->
     <hr class="rule">
@@ -445,17 +450,19 @@
       <div class="install-grid">
         <div class="install-card">
           <h3>Claude Code (the desktop app)</h3>
-          <p class="login">Needs a paid claude.ai plan (Pro, Max, Team or Enterprise). The free plan does not include Claude Code.</p>
-          <a class="btn" href="https://claude.ai/api/desktop/darwin/universal/dmg/latest/redirect?utm_source=claude_code&amp;utm_medium=docs" target="_blank" rel="noopener">Download for Mac</a>
-          &nbsp;
-          <a class="btn" href="https://claude.ai/api/desktop/win32/x64/setup/latest/redirect?utm_source=claude_code&amp;utm_medium=docs" target="_blank" rel="noopener">Download for Windows</a>
+          <p class="login">Needs a paid claude.ai plan. <b>For the summit, be on the Max 5x plan.</b> Setup and the four skills chew through a lot of usage in one sitting and Pro will run out partway through the day. The free plan does not include Claude Code at all.</p>
+          <div class="btn-row">
+            <a class="btn" href="https://claude.ai/api/desktop/darwin/universal/dmg/latest/redirect?utm_source=claude_code&amp;utm_medium=docs" target="_blank" rel="noopener">Download for Mac</a>
+            <a class="btn" href="https://claude.ai/api/desktop/win32/x64/setup/latest/redirect?utm_source=claude_code&amp;utm_medium=docs" target="_blank" rel="noopener">Download for Windows</a>
+          </div>
         </div>
         <div class="install-card">
           <h3>Git</h3>
           <p class="login">Free, no account. On Windows this is also what gives Claude Code its command runner behind the scenes, so it needs to be there even though you never touch it directly.</p>
-          <a class="btn" href="https://git-scm.com/download/mac" target="_blank" rel="noopener">Download for Mac</a>
-          &nbsp;
-          <a class="btn" href="https://git-scm.com/download/win" target="_blank" rel="noopener">Download for Windows</a>
+          <div class="btn-row">
+            <a class="btn" href="https://git-scm.com/download/mac" target="_blank" rel="noopener">Download for Mac</a>
+            <a class="btn" href="https://git-scm.com/download/win" target="_blank" rel="noopener">Download for Windows</a>
+          </div>
         </div>
       </div>
 
@@ -473,6 +480,11 @@
       <p class="section-sub">One phrase gets the whole thing going. Claude reads the kit, asks what it needs to know, and walks you through the rest one step at a time.</p>
 
       <div class="download">
+        <p class="dl-label">Two ways to get the kit. Pick one.</p>
+        <p><b>A. The link.</b> Open the Claude Code desktop app, start a session in any folder (your Desktop is fine), and paste this into the chat:</p>
+        <p><code class="paste">Clone https://github.com/Solnest-AI/str-secrets-connections and then set up my connections</code></p>
+        <p>Claude downloads the kit into that folder and starts. That's it.</p>
+        <p><b>B. The zip.</b> Download it, unzip it somewhere easy like your Desktop, and open that folder in the app.</p>
         <a class="dl-btn" href="https://github.com/Solnest-AI/str-secrets-connections/releases/download/v1.0.0/str-secrets-connections-v1.0.0.zip">Download the Connections Kit (.zip)</a>
       </div>
 
@@ -481,7 +493,7 @@
           <div class="num">1</div>
           <div class="step-body">
             <h3>Open the Claude Code desktop app</h3>
-            <p>Unzip the folder you downloaded somewhere easy to find, like your Desktop. Open the Claude Code desktop app, then open that folder in it, or drag the folder into the app window.</p>
+            <p>Went with the link? You are already in. Went with the zip? Open the Claude Code desktop app, then open the unzipped folder in it, or drag the folder into the app window.</p>
           </div>
         </li>
         <li>
@@ -523,7 +535,7 @@
           <div class="num">7</div>
           <div class="step-body">
             <h3>For sign-in style tools, it's a browser click, not a key</h3>
-            <p>Some tools connect by signing in through your browser instead of a key. When Claude tells you it's ready, type <code>/mcp</code> in the chat, pick the server from the list, and choose <b>Authenticate</b> (if your app shows a <b>Connectors</b> (+) button instead of <code>/mcp</code>, use that the same way). A browser tab opens, you log in and approve, and you're back in the chat connected.</p>
+            <p>Some tools (Meta Ads, and the official PMS and pricing servers) connect by signing in, not with a key. Claude cannot do this part for you, it happens in the app's own menu. When Claude hands you a URL: click <b>Customize</b> in the left sidebar, then <b>Connectors</b>, click <b>+</b>, choose <b>Add custom connector</b>, paste the URL, click <b>Add</b>, then <b>Connect</b>. A browser tab opens, you log in and approve, and you're done. Back in the chat, click the <b>+</b> next to the message box, choose <b>Connectors</b>, and make sure the new one is switched on. Tell Claude "connected" and it checks it live. The URLs are all in the directory table below.</p>
           </div>
         </li>
       </ol>
@@ -543,7 +555,7 @@ System
 
 PMS
 ✅ Hospitable API                 connected
-🔎 Hospitable MCP (official)      registered; Claude checks it live in this chat
+🔎 Hospitable MCP (official)      add it in Customize > Connectors; Claude checks it live
 
 Pricing
 ✅ PriceLabs API                  connected
@@ -572,37 +584,21 @@ Summary: 14 connected, 0 missing, 1 pending vendor, 2 not used, 0 need restart, 
     <hr class="rule">
     <section id="directory">
       <h2 class="display">Official MCP directory</h2>
-      <p class="section-sub">Every server this kit can register, in one table, pulled straight from the connector files so it can't go stale. You will not type any of this. It's here so you always know what's talking to what.</p>
+      <p class="section-sub">The servers that have a web address. The sign-in ones are the URLs you paste into <b>Customize &gt; Connectors</b> when Claude tells you to (step 7 above). The other two Claude adds for you. Everything else the kit uses runs on your own computer and never needs a URL from you.</p>
       <!-- MCP-DIRECTORY -->
 <table class="mcp-directory">
-  <thead><tr><th>Server</th><th>Vendor</th><th>URL or package</th><th>Auth</th></tr></thead>
+  <thead><tr><th>Vendor</th><th>URL</th><th>How it gets connected</th></tr></thead>
   <tbody>
-    <tr><td><code>guesty</code></td><td>Guesty</td><td><code>Bundled (Node)</code></td><td>key in .env</td></tr>
-    <tr><td><code>guesty-official</code></td><td>Guesty</td><td><code>@guestyorg/sdk@0.2.0-alpha.1</code></td><td>key in .env</td></tr>
-    <tr><td><code>hospitable</code></td><td>Hospitable</td><td><code>Bundled (Node)</code></td><td>key in .env</td></tr>
-    <tr><td><code>hospitable-official</code></td><td>Hospitable</td><td><a href="https://mcp.hospitable.com/mcp" target="_blank" rel="noopener">https://mcp.hospitable.com/mcp</a></td><td>OAuth sign-in</td></tr>
-    <tr><td><code>hostaway</code></td><td>Hostaway</td><td><code>Bundled (Node)</code></td><td>key in .env</td></tr>
-    <tr><td><code>hostfully</code></td><td>Hostfully</td><td><code>Bundled (Node)</code></td><td>key in .env</td></tr>
-    <tr><td><code>lodgify</code></td><td>Lodgify</td><td><code>Bundled (Node)</code></td><td>key in .env</td></tr>
-    <tr><td><code>lodgify-official</code></td><td>Lodgify</td><td><a href="https://mcp.lodgify.com/mcp" target="_blank" rel="noopener">https://mcp.lodgify.com/mcp</a></td><td>OAuth sign-in</td></tr>
-    <tr><td><code>ownerrez</code></td><td>OwnerRez</td><td><code>Bundled (Node)</code></td><td>key in .env</td></tr>
-    <tr><td><code>smoobu</code></td><td>Smoobu</td><td><code>Bundled (Node)</code></td><td>key in .env</td></tr>
-    <tr><td><code>uplisting</code></td><td>Uplisting</td><td><code>Bundled (Node)</code></td><td>key in .env</td></tr>
-    <tr><td><code>uplisting-official</code></td><td>Uplisting</td><td><a href="https://connect.uplisting.io/mcp" target="_blank" rel="noopener">https://connect.uplisting.io/mcp</a></td><td>OAuth sign-in</td></tr>
-    <tr><td><code>beyond</code></td><td>Beyond</td><td><code>Bundled (Node)</code></td><td>key in .env</td></tr>
-    <tr><td><code>beyond-official</code></td><td>Beyond</td><td><a href="https://neyoba.beyondpricing.com/mcp" target="_blank" rel="noopener">https://neyoba.beyondpricing.com/mcp</a></td><td>OAuth sign-in</td></tr>
-    <tr><td><code>pricelabs</code></td><td>PriceLabs</td><td><code>Bundled (Node)</code></td><td>key in .env</td></tr>
-    <tr><td><code>pricelabs-official</code></td><td>PriceLabs</td><td><a href="https://mcp.pricelabs.co/mcp" target="_blank" rel="noopener">https://mcp.pricelabs.co/mcp</a></td><td>OAuth sign-in</td></tr>
-    <tr><td><code>intellihost</code></td><td>IntelliHost</td><td><a href="https://clients.intellihost.co/api/mcp" target="_blank" rel="noopener">https://clients.intellihost.co/api/mcp</a></td><td>OAuth sign-in</td></tr>
-    <tr><td><code>rankbreeze</code></td><td>RankBreeze</td><td><code>https://app.rankbreeze.com/api/mcp/rb_mcp_&lt;key&gt;</code></td><td>key in .env</td></tr>
-    <tr><td><code>breezeway</code></td><td>Breezeway</td><td><code>Bundled (Python, uv)</code></td><td>key in .env</td></tr>
-    <tr><td><code>turno</code></td><td>Turno</td><td><code>Bundled (Python, uv)</code></td><td>key in .env</td></tr>
-    <tr><td><code>airroi</code></td><td>AirROI</td><td><code>Bundled (Python)</code></td><td>key in .env</td></tr>
-    <tr><td><code>airroi-official</code></td><td>AirROI</td><td><a href="https://mcp.airroi.com" target="_blank" rel="noopener">https://mcp.airroi.com</a></td><td>key in .env (header)</td></tr>
-    <tr><td><code>meta-ads</code></td><td>Meta Ads</td><td><a href="https://mcp.facebook.com/ads" target="_blank" rel="noopener">https://mcp.facebook.com/ads</a></td><td>OAuth sign-in</td></tr>
-    <tr><td><code>kie</code></td><td>Kie.ai</td><td><code>Bundled (Python)</code></td><td>key in .env</td></tr>
-    <tr><td><code>firecrawl</code></td><td>Firecrawl</td><td><a href="https://mcp.firecrawl.dev/v2/mcp" target="_blank" rel="noopener">https://mcp.firecrawl.dev/v2/mcp</a></td><td>key in .env (header)</td></tr>
-    <tr><td><code>supabase-revenue-manager</code></td><td>Supabase</td><td><code>@supabase/mcp-server-supabase@latest</code></td><td>key in .env</td></tr>
+    <tr><td>Hospitable</td><td><a href="https://mcp.hospitable.com/mcp" target="_blank" rel="noopener">https://mcp.hospitable.com/mcp</a></td><td>You add it: Customize &gt; Connectors &gt; + &gt; Add custom connector, paste the URL, Connect, sign in</td></tr>
+    <tr><td>Lodgify</td><td><a href="https://mcp.lodgify.com/mcp" target="_blank" rel="noopener">https://mcp.lodgify.com/mcp</a></td><td>You add it: Customize &gt; Connectors &gt; + &gt; Add custom connector, paste the URL, Connect, sign in</td></tr>
+    <tr><td>Uplisting</td><td><a href="https://connect.uplisting.io/mcp" target="_blank" rel="noopener">https://connect.uplisting.io/mcp</a></td><td>You add it: Customize &gt; Connectors &gt; + &gt; Add custom connector, paste the URL, Connect, sign in</td></tr>
+    <tr><td>Beyond</td><td><a href="https://neyoba.beyondpricing.com/mcp" target="_blank" rel="noopener">https://neyoba.beyondpricing.com/mcp</a></td><td>You add it: Customize &gt; Connectors &gt; + &gt; Add custom connector, paste the URL, Connect, sign in</td></tr>
+    <tr><td>PriceLabs</td><td><a href="https://mcp.pricelabs.co/mcp" target="_blank" rel="noopener">https://mcp.pricelabs.co/mcp</a></td><td>You add it: Customize &gt; Connectors &gt; + &gt; Add custom connector, paste the URL, Connect, sign in</td></tr>
+    <tr><td>IntelliHost</td><td><a href="https://clients.intellihost.co/api/mcp" target="_blank" rel="noopener">https://clients.intellihost.co/api/mcp</a></td><td>You add it: Customize &gt; Connectors &gt; + &gt; Add custom connector, paste the URL, Connect, sign in</td></tr>
+    <tr><td>RankBreeze</td><td><code>https://app.rankbreeze.com/api/mcp/rb_mcp_&lt;key&gt;</code></td><td>Claude adds it for you once the URL is in your .env</td></tr>
+    <tr><td>AirROI</td><td><a href="https://mcp.airroi.com" target="_blank" rel="noopener">https://mcp.airroi.com</a></td><td>Claude adds it for you once the key is in your .env</td></tr>
+    <tr><td>Meta Ads</td><td><a href="https://mcp.facebook.com/ads" target="_blank" rel="noopener">https://mcp.facebook.com/ads</a></td><td>You add it: Customize &gt; Connectors &gt; + &gt; Add custom connector, paste the URL, Connect, sign in</td></tr>
+    <tr><td>Firecrawl</td><td><a href="https://mcp.firecrawl.dev/v2/mcp" target="_blank" rel="noopener">https://mcp.firecrawl.dev/v2/mcp</a></td><td>Claude adds it for you once the key is in your .env</td></tr>
   </tbody>
 </table>
 <!-- /MCP-DIRECTORY -->
@@ -981,7 +977,7 @@ Summary: 14 connected, 0 missing, 1 pending vendor, 2 not used, 0 need restart, 
         <li><span class="glyph">⏳</span><span><b>Waiting on a vendor.</b> You emailed them, shown with the date you sent it. Nothing to do but wait for the reply.</span></li>
         <li><span class="glyph">➖</span><span><b>Not used.</b> You told Claude you don't use that tool, so it's skipped. This is a normal, finished state, not a gap.</span></li>
         <li><span class="glyph">🔒</span><span><b>Needs a restart.</b> The server is registered, it just needs a full quit-and-reopen of the app to show up.</span></li>
-        <li><span class="glyph">🔎</span><span><b>Registered, checked live.</b> Some sign-in tools don't have a background health check, so Claude confirms these by asking them a real question in the chat instead.</span></li>
+        <li><span class="glyph">🔎</span><span><b>Sign-in tool, checked live.</b> These get added in Customize &gt; Connectors by you (step 7), and there is no background health check for them, so Claude confirms each one by asking it a real question in the chat. Not a problem, just a different kind of check.</span></li>
       </ul>
 
       <p class="section-sub" style="margin-top:22px">A few more things that are normal, not bugs:</p>
@@ -1000,7 +996,7 @@ Summary: 14 connected, 0 missing, 1 pending vendor, 2 not used, 0 need restart, 
     <section id="help">
       <h2 class="display">Get help</h2>
       <div class="feature">
-        <p>Stuck on a vendor's screen, or a step doesn't match what you're seeing? Come ask in the Solnest AI community: <a href="https://www.skool.com/solnest-ai" target="_blank" rel="noopener">skool.com/solnest-ai</a>. Bring your laptop to the summit with the scoreboard green.</p>
+        <p>Stuck on a vendor's screen, or a step doesn't match what you're seeing? Email Ryan directly at <a href="mailto:ryan.lefebvre@strsecrets.com">ryan.lefebvre@strsecrets.com</a>, or ask in the Solnest AI community: <a href="https://www.skool.com/solnest-ai" target="_blank" rel="noopener">skool.com/solnest-ai</a>. Bring your laptop to the summit with the scoreboard green.</p>
         <p>Already set up and just want the newest version? Open Claude Code in the same folder and say <b>"Update my connections."</b> Claude pulls the latest kit and re-checks everything, your keys and registered servers are left alone.</p>
       </div>
     </section>
