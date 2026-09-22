@@ -1,0 +1,18 @@
+#!/usr/bin/env bash
+# curl stub: prints body; if "-o /dev/null -w %{http_code}" style is used, prints status. We support the exact shape probes.sh uses:
+#   curl -sS -m 15 [-H ...]... [-u ...] [-A ...] [-X POST] [--data ...] -o BODYFILE -w '%{http_code}' URL
+url=""; out=""
+while [ $# -gt 0 ]; do
+  case "$1" in
+    -o) out="$2"; shift 2 ;;
+    -w) shift 2 ;;
+    -H|-u|-A|-X|--data|--data-raw|-m) shift 2 ;;
+    -sS|-s|-g|-L) shift ;;
+    http*) url="$1"; shift ;;
+    *) shift ;;
+  esac
+done
+slug="$(printf '%s' "$url" | sed -E 's#^https?://##; s#[/?&=]#_#g')"
+f="$CURL_STUB_DIR/$slug.txt"
+if [ -f "$f" ]; then status="$(head -1 "$f")"; tail -n +2 "$f" > "${out:-/dev/null}"; printf '%s' "$status"
+else : > "${out:-/dev/null}"; printf '000'; fi
