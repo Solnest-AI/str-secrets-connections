@@ -4,6 +4,7 @@ slot: ranking
 required: optional
 env: [INTELLIHOST_MCP_TOKEN]
 official_mcp: https://clients.intellihost.co/api/mcp
+portal: https://clients.intellihost.co
 ---
 
 # IntelliHost: Airbnb ranking and listing performance, straight from the vendor's MCP

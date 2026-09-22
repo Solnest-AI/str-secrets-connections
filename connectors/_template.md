@@ -4,6 +4,7 @@ slot: <system|pms|pricing|ranking|ops|market|ads|ai|web|db>
 required: <yes|one-of|optional>
 env: [VAR_ONE, VAR_TWO]
 official_mcp: <https://... or none>
+portal: <https://... the exact page in the vendor app where the key or sign-in lives; it becomes the "Get it at" link on the guide card>
 ---
 
 # <Vendor>: <one-line what it is>

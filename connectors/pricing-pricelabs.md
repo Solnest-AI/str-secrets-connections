@@ -4,6 +4,7 @@ slot: pricing
 required: one-of
 env: [PRICELABS_API_KEY, PRICELABS_MCP_CLIENT_ID, PRICELABS_MCP_CLIENT_SECRET]
 official_mcp: https://mcp.pricelabs.co/mcp
+portal: https://app.pricelabs.co/account_settings?tab=api_details
 ---
 
 # PriceLabs: the pricing brain behind your nightly rates

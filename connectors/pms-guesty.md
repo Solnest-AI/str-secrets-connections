@@ -4,6 +4,7 @@ slot: pms
 required: one-of
 env: [GUESTY_CLIENT_ID, GUESTY_CLIENT_SECRET]
 official_mcp: npx -y @guestyorg/sdk@0.2.0-alpha.1 mcp (stdio; hosted https://mcp.guesty.com/v1 not used)
+portal: https://app.guesty.com/main/integrations/open-api/applications
 ---
 
 # Guesty: the Pro-tier PMS, connected through its Open API

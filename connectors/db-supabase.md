@@ -4,6 +4,7 @@ slot: db
 required: yes
 env: [SUPABASE_ACCESS_TOKEN, SUPABASE_PROJECT_REF, SUPABASE_DB_PASSWORD]
 official_mcp: https://mcp.supabase.com/mcp (reference only; this kit registers the npm stdio server instead)
+portal: https://supabase.com/dashboard/account/tokens
 ---
 
 # Supabase: the database every summit skill writes to

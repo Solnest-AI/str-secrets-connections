@@ -4,6 +4,7 @@ slot: pms
 required: one-of
 env: [OWNERREZ_EMAIL, OWNERREZ_TOKEN]
 official_mcp: none
+portal: https://app.ownerrez.com/settings/api
 ---
 
 # OwnerRez: your PMS, read through a Personal Access Token

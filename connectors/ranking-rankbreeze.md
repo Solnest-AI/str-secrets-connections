@@ -4,6 +4,7 @@ slot: ranking
 required: optional
 env: [RANKBREEZE_MCP_URL]
 official_mcp: https://app.rankbreeze.com/api/mcp/rb_mcp_<key>
+portal: https://app.rankbreeze.com
 ---
 
 # RankBreeze: where your listing sits in Airbnb search, and how many people actually see it

@@ -4,6 +4,7 @@ slot: pms
 required: one-of
 env: [HOSPITABLE_API_KEY, HOSPITABLE_OFFICIAL_TOKEN]
 official_mcp: https://mcp.hospitable.com/mcp
+portal: https://my.hospitable.com/apps/api-access
 ---
 
 # Hospitable: your PMS, connected two ways (API token plus the official MCP)

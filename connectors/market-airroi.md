@@ -4,6 +4,7 @@ slot: market
 required: yes
 env: [AIRROI_API_KEY]
 official_mcp: https://mcp.airroi.com
+portal: https://www.airroi.com/api/developer
 ---
 
 # AirROI: short-term rental market data, by the call

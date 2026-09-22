@@ -4,6 +4,7 @@ slot: ai
 required: yes
 env: [GEMINI_API_KEY]
 official_mcp: none
+portal: https://aistudio.google.com/apikey
 ---
 
 # Gemini: Google's vision model, used to score your listing photos

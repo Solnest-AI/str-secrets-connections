@@ -4,6 +4,7 @@ slot: pms
 required: one-of
 env: [HOSTFULLY_API_KEY, HOSTFULLY_AGENCY_UID]
 official_mcp: none
+portal: https://platform.hostfully.com/app/#/agency-settings
 ---
 
 # Hostfully: your PMS, wired in through a server Claude builds for you
@@ -39,8 +40,9 @@ Hostfully's own steps, word for word: "1. Log in to your Hostfully PMS account. 
 Direct links, both from Hostfully's help: https://platform.hostfully.com/app/#/agency-settings and https://platform.hostfully.com/agency.jsp. Use whichever one opens your Agency Settings.
 
 You need two values from that one page:
-1. **API Key.** A long opaque string sitting in a field. It is displayed, not shown once, so you can come back for it. Copy it.
-2. **Agency UID.** Scroll to the very bottom of the same page. Another long opaque string. Copy it.
+1. Log in to your Hostfully PMS account and open **Agency Settings** (the direct link above lands there).
+2. **API Key.** Scroll down to the API Key field. A long opaque string; it is displayed, not shown once, so you can come back for it. Copy it.
+3. **Agency UID.** Scroll to the very bottom of the same page. Another long opaque string. Copy it.
 
 Both go in the `.env` file Claude opened for you, one per line, no quotes, no spaces:
 ```

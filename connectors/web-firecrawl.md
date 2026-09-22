@@ -4,6 +4,7 @@ slot: web
 required: yes
 env: [FIRECRAWL_API_KEY]
 official_mcp: https://mcp.firecrawl.dev/v2/mcp
+portal: https://www.firecrawl.dev/app/api-keys
 ---
 
 # Firecrawl: the web, turned into something Claude can read

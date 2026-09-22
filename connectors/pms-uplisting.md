@@ -4,6 +4,7 @@ slot: pms
 required: one-of
 env: [UPLISTING_API_KEY]
 official_mcp: https://connect.uplisting.io/mcp
+portal: https://app.uplisting.io/connect/api
 ---
 
 # Uplisting: your PMS, the source of truth for listings, bookings and calendar

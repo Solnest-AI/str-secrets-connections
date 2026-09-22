@@ -4,6 +4,7 @@ slot: pms
 required: one-of
 env: [LODGIFY_API_KEY]
 official_mcp: https://mcp.lodgify.com/mcp
+portal: https://app.lodgify.com/#/reservation/settings/publicApiToken
 ---
 
 # Lodgify: your PMS, wired into the Revenue Manager

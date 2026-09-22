@@ -4,6 +4,7 @@ slot: pms
 required: one-of
 env: [SMOOBU_API_KEY, SMOOBU_API_SECRET]
 official_mcp: none
+portal: https://login.smoobu.com
 ---
 
 # Smoobu: your PMS, if Smoobu is where your bookings live

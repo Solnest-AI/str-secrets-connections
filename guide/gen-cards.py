@@ -144,6 +144,15 @@ def direct_link(section3: str) -> str | None:
     return m.group(1).rstrip(".,") if m else None
 
 
+def portal_link(entry: dict) -> str | None:
+    """Frontmatter `portal:` wins (verified page in the vendor app); the
+    section-3 "Direct link:" line is the fallback."""
+    p = (entry["frontmatter"].get("portal") or "").strip()
+    if p.startswith("http"):
+        return p
+    return direct_link(entry["sections"].get(3, ""))
+
+
 def skills_for(entry: dict) -> str:
     sec1 = entry["sections"].get(1, "")
     found = [s for s in SKILLS if s in sec1]
@@ -208,7 +217,10 @@ def build_card(entry: dict) -> str:
     gate = trim(gate_text(entry["sections"].get(2, "")), 600)
     skills = html.escape(skills_for(entry))
     steps = clickpath_steps(entry["sections"].get(3, ""))
-    link = direct_link(entry["sections"].get(3, ""))
+    if not steps:
+        # sign-in only servers (Meta, IntelliHost): the steps live in section 4
+        steps = clickpath_steps(entry["sections"].get(4, ""))
+    link = portal_link(entry)
     env_vars = fm.get("env", [])
     official = fm.get("official_mcp", "none")
     has_official = (

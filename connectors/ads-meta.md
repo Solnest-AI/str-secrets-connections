@@ -4,6 +4,7 @@ slot: ads
 required: yes
 env: [META_ADS_TOKEN]
 official_mcp: https://mcp.facebook.com/ads
+portal: https://www.facebook.com/adsmanager/
 ---
 
 # Meta Ads: the Ad Library and your ad accounts, through Meta's own MCP

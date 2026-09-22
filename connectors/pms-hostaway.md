@@ -4,6 +4,7 @@ slot: pms
 required: one-of
 env: [HOSTAWAY_ACCOUNT_ID, HOSTAWAY_API_KEY]
 official_mcp: none
+portal: https://dashboard.hostaway.com/
 ---
 
 # Hostaway: your PMS, wired into the summit skills

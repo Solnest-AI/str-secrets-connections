@@ -4,6 +4,7 @@ slot: ops
 required: optional
 env: [TURNO_API_TOKEN, TURNO_PARTNER_ID, TURNO_ENV]
 official_mcp: none
+portal: https://app.turno.com
 ---
 
 # Turno: your cleaning and turnover schedule, readable by Claude

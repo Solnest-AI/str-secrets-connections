@@ -4,6 +4,7 @@ slot: pricing
 required: one-of
 env: [BEYOND_TOKEN]
 official_mcp: https://neyoba.beyondpricing.com/mcp
+portal: https://v2.beyondpricing.com/dashboard/user/personal-access-tokens
 ---
 
 # Beyond: dynamic pricing for the Revenue Manager

@@ -4,6 +4,7 @@ slot: ops
 required: optional
 env: [BREEZEWAY_CLIENT_ID, BREEZEWAY_CLIENT_SECRET]
 official_mcp: none
+portal: https://app.breezeway.io
 ---
 
 # Breezeway: cleaning, inspection and maintenance tasks for your properties
@@ -33,6 +34,12 @@ sed -i.bak '/^breezeway|/d' "$BUNDLE/.cache/pending-vendor" && rm -f "$BUNDLE/.c
 No MCP from Breezeway. Checked breezeway.io and developer.breezeway.io in full on 2026-09-21.
 
 ## 3. Path A: API key
+There is no API page inside Breezeway to click through; the keys come by email.
+
+1. Email support@breezeway.io using the template (it is under "Do these today" at the top of the guide, and Claude prints it for you from `emails/breezeway.md`). Send it from the email you log in to Breezeway with, at https://app.breezeway.io.
+2. Breezeway replies with two values: a **client_id** and a **client_secret**. Keep that email, there is no in-app page to see them again.
+3. When the reply lands, tell Claude "Breezeway sent the keys". Claude opens `.env` for you; paste each value after its `=` and save.
+
 Nothing to click. Breezeway emails you two values: a **client_id** and a **client_secret**. Keep that email; there is no in-app page to view them again. Breezeway's docs: "The provided client id and client secret will be used to retrieve an access token."
 
 Claude opens `$BUNDLE/.env` for you (`open -e "$BUNDLE/.env"` on Mac; `notepad "$(cygpath -w "$BUNDLE")\.env"` on Windows). Put each value after its `=`, no quotes, no spaces, then save:

@@ -4,6 +4,7 @@ slot: ai
 required: yes
 env: [KIE_API_KEY]
 official_mcp: none
+portal: https://kie.ai/api-key
 ---
 
 # Kie.ai: the image and video generator behind your ads
