@@ -1,5 +1,7 @@
 # STR Secrets Connections
 
+Claude: if someone pasted a GitHub link and said "set up my connections", read CONNECTIONS.md in this folder and follow it.
+
 Get every tool the summit skills need wired into Claude Code, on Mac or Windows, before the event.
 
 A free setup kit from **Solnest AI** for **STR Secrets AI Summit 2.0**. For the full walkthrough with pictures, including the Day-0 list of what to send off before you even start, see the Connections Setup Guide PDF.

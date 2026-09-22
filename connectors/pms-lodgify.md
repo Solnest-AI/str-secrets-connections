@@ -49,15 +49,14 @@ Then quit and reopen the Claude Code desktop app when the checker tells you to.
 ## 4. Path B: official MCP
 Live beta as of 2026-09-21. Lodgify's article is "Connect Claude and ChatGPT to the Lodgify MCP manually (BETA)" (help.lodgify.com, article 30326689780636). Read-only, in their words: "The AI can only read your data; it cannot make changes to your account." So this one answers questions; rate pushes still go through Path A. Requirements from the article: "Have an active Lodgify account. Have a paid Claude or ChatGPT subscription". Any Lodgify plan works.
 
-Lodgify wrote the steps for the Claude app, not Claude Code. The Claude Code form below is derived from those steps and is UNTESTED as of 2026-09-21: the server publishes no OAuth discovery metadata (that matches Lodgify's "Use your own OAuth client" instruction), so the browser hand-off may or may not complete. Try it. It takes a minute.
+**Claude does not register this one. You add it in the app, it takes about a minute.**
+1. In the Claude Code desktop app, click the **+** next to the message box, then **Connectors**, then **Manage connectors**. The Connectors settings page opens.
+2. Click **+ Add** (top right), then **Add custom connector**.
+3. Type a name (Lodgify is fine) and paste `https://mcp.lodgify.com/mcp` into **MCP server URL**. Click **Continue**. If the next screen asks for OAuth details, use `lodgify.mcp` as the Client ID, no secret. That matches Lodgify's own instruction: "Client ID: lodgify.mcp; OAuth client secret: Leave this field blank." If it never asks, carry on, the sign-in alone may be enough.
+4. A browser tab opens. Sign in to Lodgify and approve.
+5. Done, it is on automatically. Come back and tell Claude "connected".
 
-```bash
-uv run --python 3.13 python "$BUNDLE/lib/mcp_register.py" lodgify-official --http https://mcp.lodgify.com/mcp && echo "lodgify-official registered ✅" || echo "lodgify-official failed ❌"
-echo lodgify-official >> "$BUNDLE/.cache/needs-restart"
-```
-After the restart: type `/mcp` in the chat > `lodgify-official` > Authenticate (if your app shows a Connectors (+) button instead of `/mcp`, use that and paste the same URL). A browser tab opens on Lodgify. Sign in and authorize the connection. Back in Claude Code the server should show as connected.
-
-If the browser step fails or loops, fall back to the Claude Desktop connector using Lodgify's own steps: "1. Open Claude. 2. Go to Settings. 3. Go to Connectors and click Add. 4. Enter the name and server URL: Name: Lodgify; Server URL: https://mcp.lodgify.com/mcp 5. Select Sign in now and choose Use your own OAuth client. 6. Enter the authentication details and click Add: Client ID: lodgify.mcp; OAuth client secret: Leave this field blank 7. Click Connect to sign in to Lodgify and authorize the connection." That connector lives in the Claude app, not in Claude Code, so the checker will keep showing the `lodgify-official` row as not connected. That is fine. Path A is the one the summit skills need.
+Claude runs the live check right after: "List my Lodgify properties." An answer means it is working. If the tool is not available in the session, say: "I don't see Lodgify in my tools yet. Check it shows connected under + > Connectors, or that Connect finished in the browser."
 
 ## 5. Verify
 **Path A.** The checker runs `probe_lodgify`: one `GET https://api.lodgify.com/v2/properties` with your key in the `X-ApiKey` header (the header Lodgify documents: "include it in the API request in an HTTP header named X-ApiKey"). What comes back:
@@ -67,13 +66,13 @@ If the browser step fails or loops, fall back to the Claude Desktop connector us
 
 Then it reads the `lodgify` server's status from Claude Code (it never prints the raw list). Connected = ✅. If you just registered, the row says restart until you do.
 
-**Path B.** The checker reads `lodgify-official`: connected = ✅; needs auth = run `/mcp` > `lodgify-official` > Authenticate; not registered = run the add line in section 4.
+**Path B.** This one never shows up in `~/.claude.json`, the app delivers it straight to the chat session, so the checker cannot see it. The row always prints `🔎 Lodgify MCP (official, beta)   add it under + > Connectors; Claude checks it live`. Not added yet: run section 4. Added: Claude runs the live check ("List my Lodgify properties") in the chat.
 
 ## 6. Troubleshooting
 - **No "Public API" under Settings, or the page is there but locked:** most likely your plan does not include the API. Lodgify's pricing table: API endpoint included on Starter, Professional, Ultimate; not on Basic. Check your plan under Settings > Subscription first; if you are on Starter or above and the page is still missing, ask Lodgify support. Otherwise upgrade, or use Path B for now.
 - **`403` and nothing else:** wrong key, or a plan without API access. Lodgify sends an empty body either way, not a message. First open `.env`, check the `LODGIFY_API_KEY=` line: whole key, no quotes, no spaces, nothing else on the line, and copy it fresh from the Public API page. If a freshly copied key still gets `403`, it is the plan: see the first bullet above and use Path B until you upgrade.
 - **`429`:** rate limit. Lodgify's absolute limits are 600 requests per minute on v1 and 750 per minute on v2. Wait a minute and retry.
-- **Path B browser step never finishes in Claude Code:** the known risk; the Claude Code form is untested and Lodgify only documents the Claude app. Use the Claude Desktop connector steps in section 4 instead (the app's own Connectors screen, not the register block); the `lodgify-official` entry in Claude Code's own config is unused either way.
+- **Path B browser step never finishes:** re-check the OAuth Client ID field has exactly `lodgify.mcp`, no extra spaces, and the secret field is blank. Remove the connector under + > Connectors and add it again.
 - **Path B connected but Claude says it cannot change rates:** by design. The official MCP is read-only. Rate pushes go through the built `lodgify` server from Path A.
 - **docs.lodgify.com refuses you from the terminal:** the docs site blocks curl. Open it in a browser.
 - **v1 vs v2:** Lodgify runs both API versions side by side on the same host, and the two return different shapes. The built server picks the right version per call; if you extend it, keep the two separate.

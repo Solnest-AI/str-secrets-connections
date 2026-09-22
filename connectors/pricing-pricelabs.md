@@ -63,46 +63,29 @@ This server runs on Node, so there is no venv here. For the Python servers in th
 Then quit and reopen the Claude Code desktop app. The checker will tell you when.
 
 ## 4. Path B: official MCP
-Beta, free for now: "The PriceLabs MCP is currently in beta. Enjoy complimentary access for a limited time" (developers.pricelabs.co/mcp/overview, read 2026-09-21). PriceLabs documents two ways in. Do the simple one; do the Claude Code one only if you are the account admin, and do it last.
+Beta, free for now: "The PriceLabs MCP is currently in beta. Enjoy complimentary access for a limited time" (developers.pricelabs.co/mcp/overview, read 2026-09-21).
 
-**Simple: Claude Desktop or the claude.ai app (no custom client).**
 Team member on a sub-login? You won't see the AI Connector (MCP) tab until the account admin turns on MCP access for you under Team Settings. Ask them first if the tab is missing.
 
 PriceLabs side: "1. Navigate to Account Settings. 2. Select the AI Connector (MCP) tab. 3. Copy your MCP URL and Client ID."
-Claude side: **Connectors** > the **+** button > **Add custom connector**, then:
 
-| Field | Value |
-|---|---|
-| Name | `PriceLabs MCP` |
-| URL | `https://mcp.pricelabs.co/mcp` |
-| Client ID | `KgPnRwJhQpQx0sbK20aLlat8pRoShmMMSajQbYvQl7w` (under **Advanced settings**) |
+**Claude does not register this one. You add it in the app, it takes about a minute.**
+1. In the Claude Code desktop app, click the **+** next to the message box, then **Connectors**, then **Manage connectors**. The Connectors settings page opens.
+2. Click **+ Add** (top right), then **Add custom connector**.
+3. Type a name (PriceLabs is fine) and paste `https://mcp.pricelabs.co/mcp` into **MCP server URL**. Click **Continue**. If the next screen asks for OAuth details, use the Client ID and Client Secret from the custom client you made in PriceLabs (see below), or PriceLabs' shared Client ID `KgPnRwJhQpQx0sbK20aLlat8pRoShmMMSajQbYvQl7w` (PriceLabs' own public ID for Claude, printed on their docs page; it is not a secret) with the secret left blank. If it never asks, carry on, the sign-in alone may be enough.
+4. A browser tab opens. Sign in to PriceLabs and approve. It asks for **Read access**, **Write access** and **Customization write access**, "each granted on its own." Read is enough.
+5. Done, it is on automatically. Come back and tell Claude "connected".
 
-That Client ID is PriceLabs' shared public one for Claude, printed on their docs page; it is not a secret. **Add** > **Connect** > sign in to PriceLabs in the browser > it asks for **Read access**, **Write access** and **Customization write access**. "Each is granted on its own." Read is enough. Then: "PriceLabs MCP tools will only appear in new conversations," so open a fresh chat.
+"PriceLabs MCP tools will only appear in new conversations," so open a fresh chat if Claude doesn't see them right away.
 
-Heads up: this lives in the Claude app, not in Claude Code, so the checker's official row will still say not registered. That is fine. The summit skills run on the bundled `pricelabs` server from Path A.
+Claude runs the live check right after: "List my PriceLabs listings." An answer means it is working. If the tool is not available in the session, say: "I don't see PriceLabs in my tools yet. Check it shows connected under + > Connectors, that Connect finished in the browser, or open a new chat."
 
-**Claude Code CLI (account admin only; the most fragile step in this kit AND the one advanced path in the whole kit that still needs the `claude` CLI, since PriceLabs' OAuth client-credential flow is not something the file-based register helper can do on its own; skip if you are not the admin).**
-PriceLabs side: "Sign in to PriceLabs as the account admin and navigate to Account Settings > AI Connector (MCP)" > in **Custom Connectors** click **+ Add Custom Connector** > Name `Claude Code` > Callback URL `http://localhost:8765/callback` (Claude Code's OAuth listener only answers on `/callback`; checked in the Claude Code 2.1.278 binary 2026-09-21. The full PriceLabs handshake has not been run end to end yet, so if Authenticate fails twice, delete the custom client and use the Simple path) > **Add Custom Client**. PriceLabs allows this: "Localhost (http://localhost or http://127.0.0.1) callback URLs are allowed for CLI-based agents such as Claude Code."
-
-"PriceLabs will generate a Client ID and Client Secret and display them once." Copy both straight into `.env`, no chat:
+**Want your own client instead of PriceLabs' shared one (account admin only)?** "Only the account admin (superadmin) can create, regenerate, or delete custom clients." PriceLabs side: Account Settings > AI Connector (MCP) > **Custom Connectors** > **+ Add Custom Connector** > Name it `Claude Code`. "PriceLabs will generate a Client ID and Client Secret and display them once." Copy both straight into `.env`, no chat:
 ```
 PRICELABS_MCP_CLIENT_ID=
 PRICELABS_MCP_CLIENT_SECRET=
 ```
-Save, tell Claude "saved". This is the one place in the whole kit where a `claude` CLI binary is actually needed (PriceLabs' custom-client OAuth flow has no file-based equivalent), so Claude checks for one first:
-```bash
-CLAUDE_BIN=$(command -v claude || ls -t "$HOME/Library/Application Support/Claude/claude-code/"*/claude.app/Contents/MacOS/claude 2>/dev/null | head -1)
-[ -n "$CLAUDE_BIN" ] || echo "no claude binary found; use the Claude Desktop custom connector path instead"
-```
-If a binary was found, register:
-```bash
-set -a; . "$BUNDLE/.env"; set +a
-MCP_CLIENT_SECRET="$PRICELABS_MCP_CLIENT_SECRET" claude mcp add --transport http --client-id "$PRICELABS_MCP_CLIENT_ID" --client-secret --callback-port 8765 --scope user pricelabs-official https://mcp.pricelabs.co/mcp >/dev/null 2>&1 && echo "pricelabs-official registered ✅" || echo "pricelabs-official failed ❌ (run the same line without the >/dev/null part to see why)"
-echo pricelabs-official >> "$BUNDLE/.cache/needs-restart"
-```
-`--client-secret` reads the secret from the `MCP_CLIENT_SECRET` environment variable (checked in `claude mcp add --help` on Claude Code 2.1.278). The interactive prompt form does not work inside Claude's Bash tool, so keep that variable in place. No binary found? Skip straight to the "Simple" path above instead; it needs no CLI at all.
-
-Quit and reopen the Claude Code desktop app, then type `/mcp` in the chat > **pricelabs-official** > **Authenticate** (if your app shows a Connectors (+) button instead of `/mcp`, use that and paste the same URL). A browser tab opens on PriceLabs. Grant **Read**. Grant **Write** only if you want Claude to be able to push price changes later (the Revenue Manager skill asks you before every write; the Write grant itself lets any Claude chat that uses this server push changes). Back in PriceLabs, the custom client card should say **Connected**.
+Save, tell Claude "saved". Use those two values in step 3 above instead of the shared Client ID, if the add-connector screen asks for OAuth details.
 
 Limits from PriceLabs: "Each account can have up to 3 custom clients." "Regenerating credentials immediately revokes all active connections." The Client ID and Secret are shown once; lose them and you regenerate.
 
@@ -114,7 +97,7 @@ Run `bash check-connections.sh` from the kit folder. For PriceLabs it makes one 
 - `⚠️ PriceLabs API  registered, key fails`: PriceLabs answered **403 with `API_KEY_INVALID`**. Their words: "A 403 with API_KEY_INVALID means the header is missing or the key is wrong." PriceLabs uses 403 for a bad key, not 401, so it's not a permissions problem even though it looks like one. Re-copy the key.
 - `🔒 needs a full restart of Claude Code`: you just registered it. Quit, reopen in this folder, run the check again.
 
-`PriceLabs MCP (official, beta)` row: `🔒` right after registering, `⚠️ registered, not authenticated` until you do `/mcp` > Authenticate, `✅` after. If you skipped Path B on purpose, this row stays `❌` and that is expected.
+`PriceLabs MCP (official, beta)` row: this one never shows up in `~/.claude.json`, the app delivers it straight to the chat session, so the checker cannot see it. The row always prints `🔎 PriceLabs MCP (official, beta)   add it under + > Connectors; Claude checks it live`, whether or not you have added it yet. Not added, or skipped on purpose: Path A is the one the summit skills need. Added: Claude runs the live check ("List my PriceLabs listings") in the chat.
 
 ## 6. Troubleshooting
 - **Enable button errors out or no key appears:** email support@pricelabs.co (template `emails/pricelabs-enable-api.md`), mark pending with the line in section 2, keep going with the other connectors. When they say done, the key is at the same API Details page.
@@ -126,8 +109,8 @@ Run `bash check-connections.sh` from the kit folder. For PriceLabs it makes one 
 - **Official MCP tools do not show up (Desktop path):** they only appear in new conversations. Start a fresh chat.
 - **Want to change Read / Write grants later:** PriceLabs says disconnect first in Account Settings > AI Connector (MCP), then reconnect and pick again.
 - **Custom client refuses to add:** you are at the limit of 3 custom clients, or you are not the account admin. Delete an old one or hand this step to the admin.
-- **`/mcp` Authenticate loops or never comes back (Claude Code path):** the callback URL on the PriceLabs custom client does not match what Claude Code sends. Check it is exactly `http://localhost:8765/callback`, no trailing slash, and that `--callback-port 8765` was in the register line. If it still fails, delete the custom client, use the Simple path, and move on. The summit does not depend on it.
+- **Connect loops or never comes back:** remove the connector under + > Connectors > Manage connectors and add it again, double-check the URL and (if asked) the Client ID/Secret fields. If it still fails, move on, the summit does not depend on Path B: Path A (the built `pricelabs` server) is what the skills use.
 - **Windows: `pricelabs` shows Failed to connect after restart:** it was registered with a `/c/Users/...` path. Re-run the Windows register line in section 3; it overwrites the old entry with the `cygpath -w` form.
 
 ## 7. Sources
-developers.pricelabs.co/customer-api/api-reference/enable-the-api, developers.pricelabs.co/customer-api/quick-start, developers.pricelabs.co/mcp/overview, developers.pricelabs.co/mcp/connectors/connect-to-claude, developers.pricelabs.co/mcp/connectors/custom-clients, developers.pricelabs.co/llms.txt (all read 2026-09-21). `claude mcp add --help` on Claude Code 2.1.278 for the `--client-id` / `--client-secret` / `--callback-port` flags (2026-09-21).
+developers.pricelabs.co/customer-api/api-reference/enable-the-api, developers.pricelabs.co/customer-api/quick-start, developers.pricelabs.co/mcp/overview, developers.pricelabs.co/mcp/connectors/connect-to-claude, developers.pricelabs.co/mcp/connectors/custom-clients, developers.pricelabs.co/llms.txt (all read 2026-09-21).

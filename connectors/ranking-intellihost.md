@@ -24,18 +24,18 @@ Watch the domain: **intellihost.co** is this tool. **intellihost.io** is a Price
 _None for this connector._ There is no public API and no key to fetch. Go straight to Path B.
 
 ## 4. Path B: official MCP
-IntelliHost's own Connections page (clients.intellihost.co > **Connections** > card "Connect an AI assistant" > **Claude Code** tab) hands out a CLI command for this. This kit registers the same server the CLI-free way instead:
+IntelliHost's own Connections page (clients.intellihost.co > **Connections** > card "Connect an AI assistant" > **Claude Code** tab) hands out a CLI command for this. Use the app's own Connectors screen instead:
 
-**Register:**
-```bash
-uv run --python 3.13 python "$BUNDLE/lib/mcp_register.py" intellihost --http https://clients.intellihost.co/api/mcp && echo "intellihost registered ✅" || echo "intellihost failed ❌"
-echo intellihost >> "$BUNDLE/.cache/needs-restart"
-```
-Windows: run this in Git Bash (Claude's Bash tool). Nothing on this line is a file path, so no `cygpath -w` and no `.venv/Scripts/python.exe` here. The `$BUNDLE/.cache/needs-restart` write stays inside Bash and works as-is.
-
-**Quit and reopen the Claude Code desktop app.** Then type `/mcp` in the chat, pick **intellihost**, choose **Authenticate** (if your app shows a Connectors (+) button instead of `/mcp`, use that and paste the same URL). Claude Code opens a browser link. Follow it, sign in to IntelliHost, and authorize the connection. If the browser does not open on its own, copy the link Claude Code prints and open it yourself. Finish the sign-in on the same machine Claude Code is running on.
+**Claude does not register this one. You add it in the app, it takes about a minute.**
+1. In the Claude Code desktop app, click the **+** next to the message box, then **Connectors**, then **Manage connectors**. The Connectors settings page opens.
+2. Click **+ Add** (top right), then **Add custom connector**.
+3. Type a name (IntelliHost is fine) and paste `https://clients.intellihost.co/api/mcp` into **MCP server URL**. Click **Continue**.
+4. A browser tab opens. Sign in to IntelliHost and authorize the connection. If the browser does not open on its own, copy the link Claude Code prints and open it yourself. Finish the sign-in on the same machine Claude Code is running on.
+5. Done, it is on automatically. Come back and tell Claude "connected".
 
 If the sign-in screen asks how much access to give, pick **read-only**. Read and write lets Claude push live prices to your listings, and the summit skills never need that.
+
+Claude runs the live check right after, see section 5.
 
 You can see the same card any time at clients.intellihost.co > **Connections** > the MCP card > **Claude Code** tab.
 
@@ -44,26 +44,22 @@ Capability warning: what IntelliHost shows Claude depends on your plan. Without 
 As of 2026-09-21 the vendor names these MCP tools: account info, list properties, pricing recommendations, revenue reports, Helix predictions. We have not seen the full tool list, so whether search rank and funnel numbers come through the MCP (rather than only inside the IntelliHost app) is unverified. If the Revenue Manager asks for rank and IntelliHost has no tool for it, that is why. RankBreeze exposes rank directly; if rank is the number you care about, pick RankBreeze.
 
 ## 5. Verify
-The checker (`check-connections.sh`) reads the `intellihost` line's status from Claude Code's own server list (name and status only; nothing else is printed) and shows one row, **IntelliHost MCP**:
+This row is not driven by `~/.claude.json`. The app delivers a Connectors-UI sign-in straight to the chat session, invisible to the checker, so the row always prints `🔎 IntelliHost MCP   add it under + > Connectors; Claude checks it live`, whether or not you have added it yet, and even if you used the access-token fallback in section 6 (that path really is registered and working, the row text just cannot see it).
 
-- `✅ IntelliHost MCP   connected` is the pass. Claude Code sees the server as `✔ Connected`.
-- `⚠️ IntelliHost MCP   registered, not authenticated (/mcp > Authenticate)` means the browser sign-in has not been finished. Run `/mcp` > intellihost > **Authenticate** and complete it.
-- `🔒 IntelliHost MCP   needs a full restart of Claude Code` means you registered this session and have not restarted yet. Quit Claude Code fully, reopen it in this folder, say "Check my connections".
-- `❌ IntelliHost MCP   missing → not registered` means the register block in section 4 has not run.
-- `⚠️ IntelliHost MCP   registered, key fails → server status: failed` means Claude Code could not reach or talk to the server. If you connected with the browser sign-in (section 4), there is no key involved: the sign-in expired or IntelliHost is down. Run `/mcp` > intellihost > **Authenticate** again; if it still fails, wait a few minutes and try again. If you used the access-token fallback (section 6), the word is right: the token is wrong, revoked, or was copied with a typo. Authenticate will not help there. Make a new token in IntelliHost > Connections > MCP access tokens and run the fallback block again.
 - `➖ IntelliHost MCP   not used`: not used just means you told Claude you use RankBreeze or no ranking tool. Nothing to do.
-- A hint saying `approve it in /mcp` means Claude Code is waiting for you to approve the server. Open `/mcp` and approve it.
+- Not added yet: run section 4, then tell Claude "connected".
+- Added, or using the fallback token: Claude runs the live check in the chat, see below.
+- Live check comes back empty or says the tool is not available: Connect probably did not finish in the browser, or the sign-in expired. Open + > Connectors, check IntelliHost shows connected, and try again.
 
-The real-call test, after the restart: ask Claude "IntelliHost, list my properties". That is one of the free tools, so it works on any IntelliHost account. If it comes back with your listings, the connection is real. If Claude answers with a subscription message on a pricing or revenue question, the connection is fine, that tool is gated to the Agent plan (section 2).
+The live check: ask Claude "IntelliHost, list my properties". That is one of the free tools, so it works on any IntelliHost account. If it comes back with your listings, the connection is real. If Claude answers with a subscription message on a pricing or revenue question, the connection is fine, that tool is gated to the Agent plan (section 2).
 
 ## 6. Troubleshooting
-- **`/mcp` says it needs authentication, again:** the browser sign-in was not finished, or it was finished on a different machine. Run Authenticate once more and complete it in the browser that opens.
+- **IntelliHost tools are not showing up, again:** the browser sign-in was not finished, or it was finished on a different machine. Remove the connector under + > Connectors > Manage connectors, add it again, and finish the sign-in on this same machine.
 - **Pricing, revenue or Helix questions return a subscription error:** expected without the IntelliHost Agent plan. Account info and list properties are free; the rest is gated. Upgrade at intellihost.co/pricing or run RankBreeze instead.
 - **Sign-in page looks wrong or the account is not found:** you are on intellihost.io (PriceLabs). Use clients.intellihost.co.
-- **Claude is offering to change prices:** you granted read and write. Disconnect the assistant in IntelliHost > Connections, re-run Authenticate, and pick read-only.
+- **Claude is offering to change prices:** you granted read and write. Disconnect the assistant in IntelliHost > Connections, remove and re-add the connector, and pick read-only.
 - **Funnel numbers look thin or empty:** IntelliHost gathers its funnel data through its Chrome extension. Make sure the extension is installed and running in your Chrome, then ask again.
-- **Scoreboard stays on Restart:** the `needs-restart` marker is cleared by the setup flow, not by the restart itself. Quit the Claude Code desktop app fully (not just the window), reopen it in this same folder, and say "Check my connections". If you ran `bash check-connections.sh` by hand instead, clear the marker first: `: > "$BUNDLE/.cache/needs-restart"`.
-- **The register block printed nothing, no ✅ and no error:** re-run the register block in section 4; it overwrites whatever was there, including an entry made earlier by IntelliHost's own vendor-docs command.
+- **Scoreboard stays on Restart (only happens if you used the access-token fallback below):** the `needs-restart` marker is cleared by the setup flow, not by the restart itself. Quit the Claude Code desktop app fully (not just the window), reopen it in this same folder, and say "Check my connections". If you ran `bash check-connections.sh` by hand instead, clear the marker first: `: > "$BUNDLE/.cache/needs-restart"`. The Connectors-UI sign-in in section 4 never needs a restart.
 - **The browser sign-in loops, errors, or never finishes:** fall back to an IntelliHost access token. In IntelliHost > Connections > MCP access tokens, create one named `Claude Code` with Access **Read only**. IntelliHost shows it once. Claude opens `.env` for you; paste it on this line, no quotes, no spaces, save, and never in the chat:
   ```
   INTELLIHOST_MCP_TOKEN=

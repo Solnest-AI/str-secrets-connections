@@ -25,19 +25,13 @@ check_api_row() {
     *)         row "$label" keyfail "server status: $st (connectors/$server.md)" ;;
   esac
 }
-# check_oauth_row LABEL SERVER  (hosted MCP, browser sign-in)
+# check_oauth_row LABEL SERVER  (sign-in MCP the attendee adds in the app's Connectors UI.
+# The app delivers a connected connector straight to the chat session; it never appears in
+# ~/.claude.json, so there is nothing here for the checker to see. Always print the live-check
+# row regardless of registration state, and let Claude verify it live in the chat instead.)
 check_oauth_row() {
-  local label="$1" server="$2" st
-  if _needs_restart "$server"; then row "$label" restart; return; fi
-  st=$(mcp_status "$server")
-  case "$st" in
-    connected)  row "$label" ok ;;
-    needs-auth) row "$label" auth ;;
-    absent)     row "$label" missing "not registered (connectors/$server.md)" ;;
-    pending)    row "$label" auth "approve it in /mcp" ;;
-    registered) row "$label" live ;;
-    *)          row "$label" keyfail "server status: $st (connectors/$server.md)" ;;
-  esac
+  local label="$1"
+  row "$label" live
 }
 # check_env_row LABEL PROBE FILE  (key only, no server)
 check_env_row() {

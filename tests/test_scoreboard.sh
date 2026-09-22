@@ -8,15 +8,15 @@ cp tests/fixtures/env-hospitable-full.env .env
 out="$(bash check-connections.sh)"; rc=$?
 t "exit 0 when it ran"                 "[ $rc -eq 0 ]"
 t "hospitable api ok"                  "printf '%s' \"\$out\" | grep -q '✅ Hospitable API'"
-t "hospitable official ok"             "printf '%s' \"\$out\" | grep -q '✅ Hospitable MCP (official)'"
+t "hospitable official shows live-check glyph" "printf '%s' \"\$out\" | grep -q '🔎 Hospitable MCP (official).*add it under + > Connectors'"
 t "pricelabs keyfail"                  "printf '%s' \"\$out\" | grep -q '⚠️ PriceLabs API .*key fails'"
-t "meta needs auth"                    "printf '%s' \"\$out\" | grep -q '⚠️ Meta Ads MCP .*not authenticated'"
+t "meta shows live-check glyph"        "printf '%s' \"\$out\" | grep -q '🔎 Meta Ads MCP.*add it under + > Connectors'"
 t "rankbreeze ok"                      "printf '%s' \"\$out\" | grep -q '✅ RankBreeze MCP'"
 t "intellihost not used"               "printf '%s' \"\$out\" | grep -q '➖ IntelliHost MCP'"
 t "turno not used"                     "printf '%s' \"\$out\" | grep -q '➖ Turno API'"
 t "hostaway not shown"                 "! printf '%s' \"\$out\" | grep -q Hostaway"
 t "gemini ok (env-only row)"           "printf '%s' \"\$out\" | grep -q '✅ Gemini API key'"
-t "summary line present"               "printf '%s' \"\$out\" | grep -qE '^Summary: [0-9]+ connected, [0-9]+ missing, [0-9]+ pending vendor, [0-9]+ not used, [0-9]+ need restart'"
+t "summary line present"               "printf '%s' \"\$out\" | grep -qE '^Summary: [0-9]+ connected, [0-9]+ missing, [0-9]+ pending vendor, [0-9]+ not used, [0-9]+ need restart, [0-9]+ need live check'"
 t "no secret in output"                "! printf '%s' \"\$out\" | grep -qE 'rb_mcp_|FIXTURESECRET|GEMKEY|abcdefghijklmnopqrst'"
 t "no URL in output"                   "! printf '%s' \"\$out\" | grep -q 'https://'"
 # unanswered stack: rows show as missing with the ask hint
@@ -42,7 +42,7 @@ NOBIN_STUBS="$(mktemp -d)"
 cp tests/stubs/curl "$NOBIN_STUBS/curl"; chmod +x "$NOBIN_STUBS/curl"
 out4="$(HOME="$NOBIN_HOME" PATH="$NOBIN_STUBS:/usr/bin:/bin" CURL_STUB_DIR="$PWD/tests/fixtures/curl" bash check-connections.sh)"; rc4=$?
 t "no-binary: exits 0"                 "[ $rc4 -eq 0 ]"
-t "no-binary: meta-ads shows live-check glyph" "printf '%s' \"\$out4\" | grep -q '🔎 Meta Ads MCP.*registered; Claude checks it live'"
+t "no-binary: meta-ads shows live-check glyph" "printf '%s' \"\$out4\" | grep -q '🔎 Meta Ads MCP.*add it under + > Connectors; Claude checks it live'"
 t "no-binary: keyed row with a passing probe is ok" "printf '%s' \"\$out4\" | grep -q '✅ Hospitable API'"
 rm -rf "$NOBIN_HOME" "$NOBIN_STUBS"
 

@@ -65,15 +65,16 @@ If Claude built the Python flavour instead of Node, the interpreter on Windows i
 ## 4. Path B: official MCP
 Beyond's MCP is called Neyoba. Read-only. You ask it questions about your Beyond account; it does not change prices. Beta, no extra cost for Beyond customers during the beta (support article, 2026-09-11).
 
-Beyond's docs only show Claude Desktop and ChatGPT ("Neyoba currently supports Claude Desktop and ChatGPT"). But their server does dynamic client registration with PKCE, which is exactly what Claude Code's `/mcp` login uses (their authorization server advertises a registration endpoint, auth method `none`, and `S256`; checked live 2026-09-21). So try it:
+**Claude does not register this one. You add it in the app, it takes about a minute.**
+1. In the Claude Code desktop app, click the **+** next to the message box, then **Connectors**, then **Manage connectors**. The Connectors settings page opens.
+2. Click **+ Add** (top right), then **Add custom connector**.
+3. Type a name (Neyoba is fine) and paste `https://neyoba.beyondpricing.com/mcp` into **MCP server URL**. Click **Continue**.
+4. A browser opens on `v2.beyondpricing.com/oauth/authorize`. Sign in with your Beyond login and approve the `neyoba:ask` scope.
+5. Done, it is on automatically. Come back and tell Claude "connected".
 
-```bash
-uv run --python 3.13 python "$BUNDLE/lib/mcp_register.py" beyond-official --http https://neyoba.beyondpricing.com/mcp && echo "beyond-official registered ✅" || echo "beyond-official failed ❌"
-echo beyond-official >> "$BUNDLE/.cache/needs-restart"
-```
-Quit and reopen the Claude Code desktop app, then type `/mcp` in the chat > `beyond-official` > Authenticate (if your app shows a Connectors (+) button instead of `/mcp`, use that and paste the same URL). A browser opens on `v2.beyondpricing.com/oauth/authorize`. Sign in with your Beyond login and approve the `neyoba:ask` scope. Back in Claude Code the server shows connected.
+Claude runs the live check right after: "Ask Beyond what listings I have." An answer means it is working. If the tool is not available in the session, say: "I don't see Beyond (Neyoba) in my tools yet. Check it shows connected under + > Connectors, or that Connect finished in the browser."
 
-**If Beyond's consent page rejects the client** (an error instead of an approve button), use the vendor's Claude Desktop path instead. It needs Claude Desktop on a paid plan. In Claude Desktop: Connectors (under Customize) > **Add custom connector** > Name `Neyoba` > URL `https://neyoba.beyondpricing.com/mcp` > **Add** > **Connect** > sign in to Beyond. The scoreboard row for the Beyond MCP then stays unfinished in Claude Code; that is expected. The summit skills run on the built `beyond` server above. Neyoba is a bonus.
+**If Beyond's consent page rejects the client** (an error instead of an approve button): that is a Beyond-side rollout gap, not something to retry differently on your end. The summit skills run on the built `beyond` server above either way. Neyoba is a bonus.
 
 ## 5. Verify
 The checker runs two rows when your pricing tool is Beyond.
@@ -85,7 +86,7 @@ The checker runs two rows when your pricing tool is Beyond.
 - No answer: rc 3. Network, or Beyond is down. Retry later.
 (Codes verified live 2026-09-21.)
 
-**Beyond MCP (official, beta)** (`beyond-official`): connected once you Authenticate in `/mcp`, needs-auth until then. After the restart, the real test is a question in chat: "Ask Beyond what listings I have." An answer means ✅.
+**Beyond MCP (official, beta)** (`beyond-official`): this one never shows up in `~/.claude.json`, the app delivers it straight to the chat session, so the checker cannot see it. The row always prints `🔎 Beyond MCP (official, beta)   add it under + > Connectors; Claude checks it live`. Not added yet: run section 4. Added: the live check is the question in chat, "Ask Beyond what listings I have." An answer means it is working.
 
 Test the built server the same way after the restart: "List my Beyond listings." That is a read; nothing changes.
 
@@ -97,7 +98,7 @@ Test the built server the same way after the restart: "List my Beyond listings."
 - **A listing you know exists is missing:** listings with no channel connection do not show up in the API. Connect the listing to its channel or PMS inside Beyond first.
 - **Fields look odd (`base-price`, `min-stay`):** that is JSON:API, dasherized. The server maps them; leave them as-is rather than "fixing" them.
 - **429:** honor `Retry-After` and the `X-RateLimit-*` headers; compset detail is capped around 30 requests a minute. The built server backs off and retries three times.
-- **Neyoba's consent page errors out on Claude Code:** use the Desktop custom-connector path in section 4. Read-only either way.
+- **Neyoba's consent page errors out:** Beyond-side rollout gap. The built `beyond` server in section 3 is what the summit skills actually need; move on, Neyoba is a bonus.
 - **Neyoba says it cannot change something:** correct, it is read-only. Price changes go through the built `beyond` server, and only with `confirm=true`.
 - **Windows: `beyond` shows Failed to connect after restart:** it was registered with a `/c/Users/...` path. Re-run the Windows register block in section 3; it overwrites the old entry with the `cygpath -w` form.
 - **Building from the wrong docs:** `dynamic-api-docs.beyondpricing.com` is the Dynamic Integration API for PMS vendors (Beyond calls them, not the other way). The old `api.beyondpricing.com/api` Token API is deprecated and 404s. Use `developers.beyondpricing.com` only.

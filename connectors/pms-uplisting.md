@@ -68,13 +68,12 @@ Then quit and reopen the Claude Code desktop app. The scoreboard row flips from 
 ## 4. Path B: official MCP
 Uplisting runs its own MCP server, live since August 2026, no beta label, no waitlist, included on every plan (checked 2026-09-21). Uplisting's words: "Use this MCP server URL: https://connect.uplisting.io/mcp When you add the server, you'll be asked to sign in to Uplisting and choose the permissions you want to allow."
 
-Register it (same command on Mac and Windows, no path to convert):
-```bash
-uv run --python 3.13 python "$BUNDLE/lib/mcp_register.py" uplisting-official --http https://connect.uplisting.io/mcp && echo "uplisting-official registered ✅" || echo "uplisting-official failed ❌"
-echo uplisting-official >> "$BUNDLE/.cache/needs-restart"
-```
-
-Quit and reopen the Claude Code desktop app, then type `/mcp` in the chat, pick `uplisting-official`, choose **Authenticate** (if your app shows a Connectors (+) button instead of `/mcp`, use that and paste the same URL). A browser tab opens.
+**Claude does not register this one. You add it in the app, it takes about a minute.**
+1. In the Claude Code desktop app, click the **+** next to the message box, then **Connectors**, then **Manage connectors**. The Connectors settings page opens.
+2. Click **+ Add** (top right), then **Add custom connector**.
+3. Type a name (Uplisting is fine) and paste `https://connect.uplisting.io/mcp` into **MCP server URL**. Click **Continue**.
+4. A browser tab opens.
+5. Done, it is on automatically. Come back and tell Claude "connected".
 
 What to expect in the browser: an Uplisting sign-in. The login page may carry AirDNA branding (Uplisting is part of AirDNA); use your normal Uplisting login. After that comes a permissions picker. Uplisting's list: "properties:read, bookings:read, bookings:create, bookings:update, calendar:read, calendar:write, messaging:read, messaging:write, reviews:read". Uplisting's words: "You do not need to grant every permission."
 
@@ -82,14 +81,11 @@ Our advice for the summit: tick only the five `:read` ones (properties, bookings
 
 **Heads up:** if you grant `bookings:create`, `bookings:update`, `calendar:write` or `messaging:write`, this connection can create or change bookings, block or open dates, and send real messages to guests. Claude will always ask before any of that. Grant reads only if you want zero chance of it.
 
-Want to change your picks later? Ask Claude to remove the server and register it again; the picker comes back on the next sign-in:
-```bash
-uv run --python 3.13 python "$BUNDLE/lib/mcp_register.py" uplisting-official --remove
-uv run --python 3.13 python "$BUNDLE/lib/mcp_register.py" uplisting-official --http https://connect.uplisting.io/mcp
-echo uplisting-official >> "$BUNDLE/.cache/needs-restart"
-```
+Claude runs the live check right after: "List my Uplisting properties." An answer means it is working. If the tool is not available in the session, say: "I don't see Uplisting in my tools yet. Check it shows connected under + > Connectors, or that Connect finished in the browser."
 
-Path B does not replace Path A. The checker looks for both rows, and the Revenue Manager skill talks to the built `uplisting` server.
+Want to change your picks later? Remove the connector under + > Connectors > Manage connectors, then add it again; the permissions picker comes back on the next sign-in.
+
+Path B does not replace Path A. The checker's Path A row still runs for real, and the Revenue Manager skill talks to the built `uplisting` server.
 
 ## 5. Verify
 `bash check-connections.sh` prints two Uplisting rows.
@@ -101,19 +97,15 @@ Path B does not replace Path A. The checker looks for both rows, and the Revenue
 - **rc 3:** no answer from `connect.uplisting.io` in 15 seconds. Network, VPN or a firewall. Try again.
 - Key works but the row says "server not registered yet": run the Register block for your OS in section 3.
 
-**Uplisting MCP (official)** (Path B). The checker reads the `uplisting-official` server's status.
-- Connected: green.
-- Registered but not signed in: the row says auth. Type `/mcp`, pick `uplisting-official`, Authenticate.
-- Not registered: the row says missing. Run the block in section 4.
+**Uplisting MCP (official)** (Path B). This one never shows up in `~/.claude.json`, the app delivers it straight to the chat session, so the checker cannot see it. The row always prints `🔎 Uplisting MCP (official)   add it under + > Connectors; Claude checks it live`. Not added yet: run section 4. Added: Claude runs the live check ("List my Uplisting properties") in the chat.
 
 ## 6. Troubleshooting
 - **401 `Your API key does not appear to be valid`:** three usual causes. (1) A stray space or newline came along when you copied. Open `.env`, retype the line clean, save, re-run. (2) You tested by hand and encoded it as `key:` with a colon, the usual Basic auth shape. Uplisting's words: "Encode the key on its own, not in the usual key:password format." (3) You generated a new key at Uplisting after pasting the old one. Paste the current one.
 - **Testing by hand and it fails while the checker passes:** Uplisting's words: "Check for a trailing newline if you generated the encoding on the command line." `echo "$KEY" | base64` adds a newline and breaks it. The probe uses `printf '%s'` and strips newlines. Do the same, or just trust the checker.
 - **No Connect > API in your sidebar:** the API page is an account-level setting. Make sure you are logged in as the account owner, not a team member. Uplisting's docs do not spell out who can see it, so if the owner cannot see it either, ask Uplisting support from inside the app.
 - **Requests start failing during a big pull:** Uplisting allows about 5 requests a second per IP. The built server backs off and retries on a 429. If something else is hitting the API from the same connection at the same time, stop that, wait a few seconds, re-run.
-- **MCP sign-in bounces to an AirDNA page:** expected. Uplisting is part of AirDNA and the login runs through it. Use your Uplisting credentials. If it loops, re-run the register block in section 4 (it overwrites the old entry), quit and reopen the Claude Code desktop app, Authenticate again.
-- **MCP shows auth after a restart:** you registered it but never finished the browser step. `/mcp` > `uplisting-official` > Authenticate.
-- **The register step reports success but the row says `server status: failed` after the restart:** the build did not finish; registering does not check that the file exists. Go back to `build/build-pms-mcp.md` Path B until `dist/index.js` (or `server.py` plus `.venv`) exists, then re-run the Register block for your OS.
+- **MCP sign-in bounces to an AirDNA page:** expected. Uplisting is part of AirDNA and the login runs through it. Use your Uplisting credentials. If it loops, remove the connector under + > Connectors > Manage connectors and add it again.
+- **The register step reports success but the row says `server status: failed` after the restart:** that is the Path A `uplisting` server, not the official MCP. The build did not finish; registering does not check that the file exists. Go back to `build/build-pms-mcp.md` Path B until `dist/index.js` (or `server.py` plus `.venv`) exists, then re-run the Register block for your OS.
 - **Windows: `uplisting` shows Failed to connect after restart:** the path was registered in `/c/Users/...` form. Run the Register (Windows, Git Bash) block in section 3 again; it overwrites the old entry with the `cygpath -w` form.
 - **Windows and the server is Python:** the interpreter is `.venv/Scripts/python.exe`, not `.venv/bin/python`. See the Register (Windows, Git Bash) block in section 3.
 

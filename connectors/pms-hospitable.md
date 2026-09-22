@@ -60,19 +60,25 @@ echo hospitable >> "$BUNDLE/.cache/needs-restart"
 This server is Node, so there is no venv here. The Python servers in this kit use `.venv/Scripts/python.exe` on Windows instead of `.venv/bin/python`; same rule, Windows form of the path.
 
 ## 4. Path B: official MCP
-Hospitable's own MCP server. Live and GA (since April 2026), read and write, browser sign-in. Register it:
-```bash
-uv run --python 3.13 python "$BUNDLE/lib/mcp_register.py" hospitable-official --http https://mcp.hospitable.com/mcp && echo "hospitable-official registered ✅" || echo "register failed ❌"
-echo hospitable-official >> "$BUNDLE/.cache/needs-restart"
-```
-Claude batches restarts, so wait for the "After you restart" checklist. Once you are back: type `/mcp` in the chat, pick `hospitable-official`, choose **Authenticate** (if your app shows a Connectors (+) button instead of `/mcp`, use that and paste the same URL). A browser tab opens on Hospitable. Log in as the account owner (or a full-access admin; Hospitable: "Only primary account holders and full-access (admin) secondary users can connect AI agents"), then click **Allow**. Back in the chat the server flips to connected.
+Hospitable's own MCP server. Live and GA (since April 2026), read and write, browser sign-in.
+
+**Claude does not register this one. You add it in the app, it takes about a minute.**
+1. In the Claude Code desktop app, click the **+** next to the message box, then **Connectors**, then **Manage connectors**. The Connectors settings page opens.
+2. Click **+ Add** (top right), then **Add custom connector**.
+3. Type a name (Hospitable is fine) and paste `https://mcp.hospitable.com/mcp` into **MCP server URL**. Click **Continue**.
+4. A browser tab opens. Sign in to Hospitable and approve.
+5. Done, it is on automatically. Come back and tell Claude "connected".
+
+Log in as the account owner (or a full-access admin; Hospitable: "Only primary account holders and full-access (admin) secondary users can connect AI agents"), then click **Allow**.
+
+Claude runs the live check right after: "List my Hospitable properties." An answer means it is working. If the tool is not available in the session, say: "I don't see Hospitable in my tools yet. Check it shows connected under + > Connectors, or that Connect finished in the browser."
 
 Claude prints this warning to you, verbatim, before anything else:
 "This connection can send real messages to guests and unlock smart locks. Claude will always ask before any of that."
 
 Hospitable's own words on the messaging part: "Messages sent through MCP are delivered to guests immediately." There is no draft step on their side.
 
-Hospitable's help page documents the Claude app, ChatGPT, Cursor and a generic OAuth agent; there is no Claude Code section (help 14424057, updated 2026-08-13). The generic steps are exactly what the command above does: "1. Add the following MCP server URL to your AI agent: https://mcp.hospitable.com/mcp 2. Follow the prompt to sign in 3. Authorize access". Their page also says "A paid Claude plan is required for custom MCP connectors"; you already have one if Claude Code runs.
+Hospitable's help page documents the Claude app, ChatGPT, Cursor and a generic OAuth agent; there is no Claude Code section (help 14424057, updated 2026-08-13). The generic steps are close to what the click path above does: "1. Add the following MCP server URL to your AI agent: https://mcp.hospitable.com/mcp 2. Follow the prompt to sign in 3. Authorize access". Their page also says "A paid Claude plan is required for custom MCP connectors"; you already have one if Claude Code runs.
 
 **Fallback if the browser sign-in loops** (keeps bouncing you back without ever connecting): in Hospitable go to Settings > Integrations > MCP > Fallback bearer tokens > **Add fallback token**. Copy it. Claude opens `.env` for you; paste it on this line, no quotes, no spaces, save, and never in the chat:
 ```
@@ -84,7 +90,7 @@ set -a; . "$BUNDLE/.env"; set +a
 uv run --python 3.13 python "$BUNDLE/lib/mcp_register.py" hospitable-official --http https://mcp.hospitable.com/mcp --header "Authorization: Bearer HOSPITABLE_OFFICIAL_TOKEN" && echo "hospitable-official registered ✅" || echo "register failed ❌"
 echo hospitable-official >> "$BUNDLE/.cache/needs-restart"
 ```
-Quit and reopen the Claude Code desktop app afterwards. No `/mcp` > Authenticate step on this path; the header is the login.
+Quit and reopen the Claude Code desktop app afterwards. No browser sign-in step on this path; the header is the login.
 
 ## 5. Verify
 Claude runs `bash check-connections.sh`. Two Hospitable rows come back.
@@ -98,15 +104,13 @@ Claude runs `bash check-connections.sh`. Two Hospitable rows come back.
 - `⚠️ Hospitable API registered, key fails` with `vendor unreachable or blocked` = timeout or a 5xx. Hospitable is down or your wifi is. Try again in a minute; the probe only reads your own user profile and changes nothing.
 - `⚠️ Hospitable API registered, key fails` with `server status: failed` = the token works but the registered server does not start. Either the build never finished or the server's own `.env` is empty. Run `bash "$BUNDLE/fan-out-env.sh"`, then re-run the Register block. Windows: see the last item in section 6.
 
-**Hospitable MCP (official)** row: the checker reads Claude Code's own server status for you and looks for connected on the `hospitable-official` entry. It never prints the raw contents of `~/.claude.json` (another server's entry in there is a password).
-- `✅ Hospitable MCP (official) connected` = done with Path B.
-- `⚠️ registered, not authenticated (/mcp > Authenticate)` = the browser step has not happened yet. `/mcp` > `hospitable-official` > Authenticate.
-- `🔒 needs a full restart of Claude Code` = just registered. Restart first, then `/mcp` > Authenticate.
-- `⚠️ registered, not authenticated` with `approve it in /mcp` = Claude Code is waiting for you to approve the new server. Type `/mcp`, pick it, approve, then Authenticate.
-- `❌ missing` = not registered. Run section 4.
+**Hospitable MCP (official)** row: the row always prints `🔎 Hospitable MCP (official)   add it under + > Connectors; Claude checks it live`, whether or not you have added it yet, and even if you used the fallback bearer token below (that path really does register in `~/.claude.json` and needs a restart, the row text just does not know to say so for this server).
+- Not added yet: run section 4, then tell Claude "connected".
+- Added: Claude runs the live check ("List my Hospitable properties") right there in the chat. An answer means it is working.
+- Live check comes back empty or says the tool is not available: Connect probably did not finish in the browser. Open + > Connectors, check Hospitable shows connected, and try again.
 
 ## 6. Troubleshooting
-- **A teammate cannot sign in to the MCP:** expected. Only the account owner or a full-access admin can connect. Have the owner do the Authenticate step on this laptop, once.
+- **A teammate cannot sign in to the MCP:** expected. Only the account owner or a full-access admin can connect. Have the owner do the sign-in step in section 4 on this laptop, once.
 - **"Server session expired, send initialize again":** the MCP session timed out mid-workflow. Start a new chat and carry on. Nothing to fix.
 - **A token that worked now returns 401:** PATs last one year. Make a new one at the same screen, replace the line in `.env`, run `bash "$BUNDLE/fan-out-env.sh"`, re-run the checker.
 - **A token that worked at home fails at the venue:** you filled in the IP allowlist on the token. Clear it on the API access page; no new token needed.

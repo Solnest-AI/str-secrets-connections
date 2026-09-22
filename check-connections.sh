@@ -22,7 +22,7 @@ row() {
     vendor)  glyph="⏳"; text="waiting on vendor" ;;
     na)      glyph="➖"; text="not used" ;;
     restart) glyph="🔒"; text="needs a full restart of Claude Code" ;;
-    live)    glyph="🔎"; text="registered; Claude checks it live in this chat" ;;
+    live)    glyph="🔎"; text="add it under + > Connectors; Claude checks it live" ;;
     *)       glyph="❓"; text="$state" ;;
   esac
   printf '%s %-32s %s' "$glyph" "$label" "$text"

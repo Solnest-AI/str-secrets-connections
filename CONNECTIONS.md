@@ -44,8 +44,9 @@ One exception to all of the above: PriceLabs' official MCP (account admin only) 
    ```
    `Darwin` means Mac. Anything starting `MINGW` or `MSYS` means Windows Git Bash.
 
-2. Set the bundle path once and reuse it everywhere below.
+2. Set the bundle path once and reuse it everywhere below. If the GitHub-link install path cloned this kit into a subfolder of the session folder, step into it first:
    ```bash
+   [ -f "$PWD/CONNECTIONS.md" ] || cd str-secrets-connections
    BUNDLE="$(pwd)"
    ```
    On Windows also set the form the register helper needs for `--stdio` arguments:
@@ -140,9 +141,9 @@ Which connector file a row maps to:
 
 Everyone also gets the fixed rows: `connectors/market-airroi.md`, `connectors/ads-meta.md`, `connectors/ai-kie.md`, `connectors/ai-gemini.md`, `connectors/web-firecrawl.md`, `connectors/db-supabase.md`.
 
-For every ❌ or ⚠️ row on the scoreboard:
+For every ❌, ⚠️, or 🔎 row on the scoreboard:
 1. Open the connector file the table above points to.
-2. Follow section 3 (API key) for a key-shaped row, section 4 (official MCP) for a sign-in row, exactly as written.
+2. Follow section 3 (API key) for a key-shaped row, section 4 (official MCP) for a sign-in row, exactly as written. A 🔎 row is always a sign-in server: it shows that glyph whether or not it's been added yet, since the app never tells `~/.claude.json` about it. Hand the attendee the click path from section 4, wait for them to say "connected", then run the live check described there. No restart, no `.cache/needs-restart` marker, for this one.
 3. Any time `.env` changes, run this before moving on; it copies the new value into every connector and skill folder that keeps its own copy, and it never prints a value while doing it.
    ```bash
    cd "$BUNDLE" && bash fan-out-env.sh
@@ -164,12 +165,13 @@ Supabase gets three sub-steps inside the same pass, since it is the one shared p
 
 AirROI registers twice from the same key and the same $10 deposit: the bundled `airroi` server (what the summit skills actually call) and `airroi-official` (AirROI's own hosted MCP). Do both; `connectors/market-airroi.md` sections 3 and 4 cover each.
 
-Batch restarts instead of one per server: one after every API-key server in this pass is registered, one more after the OAuth servers (Meta, and any PMS or pricing official MCP they chose to also set up). Restart sooner if they'd rather, they're the one running this, not you.
+Batch restarts instead of one per server: one after every API-key (stdio/header) server in this pass is registered. Restart sooner if they'd rather, they're the one running this, not you.
 
-Before each restart, print the "After you restart" checklist:
+The sign-in servers (hospitable-official, lodgify-official, uplisting-official, beyond-official, pricelabs-official, intellihost, meta-ads) are different: Claude never registers them and they never need a restart. Hand them the click path from that connector file's section 4, wait for them to say "connected", then run the live check. Do this whenever it's convenient, in this pass or later; it doesn't need to line up with a restart batch.
+
+Before each restart (API-key/stdio/header servers only), print the "After you restart" checklist:
 - Quit and reopen the Claude Code desktop app, open this same folder.
 - Say "Check my connections".
-- For each OAuth server from this batch: type `/mcp` in the chat, pick the server, choose Authenticate (if the app shows a Connectors (+) button instead of `/mcp`, use that and paste the same URL).
 
 Once they're back, clear the marker and re-run the checker:
 ```bash
@@ -179,7 +181,7 @@ bash "$BUNDLE/check-connections.sh"
 
 ### Meta, the real test
 
-Registering Meta only proves a handshake, not that it actually works. After the OAuth restart and sign-in, run the real test from `connectors/ads-meta.md` section 4:
+Meta is a sign-in server: no registration, no restart. After the click path in `connectors/ads-meta.md` section 4 and the sign-in, run the real test, which IS the live check:
 1. **"List my ad accounts."** Claude calls `ads_get_ad_accounts` and checks `is_ads_mcp_enabled` on what comes back.
 2. **"Search the Ad Library for 'vacation rental' ads in the US, limit 1."** Claude calls `ads_library_search`.
 

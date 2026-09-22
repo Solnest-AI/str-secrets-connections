@@ -29,33 +29,27 @@ No email to anyone, no waitlist form, no `emails/` file for this one. Rollout is
 _None for this connector._ There is no key to fetch and no `.env` line. Go straight to Path B.
 
 ## 4. Path B: official MCP
-One register step, then a browser sign-in. Meta's own doc shows their CLI line with `--client-id <META_APP_ID>`; that is for people who own a Meta developer app. You do not, so it is dropped. Honesty note: Meta documents this no-app line for Claude Code, and as of 2026-09-21 Meta's sign-in endpoint accepts Claude Code's registration, but we have not run the browser sign-in end to end from Claude Code without a Meta app. If it fails, it is not you; go to section 6.
+A browser sign-in, added in the app.
 
-**Register:**
-```bash
-uv run --python 3.13 python "$BUNDLE/lib/mcp_register.py" meta-ads --http https://mcp.facebook.com/ads && echo "meta-ads registered ✅" || echo "meta-ads register failed ❌"
-echo meta-ads >> "$BUNDLE/.cache/needs-restart"
-```
-Windows: run this in Git Bash (Claude's Bash tool). Nothing on this line is a file path, so no `cygpath -w` and no `.venv/Scripts/python.exe` here. The `$BUNDLE/.cache/needs-restart` write stays inside Bash and works as-is.
+**Claude does not register this one. You add it in the app, it takes about a minute.**
+1. In the Claude Code desktop app, click the **+** next to the message box, then **Connectors**, then **Manage connectors**. The Connectors settings page opens.
+2. Click **+ Add** (top right), then **Add custom connector**.
+3. Type a name (Meta Ads is fine) and paste `https://mcp.facebook.com/ads` into **MCP server URL**. Click **Continue**.
+4. A browser tab opens. Meta's description of what happens next: "The MCP client redirects you to the Facebook Login for Business dialog. You sign in with your Facebook account or your Meta Managed Account (MMA) and approve the requested permissions. No manual token setup is required." Log in with the Facebook profile that owns your ad account, not a personal profile that has never advertised. Approve the requested permissions when the dialog asks.
+5. Done, it is on automatically. Come back and tell Claude "connected".
 
-**Quit and reopen the Claude Code desktop app.** Then type `/mcp` in the chat, pick **meta-ads**, choose **Authenticate**. (If your app shows a Connectors (+) button instead of `/mcp`, use that instead.) Claude Code opens a browser link. Meta's description of what happens next: "The MCP client redirects you to the Facebook Login for Business dialog. You sign in with your Facebook account or your Meta Managed Account (MMA) and approve the requested permissions. No manual token setup is required."
-
-Log in with the Facebook profile that owns your ad account, not a personal profile that has never advertised. Approve the requested permissions when the dialog asks. If the browser does not open on its own, copy the link Claude Code prints and open it yourself. Finish the sign-in on the same machine Claude Code is running on.
+If the browser does not open on its own, copy the link Claude Code prints and open it yourself. Finish the sign-in on the same machine Claude Code is running on.
 
 Capability warning: what you get depends on your ad account. Read tools (ad accounts, campaigns, insights, Ad Library search) need one active ad account. Write tools exist but always create things paused. Meta is rolling the MCP out account by account. Their Business Suite page says it plainly: "1. Go to Settings within Meta Business Suite. 2. Below Integrations, select Ads MCP server. Note: If you don't see this, you do not have access to this feature yet." No waitlist form to fill, but not every account has it yet as of 2026-09-21.
 
 ## 5. Verify
-The checker reads Claude Code's own server status for `meta-ads` and shows one row, **Meta Ads MCP**, using the same icons and wording as every other row in the scoreboard:
+The row always prints `🔎 Meta Ads MCP   add it under + > Connectors; Claude checks it live`, whether or not you have added it yet, and even if you used the token fallback in section 6 (that path really does register in `~/.claude.json` and needs a restart, the row text just does not know to say so for this server).
 
-- `✅ Meta Ads MCP   connected`: signed in and working. Move on to the real test.
-- `⚠️ Meta Ads MCP   registered, not authenticated (/mcp > Authenticate)`: registered but not signed in yet, or Claude Code is waiting for you to approve the server first (hint: `approve it in /mcp`). Open `/mcp`, approve the server if it asks, then Authenticate and finish the browser sign-in.
-- `⚠️ Meta Ads MCP   registered, key fails`: unusual for this row since it has no key; it shows up if the server reports a status the checker does not otherwise recognize. Try `/mcp` > meta-ads > Authenticate again; if that does not clear it, see section 6.
-- `🔒 Meta Ads MCP   needs a full restart of Claude Code`: registered this session and Claude Code has not been restarted. Restart, then say "Check my connections" again.
-- `❌ Meta Ads MCP   missing`: not registered. Run the register block in section 4.
+- Not added yet: run section 4, then tell Claude "connected".
+- Added (or using the token fallback and restarted): run the real test below, in the chat. It IS the live check for this row.
+- Before you sign in, the server answers every call with `401 Authentication Required`. That is the only code you will see from it un-authenticated, and it means exactly what it says.
 
-Before you sign in, the server answers every call with `401 Authentication Required`. That is the only code you will see from it un-authenticated, and it means exactly what it says.
-
-The real test is two questions in chat, after the restart and the sign-in:
+The real test is two questions in chat, after the sign-in:
 
 1. **"List my ad accounts."** Claude calls `ads_get_ad_accounts`. Look at `is_ads_mcp_enabled` on each account that comes back.
 2. **"Search the Ad Library for 'vacation rental' ads in the US, limit 1."** Claude calls `ads_library_search`.
@@ -66,9 +60,9 @@ Outcomes:
 - **Every account shows `is_ads_mcp_enabled: false`**: Meta has not rolled the MCP out to your account yet. Nothing to do on your side. The Ad Spy degrades without it; the rest of the kit is unaffected. Check back in a week or two.
 
 ## 6. Troubleshooting
-- **Browser sign-in fails with "redirect_uris not registered":** a Claude Code OAuth bug that has been closed twice (GitHub anthropics/claude-code #57191, #58054). Update Claude Code from inside the app (Settings > Check for updates, or however this version surfaces it), re-run the register block, quit and reopen, Authenticate again.
-- **Meta Ads MCP row says `server status: failed`, or Claude reports `connection timed out after 30000ms` on a server you already signed in to:** Claude Code issue #89528 (open as of 2026-09-21). Claude Code's OAuth layer wrongly decides the stored Meta token expired; the token itself is fine. The reporter says it is fixed on Claude Code 2.1.270; update the app if you are behind. Then quit and reopen the Claude Code desktop app, `/mcp` > meta-ads > **Authenticate** again. It is a re-login, not a re-register.
-- **Fallback when OAuth will not stick, only if you already have a Meta user access token:** we could not find a page in your Facebook or Business Suite account that hands out a token without a Meta developer app (Business Suite > Settings > Integrations > Ads MCP server only allows or blocks ad accounts, and needs full control of the Business Portfolio). If someone technical set a token up for you, register it as a header instead of a browser login. Meta's one documented rule: a system user token works only with the **Employee** role; an Admin-role system user token is rejected. Any Meta user token expires; when this row flips to `registered, key fails` weeks later you need a fresh token and this section again. No token in hand? Skip this and retry `/mcp` > meta-ads > **Authenticate** instead.
+- **Browser sign-in fails with "redirect_uris not registered":** update Claude Code from inside the app (Settings > Check for updates, or however this version surfaces it), then remove the connector under + > Connectors > Manage connectors and add it again.
+- **Claude reports a timeout or the tools stop responding on a server you already signed in to:** usually a stale sign-in, not a broken account. Remove the connector under + > Connectors > Manage connectors and add it again. It is a re-login, not a re-register.
+- **Fallback when the browser sign-in will not stick, only if you already have a Meta user access token:** we could not find a page in your Facebook or Business Suite account that hands out a token without a Meta developer app (Business Suite > Settings > Integrations > Ads MCP server only allows or blocks ad accounts, and needs full control of the Business Portfolio). If someone technical set a token up for you, register it as a header instead of a browser login (this path uses Claude's file-based register helper, not the Connectors UI, and does need a restart). Meta's one documented rule: a system user token works only with the **Employee** role; an Admin-role system user token is rejected. Any Meta user token expires; when this row flips to `registered, key fails` weeks later you need a fresh token and this section again. No token in hand? Skip this and retry the Connectors UI sign-in in section 4 instead.
 
   Claude opens `.env` for you; paste the token on this line, no quotes, no spaces, save, and never in the chat:
   ```
@@ -81,11 +75,11 @@ Outcomes:
   echo meta-ads >> "$BUNDLE/.cache/needs-restart"
   ```
   The token lands in `~/.claude.json`, never in the chat. Treat that file as a secret from then on.
-- **Signed in with the wrong Facebook profile:** the browser used whichever profile was already logged in at facebook.com. Log out of facebook.com in that browser, run `/mcp` > meta-ads > Authenticate again, and log in with the profile that owns the ad account.
+- **Signed in with the wrong Facebook profile:** the browser used whichever profile was already logged in at facebook.com. Log out of facebook.com in that browser, remove the connector under + > Connectors > Manage connectors, add it again, and log in with the profile that owns the ad account.
 - **"List my ad accounts" works but Ad Library search errors:** you have an ad account but it is not active. Ads Manager will tell you why (no payment method, disabled, restricted). Fix it there, then retry.
 - **Claude says it created a campaign or ad set:** it is paused. Meta's rule: "Write tools create entities in a paused state." Open Ads Manager, look at it, delete it or leave it. It only starts spending if someone activates it, either in Ads Manager or through the `ads_activate_entity` tool. The kit never calls that tool; do not ask Claude to.
-- **Scoreboard stays on Restart:** the `needs-restart` marker clears on the next launch. Quit the Claude Code desktop app fully (not just the window) and open it again.
+- **Scoreboard stays on Restart (only happens if you used the token fallback above):** the `needs-restart` marker clears on the next launch. Quit the Claude Code desktop app fully (not just the window) and open it again. The Connectors-UI sign-in in section 4 never needs a restart.
 - **Ads MCP server is not under Integrations in Business Suite:** Meta's own note: "If you don't see this, you do not have access to this feature yet." The browser sign-in may still work; try it. If it also fails, wait for the rollout.
 
 ## 7. Sources
-developers.facebook.com, Ads MCP server "Get started" ("Updated: Sep 4, 2026") and "Tools" pages. facebook.com/business/help/1456422242197840 (How to set up Meta ads AI connectors) and facebook.com/business/help/407323696966570 (ad account basics), read 2026-09-21. code.claude.com/docs/en/mcp ("Option 1: Add a remote HTTP server"). Live tool schema for `ads_library_search` and `ads_get_ad_accounts`, read 2026-09-21. GitHub anthropics/claude-code #89528 (open), #57191 and #58054 (closed). Register command shape and server name from the kit brief, task 10 step 2.
+developers.facebook.com, Ads MCP server "Get started" ("Updated: Sep 4, 2026") and "Tools" pages. facebook.com/business/help/1456422242197840 (How to set up Meta ads AI connectors) and facebook.com/business/help/407323696966570 (ad account basics), read 2026-09-21. Live tool schema for `ads_library_search` and `ads_get_ad_accounts`, read 2026-09-21. Server name from the kit brief, task 10 step 2; Connectors-UI click path confirmed against the Claude Code desktop app, task 12c.

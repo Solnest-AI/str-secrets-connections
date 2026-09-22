@@ -25,7 +25,21 @@ official_mcp: <https://... or none>
   Then `echo "<server>" >> "$BUNDLE/.cache/needs-restart"`. Re-running the same line any time (a new key, a rebuilt server) is always safe; it overwrites the old entry, nothing to remove first.
 
 ## 4. Path B: official MCP
-<Same helper, `--http <url>` with no `--env`/`--header` if auth is a browser sign-in. Auth: type `/mcp` in the chat > server > Authenticate (or the Connectors (+) button if the app shows that instead), or a header if the vendor supports one. What to expect in the browser. Capability warning. Beta/waitlist status with date. Restart instruction: "quit and reopen the Claude Code desktop app.">
+Two shapes, depending on how the vendor's server authenticates.
+
+**Key or header auth (URL carries the secret, or a header does):** still the bundled helper, same as Path A. `--http <url>` plus `--header "<Header-Name>: <PREFIX> <VAR>"` if there is one. No browser step. <What to expect. Capability warning. Beta/waitlist status with date.>
+
+**Sign-in (browser OAuth):** Claude does NOT register this one; there is nothing to add to `~/.claude.json`, because the app delivers a connected connector straight to the chat session. The attendee adds it themselves:
+"**Claude does not register this one. You add it in the app, it takes about a minute.**
+1. In the Claude Code desktop app, click the **+** next to the message box, then **Connectors**, then **Manage connectors**. The Connectors settings page opens.
+2. Click **+ Add** (top right), then **Add custom connector**.
+3. Type a name (<Vendor> is fine) and paste `<URL>` into **MCP server URL**. Click **Continue**. <If a vendor needs a Client ID / Client Secret, say so here: "If the next screen asks for OAuth details, use ...">
+4. A browser tab opens. Sign in to <Vendor> and approve.
+5. Done, it is on automatically. Come back and tell Claude "connected"."
+<Capability warning. Beta/waitlist status with date.>
+
+## Live check
+<Sign-in servers only. Claude runs this right after "connected": the one read tool call that proves the connection is real, e.g. "List my properties" or "List my ad accounts", named exactly if the vendor documents the tool. If it is not available in the session, say: "I don't see <Vendor> in my tools yet. Check it shows connected under + > Connectors, or that Connect finished in the browser." Nothing else.>
 
 ## 5. Verify
 <What the checker runs and what pass/fail look like, using the vendor's real codes.>
