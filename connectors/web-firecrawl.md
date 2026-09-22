@@ -30,7 +30,7 @@ FIRECRAWL_API_KEY=
 
 Then, from the bundle folder (`cd "$BUNDLE"`):
 
-**SAFE:** `git check-ignore -q .env && echo "protected ✅"`
+**SAFE:** `if [ -d "$BUNDLE/.git" ]; then git -C "$BUNDLE" check-ignore -q .env && echo "protected ✅" || echo "add .env to $BUNDLE/.gitignore first"; else echo "protected ✅ (not a git folder, nothing can commit it)"; fi`
 **FILLED:** `grep -q '^FIRECRAWL_API_KEY=.\+' .env && echo "present ✅" || echo "still blank"`
 **WORKS:** `bash -c '. lib/env.sh; . lib/probes.sh; env_load .env; probe_firecrawl; echo rc=$?'` (0 works, 1 rejected, 2 blank, 3 unreachable)
 
@@ -39,7 +39,7 @@ Then, from the bundle folder (`cd "$BUNDLE"`):
 . "$BUNDLE/lib/env.sh"; env_load "$BUNDLE/.env"
 if [ -z "$FIRECRAWL_API_KEY" ]; then echo "FIRECRAWL_API_KEY is blank in .env. Fill it first, then run this block again."; else
 claude mcp remove firecrawl -s user >/dev/null 2>&1 || true
-if claude mcp add --transport http --scope user firecrawl https://mcp.firecrawl.dev/v2/mcp --header "Authorization: Bearer $FIRECRAWL_API_KEY" >/dev/null 2>&1; then echo "firecrawl registered ✅"; echo firecrawl >> "$BUNDLE/.cache/needs-restart"; else echo "firecrawl register failed. Run the claude mcp add line again without the >/dev/null 2>&1 part to see the error."; fi
+claude mcp add --transport http --scope user firecrawl https://mcp.firecrawl.dev/v2/mcp --header "Authorization: Bearer $FIRECRAWL_API_KEY" >/dev/null 2>&1 && { echo "firecrawl registered ✅"; echo firecrawl >> "$BUNDLE/.cache/needs-restart"; } || echo "firecrawl register failed ❌. Run the claude mcp add line again without the >/dev/null 2>&1 part to see the error."
 fi
 ```
 Then fully quit and reopen Claude Code. New servers only show up after a restart.
@@ -81,11 +81,11 @@ The in-chat test after restart: ask Claude "What is my Firecrawl credit usage?" 
   . "$BUNDLE/lib/env.sh"; env_load "$BUNDLE/.env"
   if [ -z "$FIRECRAWL_API_KEY" ]; then echo "FIRECRAWL_API_KEY is blank in .env. Fill it first, then run this block again."; else
   claude mcp remove firecrawl -s user >/dev/null 2>&1 || true
-  if claude mcp add --transport stdio firecrawl --scope user --env FIRECRAWL_API_KEY="$FIRECRAWL_API_KEY" -- npx -y firecrawl-mcp@3.23.7 >/dev/null 2>&1; then echo "firecrawl registered ✅"; echo firecrawl >> "$BUNDLE/.cache/needs-restart"; else echo "firecrawl register failed. Run the claude mcp add line again without the >/dev/null 2>&1 part to see the error."; fi
+  claude mcp add --transport stdio firecrawl --scope user --env FIRECRAWL_API_KEY="$FIRECRAWL_API_KEY" -- npx -y firecrawl-mcp@3.23.7 >/dev/null 2>&1 && { echo "firecrawl registered ✅"; echo firecrawl >> "$BUNDLE/.cache/needs-restart"; } || echo "firecrawl register failed ❌. Run the claude mcp add line again without the >/dev/null 2>&1 part to see the error."
   fi
   ```
   Same server name, so the summit skills do not notice the swap. Windows: this path has a known problem passing the env var through npx; stay on the hosted server unless it is actually down.
-- **You found the `mcp.firecrawl.dev/<key>/` URL style in an old tutorial:** do not use it. The key ends up in a URL, and URLs get logged. Firecrawl says header or secret storage, never the URL. The kit only ever registers the header form.
+- **You found the `mcp.firecrawl.dev/<key>/` URL style in an old tutorial:** skip it. The key ends up in a URL, and URLs get logged. Firecrawl says header or secret storage, never the URL. The kit only ever registers the header form.
 
 ## 7. Sources
 docs.firecrawl.dev/mcp-server and its keyless, oauth and local sub-pages; firecrawl.dev/pricing (effective Sept 4 2026); firecrawl.dev/app/api-keys; code.claude.com/docs/en/mcp (all read 2026-09-21). Error codes and the 27-tool count confirmed by live calls against api.firecrawl.dev and mcp.firecrawl.dev (server `firecrawl-fastmcp 3.25.2`) on 2026-09-21.

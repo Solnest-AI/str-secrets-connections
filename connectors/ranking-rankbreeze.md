@@ -37,7 +37,7 @@ RANKBREEZE_MCP_URL=
 
 Then, from the bundle folder (`cd "$BUNDLE"`):
 
-**SAFE:** `git check-ignore -q .env && echo "protected ✅"`
+**SAFE:** `if [ -d "$BUNDLE/.git" ]; then git -C "$BUNDLE" check-ignore -q .env && echo "protected ✅" || echo "add .env to $BUNDLE/.gitignore first"; else echo "protected ✅ (not a git folder, nothing can commit it)"; fi`
 **FILLED:** `grep -q '^RANKBREEZE_MCP_URL=.\+' .env && echo "present ✅" || echo "still blank"`
 **WORKS:** one real call to the server. Prints only an HTTP code, never the URL:
 ```bash
@@ -48,7 +48,7 @@ bash -c '. lib/env.sh; env_load .env; [ -n "${RANKBREEZE_MCP_URL:-}" ] || { echo
 **Register:**
 ```bash
 set -a; . "$BUNDLE/.env"; set +a
-claude mcp add --transport http rankbreeze --scope user "$RANKBREEZE_MCP_URL" >/dev/null 2>&1 && echo "rankbreeze registered ✅"
+claude mcp add --transport http rankbreeze --scope user "$RANKBREEZE_MCP_URL" >/dev/null 2>&1 && echo "rankbreeze registered ✅" || echo "rankbreeze register failed ❌ (see section 6; do not drop the >/dev/null on this line, the raw error can echo the URL back)"
 echo rankbreeze >> "$BUNDLE/.cache/needs-restart"
 ```
 Then fully quit and reopen Claude Code. New servers only show up after a restart.
@@ -78,7 +78,7 @@ Want to eyeball the status yourself without exposing the URL? This prints only t
 ```bash
 claude mcp list 2>/dev/null | sed -n 's/^rankbreeze: .* - //p'
 ```
-`✔ Connected` is what you want. Do not run plain `claude mcp list` and paste it anywhere; the raw output includes the RankBreeze URL.
+`✔ Connected` is what you want. Skip running plain `claude mcp list` and pasting it anywhere; the raw output includes the RankBreeze URL.
 
 **The real proof, after the restart:** ask Claude "RankBreeze, look up my account". Claude calls `lookup_current_user` and comes back with your account and listing count. That is the end-to-end test.
 
@@ -86,9 +86,9 @@ claude mcp list 2>/dev/null | sed -n 's/^rankbreeze: .* - //p'
 
 ## 6. Troubleshooting
 - **Reset URL kills the old one instantly.** Clicked Reset URL, or deleted the row, in RankBreeze? The URL Claude Code has is dead that second. Copy the new one, paste it over the old line in `.env`, then re-register: `claude mcp remove rankbreeze --scope user`, run the Register block again, restart.
-- **`✘ Failed to connect, Dynamic Client Registration rejected (HTTP 404)` after the restart.** That long message is what Claude Code prints when RankBreeze rejects the URL; ignore the words "Client Registration" and "404 Not Found", they do not mean RankBreeze is down. Nine times out of ten the URL in `.env` is incomplete or was reset. Re-copy it from the Remote MCP table with the Copy URL button (do not retype it), make sure there are no quotes or spaces around it, then run WORKS. `http=401` confirms it is the URL. Fix `.env`, remove and re-register as above.
-- **Ran Register while the `.env` line was still blank.** Nothing got registered: `claude mcp add` refuses an empty URL, and the block hides that error, so the only clue is that `rankbreeze registered ✅` never printed. Do not run `claude mcp remove` (there is nothing to remove). Run FILLED, fix the line, then run the Register block again and restart.
-- **Register printed nothing (no `rankbreeze registered ✅` line).** The block hides errors on purpose so the URL never leaks. Two causes, in order of likelihood: the `.env` line is blank (run FILLED), or `rankbreeze` is already registered from an earlier attempt. For the second, remove it first: `claude mcp remove rankbreeze --scope user`. Then run the Register block again and watch for the ✅ line.
+- **`✘ Failed to connect, Dynamic Client Registration rejected (HTTP 404)` after the restart.** That long message is what Claude Code prints when RankBreeze rejects the URL; ignore the words "Client Registration" and "404 Not Found", they do not mean RankBreeze is down. Nine times out of ten the URL in `.env` is incomplete or was reset. Re-copy it from the Remote MCP table with the Copy URL button (that avoids the typos retyping it by hand tends to cause), make sure there are no quotes or spaces around it, then run WORKS. `http=401` confirms it is the URL. Fix `.env`, remove and re-register as above.
+- **Ran Register while the `.env` line was still blank.** Nothing got registered: `claude mcp add` refuses an empty URL, so the register line prints the `register failed ❌` branch instead of the ✅ line. No need to run `claude mcp remove` (there is nothing to remove). Run FILLED, fix the line, then run the Register block again and restart.
+- **Register printed `register failed ❌` instead of the ✅ line.** The block hides the raw error on purpose so the URL never leaks (that's why the failure message does not say "run it again without `>/dev/null`" the way other connectors do). Two causes, in order of likelihood: the `.env` line is blank (run FILLED), or `rankbreeze` is already registered from an earlier attempt. For the second, remove it first: `claude mcp remove rankbreeze --scope user`. Then run the Register block again and watch for the ✅ line.
 - **Impressions, click-through, views, wishlists, and booking rate all come back 0.** That listing is not connected to Airbnb Hosting inside RankBreeze. RankBreeze returns 0 for every performance field on an unconnected listing ("not tracked," not "no activity"). Connect the listing's Airbnb Hosting account in RankBreeze; real numbers show up within about 24 hours. Search rankings are not affected by this: RankBreeze gathers those by searching Airbnb directly, so if rankings are missing the cause is something else (ask Claude to check the listing's status with `get_user_listings`).
 - **The numbers look a day behind.** They are. RankBreeze collects rankings nightly and imports Airbnb data daily. Ask for yesterday, not today; today's numbers are usually still partial.
 - **You pasted the URL in chat, Skool, or a screenshot.** Treat it as burned. Reset URL in RankBreeze, re-paste, re-register, restart. Takes two minutes.

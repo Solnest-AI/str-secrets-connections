@@ -19,14 +19,21 @@ probe_hospitable() {
 }
 probe_hostaway() {
   env_filled HOSTAWAY_ACCOUNT_ID && env_filled HOSTAWAY_API_KEY || return 2
-  local b; b=$(mktemp); local s tok
-  s=$(_http "$b" -X POST -H "Content-type: application/x-www-form-urlencoded" \
-      --data "grant_type=client_credentials&client_id=$HOSTAWAY_ACCOUNT_ID&client_secret=$HOSTAWAY_API_KEY&scope=general" \
-      https://api.hostaway.com/v1/accessTokens)
-  case "$s" in 2??) ;; 4??) rm -f "$b"; return 1 ;; *) rm -f "$b"; return 3 ;; esac
-  tok=$(sed -n 's/.*"access_token":"\([^"]*\)".*/\1/p' "$b"); rm -f "$b"
-  [ -n "$tok" ] || return 1
+  # Mirrors the built server: cache the token and reuse it if under 23h old.
+  local cache=".cache/hostaway.token" tok b s
+  mkdir -p .cache; chmod 700 .cache
+  if [ -f "$cache" ] && [ -n "$(find "$cache" -mmin -1380 2>/dev/null)" ]; then tok=$(cat "$cache"); fi
+  if [ -z "${tok:-}" ]; then
+    b=$(mktemp); s=$(_http "$b" -X POST -H "Content-type: application/x-www-form-urlencoded" \
+        --data "grant_type=client_credentials&client_id=$HOSTAWAY_ACCOUNT_ID&client_secret=$HOSTAWAY_API_KEY&scope=general" \
+        https://api.hostaway.com/v1/accessTokens)
+    case "$s" in 2??) ;; 4??) rm -f "$b"; return 1 ;; *) rm -f "$b"; return 3 ;; esac
+    tok=$(sed -n 's/.*"access_token":"\([^"]*\)".*/\1/p' "$b"); rm -f "$b"
+    [ -n "$tok" ] || return 1
+    printf '%s' "$tok" > "$cache"; chmod 600 "$cache"
+  fi
   b=$(mktemp); s=$(_http "$b" -H "Authorization: Bearer $tok" -H "Cache-control: no-cache" https://api.hostaway.com/v1/users); rm -f "$b"
+  [ "$s" = "403" ] && rm -f "$cache"
   _classify "$s"
 }
 probe_guesty() {

@@ -14,7 +14,7 @@ Gemini is Google's AI model. The Listing Optimizer sends your listing photos to 
 ## 2. Required, cost, gate
 Required. The Listing Optimizer will not score photos without it.
 
-Free. Google's tier table says the Free tier needs an "Active project or free trial" and Tier 1 needs you to "Set up and link an active billing account." Stay on Free. **Do not link a billing account.** Photo scoring runs fine on the free tier, and linking billing is how you end up paying for something you did not need.
+Free. Google's tier table says the Free tier needs an "Active project or free trial" and Tier 1 needs you to "Set up and link an active billing account." Stay on Free. **Skip linking a billing account.** Photo scoring runs fine on the free tier, and linking billing is how you end up paying for something you did not need.
 
 No email, no waitlist, no approval. Any Google account works, and a personal Gmail is the easiest: a company Google Workspace account can be locked down by its admin (see section 6).
 
@@ -47,7 +47,7 @@ One key, one line in `.env`. Claude opens the file for you; put the key after th
 GEMINI_API_KEY=
 ```
 
-**SAFE:** `git check-ignore -q .env && echo "protected ✅"`
+**SAFE:** `if [ -d "$BUNDLE/.git" ]; then git -C "$BUNDLE" check-ignore -q .env && echo "protected ✅" || echo "add .env to $BUNDLE/.gitignore first"; else echo "protected ✅ (not a git folder, nothing can commit it)"; fi`
 **FILLED:** `grep -q '^GEMINI_API_KEY=.\+' .env && echo "present ✅" || echo "still blank"`
 **WORKS:** `bash -c '. lib/env.sh; . lib/probes.sh; env_load .env; probe_gemini; echo rc=$?'` (0 works, 1 rejected, 2 blank, 3 unreachable)
 
@@ -55,9 +55,9 @@ GEMINI_API_KEY=
 ```bash
 cd "$BUNDLE" && bash fan-out-env.sh
 ```
-It prints a ✅ per folder it touched and never prints the values. You must see a line ending in `(skill)` for the Listing Optimizer; if that line is missing, the key did not reach it. Fan-out skips the folder silently when the path is blank, does not exist, or is not the folder that holds the Listing Optimizer's `.env.example`. Ignore the closing "Restart Claude Code fully" line for this row; it is for MCP servers, and Gemini has none. Proof the key landed (prints yes or no, never the value):
+It prints a ✅ per folder it touched and never prints the values. You should see a line ending in `(skill)` for the Listing Optimizer; if that line is missing, the key did not reach it. Fan-out skips the folder silently when the path is blank, does not exist, or is not the folder that holds the Listing Optimizer's `.env.example`. Ignore the closing "Restart Claude Code fully" line for this row; it is for MCP servers, and Gemini has none. Proof the key landed (prints yes or no, never the value):
 ```bash
-set -a; . "$BUNDLE/.env"; set +a; grep -q '^GEMINI_API_KEY=.\+' "$SKILL_PATH_LISTING_OPTIMIZER/.env" && echo "Listing Optimizer has the key ✅" || echo "not there yet: SKILL_PATH_LISTING_OPTIMIZER must point at the folder that holds the Listing Optimizer's .env.example; fix it in .env, then re-run fan-out"
+set -a; . "$BUNDLE/.env"; set +a; [ -n "${SKILL_PATH_LISTING_OPTIMIZER:-}" ] && grep -q '^GEMINI_API_KEY=.\+' "$SKILL_PATH_LISTING_OPTIMIZER/.env" && echo "listing optimizer has it ✅" || echo "run fan-out-env.sh once the Listing Optimizer folder path is set"
 ```
 
 **Windows note:** run the lines above in Git Bash (Claude's Bash tool). Nothing on this card is a file path handed to `claude mcp add`, so there is no `cygpath -w` and no `.venv/Scripts/python.exe` here.

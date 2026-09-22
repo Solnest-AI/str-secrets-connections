@@ -32,11 +32,11 @@ Beyond calls it a Personal Access Token (PAT). It is for automating your own acc
 
 The token has no permission settings of its own. It does whatever your Beyond login can do. Treat it like your password. Lost it? Generate a new one; the old one cannot be shown again.
 
-**SAFE:** `cd "$BUNDLE" && git check-ignore -q .env && echo "protected ✅"`
+**SAFE:** `if [ -d "$BUNDLE/.git" ]; then git -C "$BUNDLE" check-ignore -q .env && echo "protected ✅" || echo "add .env to $BUNDLE/.gitignore first"; else echo "protected ✅ (not a git folder, nothing can commit it)"; fi`
 **FILLED:** `grep -q '^BEYOND_TOKEN=.\+' "$BUNDLE/.env" && echo "present ✅" || echo "still blank"`
 **WORKS:** `cd "$BUNDLE" && bash -c '. lib/env.sh; . lib/probes.sh; env_load .env; probe_beyond; echo rc=$?'` (0 works, 1 rejected, 2 blank, 3 unreachable)
 
-**Build the server.** There is no bundled Beyond server. Claude builds one into `$BUNDLE/mcp-servers/beyond/` using the general server pattern in `build/build-pricing-ops-mcp.md` and the path overrides in `build/README.md`. That doc's Beyond text is mostly right (Partners API, Personal Access Token, developers.beyondpricing.com) but four things in it are overridden here: (1) its env name is `BEYOND_API_TOKEN`; ours is `BEYOND_TOKEN`, everywhere. (2) Its click path says Settings > Tokens; the page is called Personal Access Tokens. (3) Skip its 'Create and open the file' handoff and its three SANITY CHECKs for Beyond: the token is already in the root `.env` as `BEYOND_TOKEN`, `fan-out-env.sh` copies it into the server, and the SAFE / FILLED / WORKS lines above are the checks. Do not ask for a second paste. (4) Its WORKS curl has no `-g`, so the `page[size]` brackets make curl fail with error 3; the checker's `probe_beyond` already passes `-g`. Non-negotiables for the build:
+**Build the server.** There is no bundled Beyond server. Follow `build/README.md` first, then `build/build-pms-mcp.md` (or `build-pricing-ops-mcp.md`) Steps B1 to B3 only (research, reference doc, write the server code into `$BUNDLE/mcp-servers/beyond/`). Credentials, registering, fan-out and the restart are done from THIS file, not from the build doc. That doc's Beyond text is mostly right (Partners API, Personal Access Token, developers.beyondpricing.com) but four things in it are overridden here: (1) its env name is `BEYOND_API_TOKEN`; ours is `BEYOND_TOKEN`, everywhere. (2) Its click path says Settings > Tokens; the page is called Personal Access Tokens. (3) Skip its 'Create and open the file' handoff and its three SANITY CHECKs for Beyond: the token is already in the root `.env` as `BEYOND_TOKEN`, `fan-out-env.sh` copies it into the server, and the SAFE / FILLED / WORKS lines above are the checks. No second paste needed here. (4) Its WORKS curl has no `-g`, so the `page[size]` brackets make curl fail with error 3; the checker's `probe_beyond` already passes `-g`. Non-negotiables for the build:
 - Base URL `https://developers.beyondpricing.com/api/v1/` **with a trailing slash on every path** (`/api/v1/listings/`, not `/api/v1/listings`). Without the slash Beyond answers 301, not data (verified live 2026-09-21).
 - Headers: `Authorization: Bearer <token>` and `Accept: application/vnd.api+json`. It is JSON:API: responses come as `{"data": [...]}` and field names are dasherized (`base-price`, not `base_price`).
 - Env name is `BEYOND_TOKEN`, declared in the server's `.env.example`. Not `BEYOND_API_TOKEN` (the build doc's name). `fan-out-env.sh` only fills keys the `.env.example` declares, so the wrong name means a server with no token and a 401 on every call while the root `.env` looks fine.
@@ -68,7 +68,7 @@ Beyond's MCP is called Neyoba. Read-only. You ask it questions about your Beyond
 Beyond's docs only show Claude Desktop and ChatGPT ("Neyoba currently supports Claude Desktop and ChatGPT"). But their server does dynamic client registration with PKCE, which is exactly what Claude Code's `/mcp` login uses (their authorization server advertises a registration endpoint, auth method `none`, and `S256`; checked live 2026-09-21). So try it:
 
 ```bash
-claude mcp add --transport http beyond-official --scope user https://neyoba.beyondpricing.com/mcp >/dev/null 2>&1 && echo "beyond-official registered ✅"
+claude mcp add --transport http beyond-official --scope user https://neyoba.beyondpricing.com/mcp >/dev/null 2>&1 && echo "beyond-official registered ✅" || echo "beyond-official failed ❌ (run the same line without the >/dev/null part to see why)"
 echo beyond-official >> "$BUNDLE/.cache/needs-restart"
 ```
 Restart Claude Code, then `/mcp` > `beyond-official` > Authenticate. A browser opens on `v2.beyondpricing.com/oauth/authorize`. Sign in with your Beyond login and approve the `neyoba:ask` scope. Back in Claude Code the server shows connected.
@@ -95,7 +95,7 @@ Test the built server the same way after the restart: "List my Beyond listings."
 - **403 with `plan_not_included`:** your plan does not include API access. Same fix: Pro.
 - **301 instead of data:** a path without its trailing slash. The built server must call `/api/v1/listings/`, slash included.
 - **A listing you know exists is missing:** listings with no channel connection do not show up in the API. Connect the listing to its channel or PMS inside Beyond first.
-- **Fields look odd (`base-price`, `min-stay`):** that is JSON:API, dasherized. The server maps them; do not "fix" them.
+- **Fields look odd (`base-price`, `min-stay`):** that is JSON:API, dasherized. The server maps them; leave them as-is rather than "fixing" them.
 - **429:** honor `Retry-After` and the `X-RateLimit-*` headers; compset detail is capped around 30 requests a minute. The built server backs off and retries three times.
 - **Neyoba's consent page errors out on Claude Code:** use the Desktop custom-connector path in section 4. Read-only either way.
 - **Neyoba says it cannot change something:** correct, it is read-only. Price changes go through the built `beyond` server, and only with `confirm=true`.

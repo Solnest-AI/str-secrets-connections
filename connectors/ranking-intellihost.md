@@ -28,7 +28,7 @@ This is the vendor's own Claude Code command, lifted from their Connections page
 
 **Register:**
 ```bash
-claude mcp add intellihost --transport http https://clients.intellihost.co/api/mcp --scope user >/dev/null 2>&1 && echo "intellihost registered ✅"
+claude mcp add intellihost --transport http https://clients.intellihost.co/api/mcp --scope user >/dev/null 2>&1 && echo "intellihost registered ✅" || echo "intellihost failed ❌ (run the same line without the >/dev/null part to see why)"
 echo intellihost >> "$BUNDLE/.cache/needs-restart"
 ```
 Windows: run this in Git Bash (Claude's Bash tool). Nothing on the `claude mcp add` line is a file path, so no `cygpath -w` and no `.venv/Scripts/python.exe` here. The `$BUNDLE/.cache/needs-restart` write stays inside Bash and works as-is.
@@ -51,7 +51,7 @@ The checker (`check-connections.sh`) reads the `intellihost` line's status from 
 - `🔒 IntelliHost MCP   needs a full restart of Claude Code` means you registered this session and have not restarted yet. Quit Claude Code fully, reopen it in this folder, say "Check my connections".
 - `❌ IntelliHost MCP   missing → not registered` means the register block in section 4 has not run.
 - `⚠️ IntelliHost MCP   registered, key fails → server status: failed` means Claude Code could not reach or talk to the server. If you connected with the browser sign-in (section 4), there is no key involved: the sign-in expired or IntelliHost is down. Run `/mcp` > intellihost > **Authenticate** again; if it still fails, wait a few minutes and try again. If you used the access-token fallback (section 6), the word is right: the token is wrong, revoked, or was copied with a typo. Authenticate will not help there. Make a new token in IntelliHost > Connections > MCP access tokens and run the fallback block again.
-- `➖ IntelliHost MCP   not used` means you picked RankBreeze or neither when Claude asked about ranking tools. Nothing to do.
+- `➖ IntelliHost MCP   not used`: not used just means you told Claude you use RankBreeze or no ranking tool. Nothing to do.
 - A hint saying `approve it in /mcp` means Claude Code is waiting for you to approve the server. Open `/mcp` and approve it.
 
 The real-call test, after the restart: ask Claude "IntelliHost, list my properties". That is one of the free tools, so it works on any IntelliHost account. If it comes back with your listings, the connection is real. If Claude answers with a subscription message on a pricing or revenue question, the connection is fine, that tool is gated to the Agent plan (section 2).

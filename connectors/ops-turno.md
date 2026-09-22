@@ -36,7 +36,7 @@ Wait for Turno to reply "done", tell Claude "Turno is enabled" (Claude runs the 
 4. Scroll to the bottom of the same page for the **Partner ID**. It is a UUID (`xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx`) and easy to miss.
 5. Ignore the shorter hex value next to the Secret Key (Turno labels it "API token" or "Token ID" depending on where you look). It is not the bearer token and we do not use it.
 
-If **Turno API** is not in your Settings menu, Turno has not enabled you yet. Do not hunt for it; wait for the email.
+If **Turno API** is not in your Settings menu, Turno has not enabled you yet. No need to hunt for it, just wait for the email.
 
 **Where the values go.** Claude opens your `.env` for you (`open -e "$BUNDLE/.env"` on Mac, `notepad "$(cygpath -w "$BUNDLE")\.env"` on Windows). Never paste either value into the chat. Put each value straight after its `=`, no quotes, no spaces, then save. Fill these two lines and leave the third blank:
 ```
@@ -46,7 +46,7 @@ TURNO_ENV=
 ```
 Leave `TURNO_ENV=` empty. Claude sets it to `production` when it fans the file out (`bash fan-out-env.sh`), which copies your two values into `mcp-servers/turno/.env` where the server reads them. That is why the register line below carries no key.
 
-**SAFE:** `git check-ignore -q .env && echo "protected ✅"`
+**SAFE:** `if [ -d "$BUNDLE/.git" ]; then git -C "$BUNDLE" check-ignore -q .env && echo "protected ✅" || echo "add .env to $BUNDLE/.gitignore first"; else echo "protected ✅ (not a git folder, nothing can commit it)"; fi`
 **FILLED:** `grep -q '^TURNO_API_TOKEN=.\+' .env && echo "present ✅" || echo "still blank"` then `grep -q '^TURNO_PARTNER_ID=.\+' .env && echo "present ✅" || echo "still blank"`
 **WORKS:** `bash -c '. lib/env.sh; . lib/probes.sh; env_load .env; probe_turno; echo rc=$?'` (0 works, 1 rejected, 2 blank, 3 unreachable)
 
@@ -82,7 +82,7 @@ The checker calls `GET https://api.turnoverbnb.com/v2/userinfo` with three heade
 
 - **HTTP 200 with JSON** (your user record): rc 0. Once the server is registered and you have restarted, the row reads `✅ Turno API connected`.
 - **JSON 401**: rc 1, `⚠️ Turno API registered, key fails`. Wrong token or wrong Partner ID. The probe cannot tell you which, so check both lines.
-- **An HTML page saying "Just a moment"** (usually a 403): rc 3. The scoreboard row still says `⚠️ Turno API registered, key fails`, but the arrow hint after it reads `vendor unreachable or blocked; try again`. Read the hint: that is Cloudflare's challenge, not your credentials. Do not make a new token. Run the check again in a minute.
+- **An HTML page saying "Just a moment"** (usually a 403): rc 3. The scoreboard row still says `⚠️ Turno API registered, key fails`, but the arrow hint after it reads `vendor unreachable or blocked; try again`. Read the hint: that is Cloudflare's challenge, not your credentials. No need to make a new token, just run the check again in a minute.
 - **rc 2**: one of the two lines in `.env` is still blank.
 - `🔒 needs a full restart of Claude Code`: registered, not loaded yet. Quit and reopen.
 - `⏳ Turno API waiting on vendor (emailed <date>)`: you are still waiting on help@turno.com. Nothing to fix.

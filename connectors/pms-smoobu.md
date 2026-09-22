@@ -23,6 +23,8 @@ One PMS is required, and this is one of the eight choices. Pick it only if Smoob
 ## 3. Path A: API key
 You need two values, a **Key** and a **Secret**. Both come from the same screen, and the Secret shows once.
 
+**Heads up before you go looking:** Smoobu also has an older, single API Key under **Settings** > **Profile** > **API Key**. That one is legacy and is being switched off along with the old single-header login (section 2). Skip it. Use the Key + Secret pair from **Advanced** > **API Keys** below.
+
 1. Log in to Smoobu (login.smoobu.com). Open **Settings** > **Advanced** > **API Keys**. Smoobu's help article says it as "open Advanced, then API Keys". Same screen.
 2. Click **Create New**, top-right corner. The developer docs call this button **Create API Key**. Same thing.
 3. In the **Create API token** window, type a short name in **Label** (optional). Use `STR Secrets`. Click **Submit**.
@@ -38,12 +40,12 @@ SMOOBU_API_SECRET=
 ```
 Save, then tell Claude "saved". Never put either value in the chat.
 
-**SAFE:** `git check-ignore -q .env && echo "protected ✅"`
+**SAFE:** `if [ -d "$BUNDLE/.git" ]; then git -C "$BUNDLE" check-ignore -q .env && echo "protected ✅" || echo "add .env to $BUNDLE/.gitignore first"; else echo "protected ✅ (not a git folder, nothing can commit it)"; fi`
 **FILLED:** `grep -q '^SMOOBU_API_KEY=.\+' .env && grep -q '^SMOOBU_API_SECRET=.\+' .env && echo "present ✅" || echo "still blank"`
 **WORKS:** `bash -c '. lib/env.sh; . lib/probes.sh; env_load .env; probe_smoobu; echo rc=$?'` (0 works, 1 rejected, 2 blank, 3 unreachable)
 
-**Build the server.** Smoobu has no bundled server. Claude builds one into `$BUNDLE/mcp-servers/smoobu/` by following `$BUNDLE/build/build-pms-mcp.md`, Path B, Smoobu, for the folder layout, the tool list and the write-gating only. That file's Smoobu block is older than this page: it names a legacy `Api-Key` header, a single `SMOOBU_API_KEY` variable, a 'Professional plan' gate and a 1000/min limit. All four are out of date. Where it disagrees with the rules below, this page wins. Build rules that are not optional:
-- Base URL is the host only, `https://login.smoobu.com`. Most paths start with `/api/`; availability lives under `/booking/`. Do not bake `/api` into the base.
+**Build the server.** Smoobu has no bundled server. Follow `build/README.md` first, then `build/build-pms-mcp.md` (or `build-pricing-ops-mcp.md`) Steps B1 to B3 only (research, reference doc, write the server code into `$BUNDLE/mcp-servers/smoobu/`), for the folder layout, the tool list and the write-gating only. Credentials, registering, fan-out and the restart are done from THIS file, not from the build doc. That file's Smoobu block is older than this page: it names a legacy `Api-Key` header, a single `SMOOBU_API_KEY` variable, a 'Professional plan' gate and a 1000/min limit. All four are out of date. Where it disagrees with the rules below, this page wins. Build rules that are not optional:
+- Base URL is the host only, `https://login.smoobu.com`. Most paths start with `/api/`; availability lives under `/booking/`. Keep `/api` out of the base itself.
 - Every request carries Smoobu's four HMAC headers. `X-API-Key` (the Key). `X-Timestamp` (current UTC time, ISO 8601, within 5 minutes of Smoobu's clock). `X-Nonce` (a fresh UUID v4 on every call, never reused). `X-Signature` (base64 of HMAC-SHA256, keyed with the Secret, over this canonical string):
   ```
   METHOD\nPATH\n<query, sorted>\nTIMESTAMP\nNONCE\n<sha256 hex of the body; for GET, the sha256 of an empty string>\nAPI_KEY

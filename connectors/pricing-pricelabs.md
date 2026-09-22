@@ -21,7 +21,7 @@ One pricing tool is required: PriceLabs or Beyond. If you price with PriceLabs, 
 
 **Cost.** PriceLabs bills the API: "We charge $1 per listing per month (plus applicable taxes) for each listing that syncs prices during a billing month." That is PriceLabs charging you, not us. Ten listings that sync prices is about $10 a month. The official MCP (Path B) is in beta: "Enjoy complimentary access for a limited time" (read 2026-09-21).
 
-**Gate.** Self serve for the account owner. Team member on someone else's account? PriceLabs says "Only the account owner can enable or revoke API access for team members," so ask the owner to turn on Customer API access for your login first. Once they have, you do section 3 yourself and get your own key on your own API Details page. Do not use the owner's key. If the Enable button throws an error, email support@pricelabs.co with `emails/pricelabs-enable-api.md` and mark it pending:
+**Gate.** Self serve for the account owner. Team member on someone else's account? PriceLabs says "Only the account owner can enable or revoke API access for team members," so ask the owner to turn on Customer API access for your login first. Once they have, you do section 3 yourself and get your own key on your own API Details page. Use your own key, not the owner's. If the Enable button throws an error, email support@pricelabs.co with `emails/pricelabs-enable-api.md` and mark it pending:
 ```bash
 echo "pricelabs|$(date +%F)" >> "$BUNDLE/.cache/pending-vendor"
 ```
@@ -43,20 +43,20 @@ Save, tell Claude "saved", then push it out to the bundled server (it reads its 
 cd "$BUNDLE" && bash fan-out-env.sh
 ```
 
-**SAFE:** `cd "$BUNDLE" && { git check-ignore -q .env 2>/dev/null || grep -qx '.env' .gitignore; } && echo "protected ✅"`
+**SAFE:** `if [ -d "$BUNDLE/.git" ]; then git -C "$BUNDLE" check-ignore -q .env && echo "protected ✅" || echo "add .env to $BUNDLE/.gitignore first"; else echo "protected ✅ (not a git folder, nothing can commit it)"; fi`
 **FILLED:** `grep -q '^PRICELABS_API_KEY=.\+' "$BUNDLE/.env" && echo "present ✅" || echo "still blank"`
 **WORKS:** `cd "$BUNDLE" && bash -c '. lib/env.sh; . lib/probes.sh; env_load .env; probe_pricelabs; echo rc=$?'` (0 works, 1 rejected, 2 blank, 3 unreachable)
 
 **Register** (build first, one time):
 ```bash
 cd "$BUNDLE/mcp-servers/pricelabs" && npm ci --silent && npm run build --silent
-claude mcp add --transport stdio pricelabs --scope user -- node "$BUNDLE/mcp-servers/pricelabs/dist/index.js" >/dev/null 2>&1 && echo "pricelabs registered ✅"
+claude mcp add --transport stdio pricelabs --scope user -- node "$BUNDLE/mcp-servers/pricelabs/dist/index.js" >/dev/null 2>&1 && echo "pricelabs registered ✅" || echo "pricelabs failed ❌ (run the same line without the >/dev/null part to see why)"
 echo pricelabs >> "$BUNDLE/.cache/needs-restart"
 ```
 
 **Windows note.** Run all of this in Git Bash (that is what Claude's Bash tool is on Windows). Claude Code itself is a native Windows program, so the path you hand `claude mcp add` has to be the `C:\...` form. Convert it with `cygpath -w` and register that instead:
 ```bash
-claude mcp add --transport stdio pricelabs --scope user -- node "$(cygpath -w "$BUNDLE/mcp-servers/pricelabs/dist/index.js")" >/dev/null 2>&1 && echo "pricelabs registered ✅"
+claude mcp add --transport stdio pricelabs --scope user -- node "$(cygpath -w "$BUNDLE/mcp-servers/pricelabs/dist/index.js")" >/dev/null 2>&1 && echo "pricelabs registered ✅" || echo "pricelabs failed ❌ (run the same line without the >/dev/null part to see why)"
 ```
 This server runs on Node, so there is no venv here. For the Python servers in this kit the Windows interpreter is `.venv/Scripts/python.exe`, never `.venv/bin/python`.
 
@@ -66,6 +66,8 @@ Then a full restart of Claude Code (quit and reopen in this folder). The checker
 Beta, free for now: "The PriceLabs MCP is currently in beta. Enjoy complimentary access for a limited time" (developers.pricelabs.co/mcp/overview, read 2026-09-21). PriceLabs documents two ways in. Do the simple one; do the Claude Code one only if you are the account admin, and do it last.
 
 **Simple: Claude Desktop or the claude.ai app (no custom client).**
+Team member on a sub-login? You won't see the AI Connector (MCP) tab until the account admin turns on MCP access for you under Team Settings. Ask them first if the tab is missing.
+
 PriceLabs side: "1. Navigate to Account Settings. 2. Select the AI Connector (MCP) tab. 3. Copy your MCP URL and Client ID."
 Claude side: **Connectors** > the **+** button > **Add custom connector**, then:
 
@@ -90,10 +92,10 @@ PRICELABS_MCP_CLIENT_SECRET=
 Save, tell Claude "saved". Register:
 ```bash
 set -a; . "$BUNDLE/.env"; set +a
-MCP_CLIENT_SECRET="$PRICELABS_MCP_CLIENT_SECRET" claude mcp add --transport http --client-id "$PRICELABS_MCP_CLIENT_ID" --client-secret --callback-port 8765 --scope user pricelabs-official https://mcp.pricelabs.co/mcp >/dev/null 2>&1 && echo "pricelabs-official registered ✅"
+MCP_CLIENT_SECRET="$PRICELABS_MCP_CLIENT_SECRET" claude mcp add --transport http --client-id "$PRICELABS_MCP_CLIENT_ID" --client-secret --callback-port 8765 --scope user pricelabs-official https://mcp.pricelabs.co/mcp >/dev/null 2>&1 && echo "pricelabs-official registered ✅" || echo "pricelabs-official failed ❌ (run the same line without the >/dev/null part to see why)"
 echo pricelabs-official >> "$BUNDLE/.cache/needs-restart"
 ```
-`--client-secret` reads the secret from the `MCP_CLIENT_SECRET` environment variable (checked in `claude mcp add --help` on Claude Code 2.1.278). The interactive prompt form does not work inside Claude's Bash tool, so do not drop that variable.
+`--client-secret` reads the secret from the `MCP_CLIENT_SECRET` environment variable (checked in `claude mcp add --help` on Claude Code 2.1.278). The interactive prompt form does not work inside Claude's Bash tool, so keep that variable in place.
 
 Restart Claude Code, then `/mcp` > **pricelabs-official** > **Authenticate**. A browser tab opens on PriceLabs. Grant **Read**. Grant **Write** only if you want Claude to be able to push price changes later (the Revenue Manager skill asks you before every write; the Write grant itself lets any Claude chat that uses this server push changes). Back in PriceLabs, the custom client card should say **Connected**.
 
@@ -104,7 +106,7 @@ Run `bash check-connections.sh` from the kit folder. For PriceLabs it makes one 
 
 - `✅ PriceLabs API  connected`: the call came back 200 and the `pricelabs` server is registered. Done.
 - `❌ PriceLabs API  missing`: the `.env` line is blank, or the key works but the server is not registered yet. The hint on the row says which.
-- `⚠️ PriceLabs API  registered, key fails`: PriceLabs answered **403 with `API_KEY_INVALID`**. Their words: "A 403 with API_KEY_INVALID means the header is missing or the key is wrong." PriceLabs uses 403 for a bad key, not 401, so do not read it as a permissions problem. Re-copy the key.
+- `⚠️ PriceLabs API  registered, key fails`: PriceLabs answered **403 with `API_KEY_INVALID`**. Their words: "A 403 with API_KEY_INVALID means the header is missing or the key is wrong." PriceLabs uses 403 for a bad key, not 401, so it's not a permissions problem even though it looks like one. Re-copy the key.
 - `🔒 needs a full restart of Claude Code`: you just registered it. Quit, reopen in this folder, run the check again.
 
 `PriceLabs MCP (official, beta)` row: `🔒` right after registering, `⚠️ registered, not authenticated` until you do `/mcp` > Authenticate, `✅` after. If you skipped Path B on purpose, this row stays `❌` and that is expected.

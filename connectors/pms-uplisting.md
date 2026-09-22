@@ -28,7 +28,7 @@ https://app.uplisting.io/connect/api
 3. Generate a key if there is not one yet. If one is already there, copy it.
 4. Copy the whole thing. It is one long string, no spaces. Uplisting's page does not say whether it stays visible after you leave, so copy it now.
 
-Do not grab the Webhook key on `/connect/webhook`. That is a different key and it will not work here.
+Skip the Webhook key on `/connect/webhook`. That is a different key and it will not work here.
 
 Claude has already opened your `.env` file. Find this line and put the key after the equals sign, nothing else on the line, no quotes, no spaces:
 
@@ -40,11 +40,11 @@ Save the file. Never put the key in this chat. If it ends up in the chat by acci
 
 From inside `$BUNDLE`, Claude runs the three checks:
 
-**SAFE:** `git check-ignore -q .env && echo "protected ✅"`
+**SAFE:** `if [ -d "$BUNDLE/.git" ]; then git -C "$BUNDLE" check-ignore -q .env && echo "protected ✅" || echo "add .env to $BUNDLE/.gitignore first"; else echo "protected ✅ (not a git folder, nothing can commit it)"; fi`
 **FILLED:** `grep -q '^UPLISTING_API_KEY=.\+' .env && echo "present ✅" || echo "still blank"`
 **WORKS:** `bash -c '. lib/env.sh; . lib/probes.sh; env_load .env; probe_uplisting; echo rc=$?'` (0 works, 1 rejected, 2 blank, 3 unreachable)
 
-**Build:** there is no pre-built Uplisting server in the bundle. Claude builds one on your machine: open `build/build-pms-mcp.md`, Path B, pick Uplisting. That writes `$BUNDLE/mcp-servers/uplisting/` with its own `.env.example`. Then run `bash fan-out-env.sh` from `$BUNDLE`: it copies your key from the root `.env` into the server's own `.env` without printing it. The built server sends `Authorization: Basic <base64 of the key alone>` plus `Content-Type: application/json` on every call, which is exactly what Uplisting expects.
+**Build:** there is no pre-built Uplisting server in the bundle. Follow `build/README.md` first, then `build/build-pms-mcp.md` (or `build-pricing-ops-mcp.md`) Steps B1 to B3 only (research, reference doc, write the server code into `$BUNDLE/mcp-servers/uplisting/`). Credentials, registering, fan-out and the restart are done from THIS file, not from the build doc. Run `bash fan-out-env.sh` from `$BUNDLE`: it copies your key from the root `.env` into the server's own `.env` without printing it. The built server sends `Authorization: Basic <base64 of the key alone>` plus `Content-Type: application/json` on every call, which is exactly what Uplisting expects.
 
 **Register (macOS / Linux):**
 ```bash
@@ -53,7 +53,7 @@ claude mcp remove uplisting -s user >/dev/null 2>&1; claude mcp add --transport 
 echo uplisting >> "$BUNDLE/.cache/needs-restart"
 ```
 
-**Register (Windows, Git Bash):** Claude Code is a native Windows process, so it must be handed a `C:\...` path even though you are typing in Git Bash. Do not run the macOS block above on Windows; run this one, which converts the path with `cygpath -w` first:
+**Register (Windows, Git Bash):** Claude Code is a native Windows process, so it must be handed a `C:\...` path even though you are typing in Git Bash. Skip the macOS block above on Windows; run this one instead, which converts the path with `cygpath -w` first:
 ```bash
 test -f "$BUNDLE/mcp-servers/uplisting/dist/index.js" && echo "built ✅" || echo "build missing ❌ (finish build/build-pms-mcp.md Path B first)"
 claude mcp remove uplisting -s user >/dev/null 2>&1; claude mcp add --transport stdio uplisting --scope user -- node "$(cygpath -w "$BUNDLE/mcp-servers/uplisting/dist/index.js")" >/dev/null 2>&1 && echo "uplisting registered ✅" || echo "register failed ❌"
@@ -70,7 +70,7 @@ Uplisting runs its own MCP server, live since August 2026, no beta label, no wai
 
 Register it (same command on Mac and Windows, no path to convert):
 ```bash
-claude mcp add --transport http uplisting-official --scope user https://connect.uplisting.io/mcp >/dev/null 2>&1 && echo "uplisting-official registered ✅"
+claude mcp add --transport http uplisting-official --scope user https://connect.uplisting.io/mcp >/dev/null 2>&1 && echo "uplisting-official registered ✅" || echo "uplisting-official failed ❌ (run the same line without the >/dev/null part to see why)"
 echo uplisting-official >> "$BUNDLE/.cache/needs-restart"
 ```
 
@@ -112,7 +112,7 @@ Path B does not replace Path A. The checker looks for both rows, and the Revenue
 - **MCP sign-in bounces to an AirDNA page:** expected. Uplisting is part of AirDNA and the login runs through it. Use your Uplisting credentials. If it loops, remove the server (`claude mcp remove uplisting-official -s user`), register again, restart, Authenticate again.
 - **MCP shows auth after a restart:** you registered it but never finished the browser step. `/mcp` > `uplisting-official` > Authenticate.
 - **`register failed ❌`:** the `claude` command is not available in this window. Open a new terminal in the same folder and re-run the register line (it removes any old `uplisting` entry first, so re-running is safe).
-- **`registered ✅` but the row says `server status: failed` after the restart:** the build did not finish; `claude mcp add` never checks that the file exists. Go back to `build/build-pms-mcp.md` Path B until `dist/index.js` (or `server.py` plus `.venv`) exists, then re-run the Register block for your OS.
+- **The register step reports success but the row says `server status: failed` after the restart:** the build did not finish; `claude mcp add` never checks that the file exists. Go back to `build/build-pms-mcp.md` Path B until `dist/index.js` (or `server.py` plus `.venv`) exists, then re-run the Register block for your OS.
 - **Windows: `uplisting` shows Failed to connect after restart:** the path was registered in `/c/Users/...` form. Remove it (`claude mcp remove uplisting -s user`) and run the Register (Windows, Git Bash) block in section 3, which converts with `cygpath -w`.
 - **Windows and the server is Python:** the interpreter is `.venv/Scripts/python.exe`, not `.venv/bin/python`. See the Register (Windows, Git Bash) block in section 3.
 

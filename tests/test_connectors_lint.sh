@@ -10,7 +10,7 @@ for f in connectors/*.md; do
   grep -q '^server:' "$f" || { echo "FAIL $f no server:"; fail=1; }
   grep -q "—" "$f" && { echo "FAIL $f contains an em-dash"; fail=1; }
   grep -qE 'claude mcp get' "$f" && { echo "FAIL $f tells Claude to run 'claude mcp get'"; fail=1; }
-  grep -qiE 'paste (it|the key|your key) (here|in the chat|into the chat)' "$f" && { echo "FAIL $f asks for a key in chat"; fail=1; }
+  if grep -iE 'paste (it|the key|your key) (here|in the chat|into the chat)' "$f" | grep -viE "never|don'?t|do not|not " | grep -q .; then echo "FAIL $f asks for a key in chat"; fail=1; fi
 done
 [ $fail -eq 0 ] && echo "ok   connector files lint clean"
 exit $fail

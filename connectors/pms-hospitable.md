@@ -37,7 +37,7 @@ Save the file and tell Claude "saved". Never put the token in the chat. If it ev
 
 Then Claude runs, in this order:
 
-**SAFE:** `git check-ignore -q .env && echo "protected ✅"`
+**SAFE:** `if [ -d "$BUNDLE/.git" ]; then git -C "$BUNDLE" check-ignore -q .env && echo "protected ✅" || echo "add .env to $BUNDLE/.gitignore first"; else echo "protected ✅ (not a git folder, nothing can commit it)"; fi`
 **FILLED:** `grep -q '^HOSPITABLE_API_KEY=.\+' .env && echo "present ✅" || echo "still blank"`
 **WORKS:** `bash -c '. lib/env.sh; . lib/probes.sh; env_load .env; probe_hospitable; echo rc=$?'` (0 works, 1 rejected, 2 blank, 3 unreachable)
 
@@ -109,7 +109,7 @@ Claude runs `bash check-connections.sh`. Two Hospitable rows come back.
 - **`build failed ❌`:** Node is missing or older than 20, or npm could not download packages. See `connectors/system-node.md`, then re-run the build line, then the register line.
 - **`register failed ❌`:** the `claude` command is not available in this window. Open a new terminal in the same folder and re-run the register line (it removes any old `hospitable` entry first, so re-running is safe).
 - **`register failed ❌` on the official MCP line:** either it is already registered (run `bash check-connections.sh`; if the row is not `❌ missing`, you are fine) or the `claude` command is not available in this window (open a new terminal in the same folder and re-run the line).
-- **`registered ✅` but the row says `server status: failed` after the restart:** the build did not finish; `claude mcp add` never checks that the file exists. Re-run the build line until it prints `built ✅`, then the register line.
+- **The register step reports success but the row says `server status: failed` after the restart:** the build did not finish; `claude mcp add` never checks that the file exists. Re-run the build line until it prints `built ✅`, then the register line.
 - **Key works in the check but the row says `server status: failed`:** you skipped `fan-out-env.sh`. The bundled server reads `mcp-servers/hospitable/.env`, not the root one. Run `bash "$BUNDLE/fan-out-env.sh"`, restart Claude Code, re-run the checker.
 - **The MCP row is connected but the API row says key fails:** they are separate credentials. The MCP used your browser login; the API row needs the token in `.env`. Fix the token, not the MCP.
 - **Browser sign-in loops forever:** use the fallback bearer token path in section 4.

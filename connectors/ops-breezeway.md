@@ -14,7 +14,7 @@ Breezeway is the ops board a lot of STR operators run their turnovers on: cleans
 ## 2. Required, cost, gate
 Optional. Turno, Breezeway, or neither. Skip it and the summit skills still run; they just cannot see your cleaning and maintenance board.
 
-No cost from us. Breezeway's Client API Request Form says: "For some use cases, we charge a $200 monthly fee." For an owner reading their own account it has not been charged (Ryan, 2026-09-21). If Breezeway quotes the fee, reply that you only need read access to your own properties and tasks, and do not agree to anything until they confirm there is no charge. No plan gate that Breezeway publishes.
+No cost from us. Breezeway's Client API Request Form says: "For some use cases, we charge a $200 monthly fee." For an owner reading their own account it has not been charged (Ryan, 2026-09-21). If Breezeway quotes the fee, reply that you only need read access to your own properties and tasks, and hold off agreeing to anything until they confirm there is no charge. No plan gate that Breezeway publishes.
 
 The real gate: Breezeway staff issue the credentials. There is no page in the Breezeway app where you can make them yourself. Breezeway's own words: "Using the API as a Breezeway Account Holder. To obtain API keys for your Breezeway account, please complete THIS FORM." Two ways to ask, and you do both today:
 
@@ -42,17 +42,17 @@ BREEZEWAY_CLIENT_SECRET=
 ```
 Both values go into the file. Nothing goes in the chat. If either one ever ends up in a chat, a screenshot or a Skool post, email support@breezeway.io and ask them to replace the pair.
 
-**SAFE:** `cd "$BUNDLE" && git check-ignore -q .env && echo "protected ✅"`
+**SAFE:** `if [ -d "$BUNDLE/.git" ]; then git -C "$BUNDLE" check-ignore -q .env && echo "protected ✅" || echo "add .env to $BUNDLE/.gitignore first"; else echo "protected ✅ (not a git folder, nothing can commit it)"; fi`
 **FILLED:** `grep -q '^BREEZEWAY_CLIENT_ID=.\+' "$BUNDLE/.env" && grep -q '^BREEZEWAY_CLIENT_SECRET=.\+' "$BUNDLE/.env" && echo "present ✅" || echo "still blank"`
 **WORKS:** `cd "$BUNDLE" && bash -c '. lib/env.sh; . lib/probes.sh; env_load .env; probe_breezeway; echo rc=$?'` (0 works, 1 rejected, 2 blank, 3 unreachable). One run per minute: Breezeway's token endpoint allows 1 request a minute, and a second run inside that window comes back rc=3.
 
 Windows: those three run in Git Bash (Claude's Bash tool) as-is. `$BUNDLE/.env` needs no `cygpath -w` because nothing here leaves Bash.
 
-**Build the server.** Claude follows `build/build-pricing-ops-mcp.md`, Track B, steps B0 to B4 for the CODE only (tool 5, Breezeway). Skip the build doc's Step 1 greeting, its "Credential walkthroughs" block, its SANITY CHECKs, its B5 register lines and its "Step Done" message: the credentials already live in `$BUNDLE/.env` (section 3 above), `fan-out-env.sh` fills the server's own `.env`, and the register lines below are the only ones to run. Ignore the build doc's "1-2 business days"; Breezeway publishes no turnaround. It writes `$BUNDLE/mcp-servers/breezeway/`. The facts the build needs, all from developer.breezeway.io (read 2026-09-21):
+**Build the server.** Follow `build/README.md` first, then `build/build-pms-mcp.md` (or `build-pricing-ops-mcp.md`, Track B, tool 5, Breezeway) Steps B1 to B3 only (research, reference doc, write the server code into `$BUNDLE/mcp-servers/breezeway/`). Credentials, registering, fan-out and the restart are done from THIS file, not from the build doc. Ignore the build doc's "1-2 business days"; Breezeway publishes no turnaround. The facts the build needs, all from developer.breezeway.io (read 2026-09-21):
 - Auth: `POST https://api.breezeway.io/public/auth/v1/` with JSON `{"client_id": ..., "client_secret": ...}`, values read from the server's own `.env`, never typed by Claude. Response: `access_token` (24-hour life) and `refresh_token` (30 days).
 - Refresh: `POST https://api.breezeway.io/public/auth/v1/refresh` with the refresh token in the `Authorization: JWT` header. Every refresh hands back a new refresh token, so store the newest one. Build the auto-refresh in.
 - Every other call: header literally `Authorization: JWT <access_token>`. "JWT", not "Bearer".
-- Data lives under `https://api.breezeway.io/public/inventory/v1` for property, reservation AND task: list tasks is `GET /public/inventory/v1/task/` and create task is `POST /public/inventory/v1/task` (vendor OpenAPI, read 2026-09-21). The build doc's `/public/task/v1/task` is stale; do not use it. Confirm every other path against developer.breezeway.io/reference before wiring it.
+- Data lives under `https://api.breezeway.io/public/inventory/v1` for property, reservation AND task: list tasks is `GET /public/inventory/v1/task/` and create task is `POST /public/inventory/v1/task` (vendor OpenAPI, read 2026-09-21). The build doc's `/public/task/v1/task` is stale, so skip it in favor of the path above. Confirm every other path against developer.breezeway.io/reference before wiring it.
 - Reads first. Every create, update, close or delete needs `confirm=true` per call, same as the bundled Turno server.
 - Token endpoints are rate-limited to 1 req/min and answer 429 when hit: cache the token for its 24 hours and back off on 429.
 - Ship `.env.example` with the two variables, a `.gitignore` covering `.env`, and name the console script `breezeway-mcp` so the register line below is exact.
@@ -89,7 +89,7 @@ _None for this connector._ Breezeway publishes no MCP server (breezeway.io and d
 The checker runs `probe_breezeway`: one `POST https://api.breezeway.io/public/auth/v1/` with both values from `.env`, then it reads the body. Breezeway's real behaviour, confirmed live 2026-09-21:
 
 - HTTP 200 with an `access_token` in the body: works, rc 0.
-- **HTTP 200 with `{"error":"inactive client"}`: wrong or not-yet-active credentials, rc 1.** Breezeway says 200 either way, so the probe reads the body, not the status code. Do not trust a bare 200 from a hand-rolled curl.
+- **HTTP 200 with `{"error":"inactive client"}`: wrong or not-yet-active credentials, rc 1.** Breezeway says 200 either way, so the probe reads the body, not the status code. A bare 200 from a hand-rolled curl isn't proof by itself, check the body too.
 - Blank line in `.env`: rc 2.
 - 429, timeout, or anything else: rc 3. Usually the 1 req/min limit on the token endpoint. Wait a minute, run it again.
 

@@ -18,7 +18,7 @@ Two things to know before you click around:
 - **You do not need to create an OAuth app.** OwnerRez says to use a Personal Access Token for your own account. Ignore the "Grant Access To Me" button, that is for webhook apps. Vendor: "If you only need to access your own account ... use a Personal Access Token instead."
 - **No official MCP yet.** OwnerRez staff, 2026-07-16: "Both an MCP server, and a CLI are in the works". Until that ships, the server Claude builds in section 3 is the path.
 
-Two limits, neither of which touches the summit skills: a Personal Access Token cannot send guest messages (the API answers 402 `messaging_not_enabled`), and "Listing endpoints requires a partnership agreement between your business and OwnerRez." The skills read properties and bookings (calendar is derived from bookings; a Personal Access Token has no nightly-rate read). The only write is the revenue manager's nightly-rate push (`PATCH /v2/spotrates`), and it shows you the exact per-date change and waits for a yes.
+Two limits, neither of which touches the summit skills: a Personal Access Token cannot send guest messages (the API answers 402 `messaging_not_enabled`), and "Listing endpoints requires a partnership agreement between your business and OwnerRez." The skills read properties and bookings. OwnerRez has no GET for nightly rates, so the built server reads occupancy from bookings and writes rates via `PATCH /v2/spotrates` only behind approval, showing you the exact per-date change and waiting for a yes before anything goes out.
 
 ## 3. Path A: API key
 You need two values: your OwnerRez **login email** and a **Personal Access Token**.
@@ -37,11 +37,11 @@ OWNERREZ_TOKEN=
 ```
 (The built server reads its own `.env` inside `mcp-servers/ownerrez/`, which `fan-out-env.sh` fills from this one. Nothing to copy by hand.)
 
-**SAFE:** `git check-ignore -q .env && echo "protected ✅"`
+**SAFE:** `if [ -d "$BUNDLE/.git" ]; then git -C "$BUNDLE" check-ignore -q .env && echo "protected ✅" || echo "add .env to $BUNDLE/.gitignore first"; else echo "protected ✅ (not a git folder, nothing can commit it)"; fi`
 **FILLED:** `grep -q '^OWNERREZ_EMAIL=.\+' .env && grep -q '^OWNERREZ_TOKEN=.\+' .env && echo "present ✅" || echo "still blank"`
 **WORKS:** `bash -c '. lib/env.sh; . lib/probes.sh; env_load .env; probe_ownerrez; echo rc=$?'` (0 works, 1 rejected, 2 blank, 3 unreachable)
 
-**Build:** there is no pre-built OwnerRez server. Claude writes one in TypeScript (the default in `$BUNDLE/build/build-pms-mcp.md`, Path B, the OwnerRez brief; read `build/README.md` first for the three overrides). It lands in `$BUNDLE/mcp-servers/ownerrez/` with entry `dist/index.js`. Do not build the Python flavour: every register line in this file assumes `dist/index.js`. Two more overrides for OwnerRez: skip the build doc's own OwnerRez credential card (it points at secure.ownerrez.com and names the token "Claude MCP"; section 3 above already did this, and one token named STR Secrets is all you need) and skip its post-build credential contract (the `.env` block and Sanity Checks 1 to 3): the pair is already in the root `.env`, and `bash "$BUNDLE/fan-out-env.sh"` in the Register block copies it into the server's own `.env`. Leave out the build brief's `send_message` tool: a Personal Access Token gets 402 `messaging_not_enabled` on every messaging call, so that tool could never work. Every request the server sends carries Basic auth (email:token) plus a `User-Agent` header, because OwnerRez answers 403 to anything without one. Tell the build to ship a `.env.example` in that folder listing `OWNERREZ_EMAIL=` and `OWNERREZ_TOKEN=`, so `fan-out-env.sh` can fill the server's own `.env` from yours.
+**Build:** there is no pre-built OwnerRez server. Claude writes one in TypeScript (the default in `$BUNDLE/build/build-pms-mcp.md`, Path B, the OwnerRez brief; read `build/README.md` first for the three overrides). It lands in `$BUNDLE/mcp-servers/ownerrez/` with entry `dist/index.js`. Stick with TypeScript here rather than the Python flavour: every register line in this file assumes `dist/index.js`. Two more overrides for OwnerRez: skip the build doc's own OwnerRez credential card (it points at secure.ownerrez.com and names the token "Claude MCP"; section 3 above already did this, and one token named STR Secrets is all you need) and skip its post-build credential contract (the `.env` block and Sanity Checks 1 to 3): the pair is already in the root `.env`, and `bash "$BUNDLE/fan-out-env.sh"` in the Register block copies it into the server's own `.env`. Leave out the build brief's `send_message` tool: a Personal Access Token gets 402 `messaging_not_enabled` on every messaging call, so that tool could never work. Every request the server sends carries Basic auth (email:token) plus a `User-Agent` header, because OwnerRez answers 403 to anything without one. Tell the build to ship a `.env.example` in that folder listing `OWNERREZ_EMAIL=` and `OWNERREZ_TOKEN=`, so `fan-out-env.sh` can fill the server's own `.env` from yours.
 
 **Register:**
 ```bash
@@ -50,7 +50,7 @@ claude mcp add --transport stdio ownerrez --scope user -- node "$BUNDLE/mcp-serv
 echo ownerrez >> "$BUNDLE/.cache/needs-restart"
 ```
 
-**Register (Windows, Git Bash):** Claude Code is a native Windows process, so it must be handed a `C:\...` path even though you are typing in Git Bash. Do not run the block above on Windows; run this one, which converts the path with `cygpath -w` first:
+**Register (Windows, Git Bash):** Claude Code is a native Windows process, so it must be handed a `C:\...` path even though you are typing in Git Bash. Skip the block above on Windows; run this one instead, which converts the path with `cygpath -w` first:
 ```bash
 bash "$BUNDLE/fan-out-env.sh"
 claude mcp add --transport stdio ownerrez --scope user -- node "$(cygpath -w "$BUNDLE/mcp-servers/ownerrez/dist/index.js")" >/dev/null 2>&1 && echo "ownerrez registered ✅" || echo "register failed ❌"

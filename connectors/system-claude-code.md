@@ -54,7 +54,7 @@ _None for this connector._
 - **Hangs at startup on a work laptop (Windows 10, domain-joined):** open issue #91881; `claude --version` works but `claude` hangs. Use a personal laptop for the summit.
 - **`Illegal instruction` on launch:** CPU without AVX (very old AMD, some VMs). No fix; use another machine.
 - **Windows: typing `claude` opens the Claude chat app instead:** an old Claude Desktop registered `Claude.exe` ahead on PATH. Update Claude Desktop.
-- **Do not use WSL, npm, or any tutorial that mentions `setx SHELL`.** Those are 2025 instructions. The one-liners above are the only supported path.
+- **Skip WSL, npm, or any tutorial that mentions `setx SHELL`.** Those are 2025 instructions. The one-liners above are the only supported path.
 
 ## 7. Sources
 code.claude.com/docs/en/setup, /terminal-guide, /troubleshoot-install, /authentication, /desktop-quickstart (read 2026-09-21). GitHub anthropics/claude-code #86999, #91881, #87060, #66041.

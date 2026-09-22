@@ -24,7 +24,7 @@ One key, one line in `.env`. The key is a 40-character run of letters and digits
 AIRROI_API_KEY=
 ```
 
-**SAFE:** `git check-ignore -q .env && echo "protected ✅"`
+**SAFE:** `if [ -d "$BUNDLE/.git" ]; then git -C "$BUNDLE" check-ignore -q .env && echo "protected ✅" || echo "add .env to $BUNDLE/.gitignore first"; else echo "protected ✅ (not a git folder, nothing can commit it)"; fi`
 **FILLED:** `grep -q '^AIRROI_API_KEY=.\+' .env && echo "present ✅" || echo "still blank"`
 **WORKS:** `bash -c '. lib/env.sh; . lib/probes.sh; env_load .env; probe_airroi; echo rc=$?'` (0 works, 1 rejected, 2 blank, 3 unreachable)
 
@@ -36,7 +36,7 @@ Run this again after any `.env` change.
 
 **Register** the bundled server. Build its venv, then point Claude Code at it:
 ```bash
-cd "$BUNDLE/mcp-servers/airroi" && uv venv --quiet .venv && uv pip install --quiet -r requirements.txt --python .venv
+cd "$BUNDLE/mcp-servers/airroi" && { [ -d .venv ] || uv venv --quiet .venv; } && uv pip install --quiet -r requirements.txt --python .venv
 claude mcp remove airroi -s user >/dev/null 2>&1 || true
 claude mcp add --transport stdio airroi --scope user -- "$BUNDLE/mcp-servers/airroi/.venv/bin/python" "$BUNDLE/mcp-servers/airroi/server.py" >/dev/null 2>&1 && echo "airroi registered ✅" || echo "register failed ❌"
 echo airroi >> "$BUNDLE/.cache/needs-restart"
@@ -76,6 +76,8 @@ The checker runs `probe_airroi`, which makes one real call: `GET https://api.air
 - **Blank**: the `.env` line is empty. Paste the key.
 - **Unreachable**: no network, or AirROI is down. Try again in a minute.
 
+The bundled server's own `health_check` tool only confirms the server started and its `.env` has a key-shaped value; it never calls AirROI, so it cannot prove the key actually works. After the restart, ask Claude to run a real AirROI market search for your city. That costs $0.01 and hits AirROI for real, so a result coming back is the actual proof. The checker's probe above makes that same market-search call during setup.
+
 The official MCP row checks three things: the `.env` line is filled, `airroi-official` is registered, and Claude Code reports it Connected. It cannot see whether the header holds the same key as `.env`. Two things to know: `claude mcp list` shows `airroi-official` as Connected even when the key is bad, because the handshake does not check it; and if you ever change the key in `.env`, the header keeps the old one until you re-run the section 4 block. Trust the probe, not the Connected label, and re-register after a key change.
 
 ## 6. Troubleshooting
@@ -84,7 +86,7 @@ The official MCP row checks three things: the `.env` line is filled, `airroi-off
 - **Numbers look off between markets:** currency defaults to each market's native currency. A Cancun comp is in pesos, a Nashville comp is in dollars. Ask Claude to state the currency before comparing.
 - **A field you saw in one call is missing in another:** response keys differ per endpoint. Market search, listing metrics and estimates each return their own shape. That is AirROI, not a broken key.
 - **Rate limit:** 1,000 requests per minute per key. The summit skills never get close; if you do, you are looping.
-- **Header spelling:** `X-API-KEY` on the MCP page, `x-api-key` on the getting-started page. Same header. Do not "fix" one to match the other.
+- **Header spelling:** `X-API-KEY` on the MCP page, `x-api-key` on the getting-started page. Same header. No need to "fix" one to match the other.
 - **`airroi` shows Failed after restart (Windows):** the registered path is probably `/c/Users/...` instead of `C:\Users\...`, or it points at `.venv/bin/python`, which does not exist on Windows. Remove it (`claude mcp remove airroi -s user`) and re-run the Windows register block in section 3.
 - **`ModuleNotFoundError: mcp.server.fastmcp`:** the venv picked up `mcp` 2.x. The bundled `requirements.txt` pins `mcp>=1.2,<2`; delete `.venv` and run the build line again.
 - **You changed the key in .env:** the bundled `airroi` server picks the new one up after `bash fan-out-env.sh` and a restart, but `airroi-official` keeps the key it was registered with. Re-run the section 4 block (it removes and re-adds), then restart.

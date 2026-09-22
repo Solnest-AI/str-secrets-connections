@@ -31,11 +31,11 @@ LODGIFY_API_KEY=
 ```
 Save the file, then tell Claude "saved". The key never goes in the chat.
 
-**SAFE:** `git check-ignore -q .env && echo "protected ✅"`
+**SAFE:** `if [ -d "$BUNDLE/.git" ]; then git -C "$BUNDLE" check-ignore -q .env && echo "protected ✅" || echo "add .env to $BUNDLE/.gitignore first"; else echo "protected ✅ (not a git folder, nothing can commit it)"; fi`
 **FILLED:** `grep -q '^LODGIFY_API_KEY=.\+' .env && echo "present ✅" || echo "still blank"`
 **WORKS:** `bash -c '. lib/env.sh; . lib/probes.sh; env_load .env; probe_lodgify; echo rc=$?'` (0 works, 1 rejected, 2 blank, 3 unreachable)
 
-**Build:** there is no pre-built Lodgify server. Claude writes one in TypeScript (the default in `build/build-pms-mcp.md`, Path B, Lodgify), so it lands in `$BUNDLE/mcp-servers/lodgify/` with entry `dist/index.js`. It reads `LODGIFY_API_KEY` from its own `.env`. That folder did not exist when the root `.env` was filled, so after the build finishes Claude runs `cd "$BUNDLE" && bash fan-out-env.sh` once more before registering; skip that and the server starts with a blank key. Every write tool in it asks before it touches a rate.
+**Build:** there is no pre-built Lodgify server. Follow `build/README.md` first, then `build/build-pms-mcp.md` (or `build-pricing-ops-mcp.md`) Steps B1 to B3 only (research, reference doc, write the server code into `$BUNDLE/mcp-servers/lodgify/`). Credentials, registering, fan-out and the restart are done from THIS file, not from the build doc. TypeScript is the default, so it lands with entry `dist/index.js` and reads `LODGIFY_API_KEY` from its own `.env`. That folder did not exist when the root `.env` was filled, so after the build finishes Claude runs `cd "$BUNDLE" && bash fan-out-env.sh` once more before registering; skip that and the server starts with a blank key. Every write tool in it asks before it touches a rate.
 
 **Register:**
 ```bash
@@ -52,7 +52,7 @@ Live beta as of 2026-09-21. Lodgify's article is "Connect Claude and ChatGPT to 
 Lodgify wrote the steps for the Claude app, not Claude Code. The Claude Code form below is derived from those steps and is UNTESTED as of 2026-09-21: the server publishes no OAuth discovery metadata (that matches Lodgify's "Use your own OAuth client" instruction), so the browser hand-off may or may not complete. Try it. It takes a minute.
 
 ```bash
-claude mcp add --transport http --client-id lodgify.mcp --scope user lodgify-official https://mcp.lodgify.com/mcp >/dev/null 2>&1 && echo "lodgify-official registered ✅"
+claude mcp add --transport http --client-id lodgify.mcp --scope user lodgify-official https://mcp.lodgify.com/mcp >/dev/null 2>&1 && echo "lodgify-official registered ✅" || echo "lodgify-official failed ❌ (run the same line without the >/dev/null part to see why)"
 echo lodgify-official >> "$BUNDLE/.cache/needs-restart"
 ```
 After the restart: `/mcp` > `lodgify-official` > Authenticate. A browser tab opens on Lodgify. Sign in and authorize the connection. Back in Claude Code the server should show as connected.
@@ -76,7 +76,7 @@ Then it reads the `lodgify` server's status from Claude Code (it never prints th
 - **Path B browser step never finishes in Claude Code:** the known risk; the Claude Code form is untested and Lodgify only documents the Claude app. Remove it with `claude mcp remove lodgify-official --scope user` and use the Claude Desktop steps in section 4.
 - **Path B connected but Claude says it cannot change rates:** by design. The official MCP is read-only. Rate pushes go through the built `lodgify` server from Path A.
 - **docs.lodgify.com refuses you from the terminal:** the docs site blocks curl. Open it in a browser.
-- **v1 vs v2:** Lodgify runs both API versions side by side on the same host, and the two return different shapes. The built server picks the right version per call; if you extend it, do not mix the two.
+- **v1 vs v2:** Lodgify runs both API versions side by side on the same host, and the two return different shapes. The built server picks the right version per call; if you extend it, keep the two separate.
 
 ## 7. Sources
 - help.lodgify.com article 360010182700 (API key click path) and article 30326689780636 "Connect Claude and ChatGPT to the Lodgify MCP manually (BETA)", both read 2026-09-21.

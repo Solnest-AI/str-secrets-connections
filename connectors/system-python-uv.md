@@ -34,7 +34,7 @@ Open a NEW PowerShell window afterwards.
 uv python install 3.13
 ```
 
-**Never type `python` on Windows.** On a fresh Windows machine that opens the Microsoft Store instead of Python. Nothing in the summit kit needs it; every Python server runs with `uv run`.
+**Skip typing `python` on Windows.** On a fresh Windows machine that opens the Microsoft Store instead of Python. Nothing in the summit kit needs it; every Python server runs with `uv run`.
 
 ## 4. Path B: official MCP
 _None for this connector._

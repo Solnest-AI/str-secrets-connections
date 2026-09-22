@@ -21,7 +21,7 @@ _None for this connector._ Install instead:
 ```bash
 brew install node
 ```
-**Do not** run `brew install node@24`. That formula is keg-only, which means `node` never lands on your PATH and nothing can find it.
+Skip `brew install node@24`. That formula is keg-only, which means `node` never lands on your PATH and nothing can find it.
 
 **Windows (open "Windows PowerShell", not "(x86)", not CMD):**
 ```powershell
