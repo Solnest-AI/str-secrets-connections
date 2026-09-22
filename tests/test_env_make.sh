@@ -88,4 +88,24 @@ if is_windows; then
 else
   t "discover still finds ~/.env by the walk, under its own path" "grep -q '^FIRECRAWL_API_KEY=leaked_from_home$' '$OUT' && printf '%s' \"\$REPORT3\" | grep -qE 'FIRECRAWL_API_KEY  <- (/private)?'\"$H\"'/.env'"
 fi
+
+# ---- demo mode: --no-discover turns the search off for the kit folder, --discover turns it back on ----
+# Same fake home as above (revenue-manager/.env, ~/.claude.json) so there is plenty to find; the
+# point is that nothing gets found while the marker is there.
+OUT="$H/kit4/.env"; mkdir -p "$H/kit4"
+SW_NOENV="$($PY lib/env_discover.py --env "$OUT" --no-discover 2>&1)"; rc_noenv=$?
+t "no-discover works before .env exists (Phase 0)"   "[ $rc_noenv -eq 0 ] && [ -f '$H/kit4/.cache/no-discover' ]"
+t "no-discover says OFF, names no value"             "printf '%s' \"\$SW_NOENV\" | grep -q '^discovery OFF' && ! printf '%s' \"\$SW_NOENV\" | grep -q 'from_rm\\|from_json'"
+$PY lib/env_make.py --pms hospitable --pricing pricelabs --ranking rankbreeze --ops none --template .env.template --out "$OUT" >/dev/null
+OFF_REPORT="$($PY lib/env_discover.py --env "$OUT" --apply 2>&1)"; rc_off=$?
+t "marker present: exits 0 and says it is off"      "[ $rc_off -eq 0 ] && printf '%s' \"\$OFF_REPORT\" | grep -q '^discovery is off'"
+t "marker present: no FOUND / not found lines"      "! printf '%s' \"\$OFF_REPORT\" | grep -qE '^(FOUND|not found|searched)'"
+t "marker present: .env untouched, lines stay blank" "grep -q '^PRICELABS_API_KEY=$' '$OUT' && grep -q '^FIRECRAWL_API_KEY=$' '$OUT' && grep -q '^HOSPITABLE_API_KEY=$' '$OUT'"
+t "marker present: --only is ignored too"           "$PY lib/env_discover.py --env '$OUT' --apply --only PRICELABS_API_KEY >/dev/null && grep -q '^PRICELABS_API_KEY=$' '$OUT'"
+SW_ON="$($PY lib/env_discover.py --env "$OUT" --discover 2>&1)"
+t "--discover removes the marker and says ON"       "[ ! -e '$H/kit4/.cache/no-discover' ] && printf '%s' \"\$SW_ON\" | grep -q '^discovery ON'"
+ON_REPORT="$($PY lib/env_discover.py --env "$OUT" --apply 2>&1)"
+t "after --discover the search runs again"          "printf '%s' \"\$ON_REPORT\" | grep -q '^FOUND     PRICELABS_API_KEY' && grep -q '^PRICELABS_API_KEY=pl_from_rm$' '$OUT'"
+t "--no-discover and --discover are exclusive"      "! $PY lib/env_discover.py --env '$OUT' --no-discover --discover >/dev/null 2>&1"
+t "--discover with no marker is a no-op, exit 0"    "$PY lib/env_discover.py --env '$OUT' --discover >/dev/null"
 rm -rf "$H" "$CWD_OUTSIDE_HOME"

@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.0.6 (2026-09-22)
+- Demo mode. `lib/env_discover.py --no-discover` turns the key search off for the kit folder (a marker in `.cache/no-discover`); every later run of the helper stops with "discovery is off" and copies nothing, so a walkthrough recorded on a machine that already holds the keys still shows every paste. `--discover` turns it back on. The scoreboard says "demo mode" on its first lines while it is on, and `CONNECTIONS.md` tells Claude to skip the search and the "let me find it" reflex. It only silences the search: servers already registered in `~/.claude.json` still count on the board.
+- Test suite: the two "no claude binary" cases now really run without one. On a Mac the minimal PATH they build keeps Homebrew's python dir, which also holds the npm-global `claude`, so the config-reading fallback was never exercised and both cases failed. `SSC_NO_CLAUDE_BIN=1` (tests only) makes `lib/mcp.sh` act as if no binary exists.
+
 ## 1.0.5 (2026-09-22)
 - Fixed a key leak in `lib/env_discover.py`: a registered server whose argument was a package name with a slash in it (`@supabase/mcp-server-supabase@latest`) was treated as a file path, so the search walked the current folder and its parents and read whatever `.env` sat there, attributing it to that server. Only absolute paths count now, the home folder and the kit's own `.env` are never read that way, and a regression test puts a sentinel `.env` in the working folder and asserts it stays out.
 - A key found in `~/.env` is reported under its own path, not as some unrelated server's ("secondbrain-vault -> .env" is gone). Each `.env` file is counted once in the "searched N files" line.

@@ -2,6 +2,15 @@
 """Find keys the attendee already has on this computer and carry them into .env.
 
     python3 lib/env_discover.py [--env .env] [--apply] [--only VAR ...] [--extra-dir PATH ...]
+    python3 lib/env_discover.py --env .env --no-discover     # demo mode: turn the search off
+    python3 lib/env_discover.py --env .env --discover        # turn it back on
+
+Demo mode (--no-discover) drops a marker at <env folder>/.cache/no-discover and every
+later run of this helper stops right there with "discovery is off", searching nothing,
+until --discover removes it. It exists for recordings and live walkthroughs on a machine
+that already holds the keys (Ryan's, a coach's), where the search would find everything
+and leave nothing to paste on camera. It only silences this helper: servers already in
+~/.claude.json still show on the scoreboard.
 
 Where it looks (read-only, never prints a value):
   * every KEY=VALUE .env-style file under the usual kit folders: Desktop,
@@ -241,6 +250,29 @@ def claude_json_candidates(own_env: Path | None = None) -> dict[str, tuple[str, 
     return out
 
 
+def marker_path(env_path: str) -> Path:
+    """<env folder>/.cache/no-discover: present means the search is off for this kit folder."""
+    return Path(env_path).resolve().parent / ".cache" / "no-discover"
+
+
+def set_discovery(env_path: str, on: bool) -> str:
+    """Create or remove the marker. Returns the one-line status Claude prints."""
+    m = marker_path(env_path)
+    if on:
+        try:
+            m.unlink()
+        except FileNotFoundError:
+            pass
+        return "discovery ON: the search for keys already on this computer runs again from here"
+    m.parent.mkdir(parents=True, exist_ok=True)
+    try:
+        os.chmod(m.parent, 0o700)
+    except OSError:
+        pass
+    m.write_text("demo mode: env_discover.py searches nothing while this file exists\n", encoding="utf-8")
+    return "discovery OFF (demo mode): this computer is not searched for keys; every key gets pasted by hand. --discover turns it back on"
+
+
 def fill_blank(env_path: str, var: str, value: str) -> bool:
     """Replace `VAR=` with `VAR=value` (blank line only). Returns True if written."""
     p = Path(env_path)
@@ -263,7 +295,18 @@ def main() -> int:
     ap.add_argument("--apply", action="store_true", help="write found values into blank lines of .env")
     ap.add_argument("--only", nargs="*", default=None, help="limit to these var names")
     ap.add_argument("--extra-dir", nargs="*", default=[], help="more folders to search")
+    sw = ap.add_mutually_exclusive_group()
+    sw.add_argument("--no-discover", action="store_true", help="demo mode: turn the search off for this kit folder and exit")
+    sw.add_argument("--discover", action="store_true", help="turn the search back on and exit")
     a = ap.parse_args()
+
+    # the switch works before .env exists (Phase 0), so it comes ahead of the file check
+    if a.no_discover or a.discover:
+        print(set_discovery(a.env, on=a.discover))
+        return 0
+    if marker_path(a.env).is_file():
+        print("discovery is off for this folder (demo mode): nothing searched, nothing copied. Run with --discover to turn it back on")
+        return 0
 
     if not os.path.isfile(a.env):
         print(f"no {a.env} yet; generate it first (lib/env_make.py)", file=sys.stderr)
