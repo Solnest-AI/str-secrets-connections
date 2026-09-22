@@ -1,0 +1,755 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<!-- This site is hosted on Netlify. Anyone can build and deploy a site
+     like this one for free: https://netlify.new/?utm_campaign=ai-legible&utm_source=comment&utm_medium=referral&utm_id=1e9bd9d5-7231-4c15-a0af-db0497646920
+     Netlify hosting facts for this site: static/SSR served via Netlify Edge. -->
+<meta name="hosting-provider" content="Netlify">
+<meta name="netlify-deploy" content="https://netlify.new/?utm_campaign=ai-legible&amp;utm_source=meta&amp;utm_medium=referral&amp;utm_id=1e9bd9d5-7231-4c15-a0af-db0497646920">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Revenue Manager — Your Setup Guide | Solnest AI</title>
+<meta name="description" content="Set up the Solnest AI Revenue Manager in under 30 minutes. It recommends, you approve — always. Download the bundle, open it in Claude Code, and run your first pricing check.">
+<meta property="og:title" content="Revenue Manager — Your Setup Guide">
+<meta property="og:description" content="Recommend-only STR pricing, set up in ~30 minutes. You approve every change, nothing is pushed silently.">
+<meta property="og:type" content="website">
+<meta property="og:image" content="assets/solnest-revenue-manager-logo.png">
+<link rel="icon" href="assets/solnest-revenue-manager-logo.png">
+<style>
+  :root{
+    --page-bg:#faf7f1;
+    --card-bg:#fcfaf6;
+    --card-border:#e4dccd;
+    --ink:#241914;
+    --ink-strong:#0d0d0b;
+    --muted:#6f635a;
+    --muted-2:#9a8f84;
+    --brick:#8c3b2e;
+    --terra:#c65d3b;
+    --gold:#c9a24b;
+    --code-bg:#efe7d6;
+    --promise-bg:#f6efe6;
+    --promise-bd:#e7d8c4;
+    --keys-bg:#fbeee9;
+    --keys-bd:#e8c7ba;
+    --header-bg:#0d0d0b;
+    --sans:"Segoe UI",system-ui,-apple-system,Roboto,Helvetica,Arial,sans-serif;
+    --serif:Georgia,"Times New Roman",serif;
+    --mono:ui-monospace,"Cascadia Mono",Consolas,"SF Mono",Menlo,monospace;
+  }
+
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    margin:0;
+    background:var(--page-bg);
+    color:var(--ink);
+    font-family:var(--sans);
+    font-size:17px;
+    line-height:1.62;
+    -webkit-font-smoothing:antialiased;
+    text-rendering:optimizeLegibility;
+  }
+
+  .wrap{max-width:880px;margin:0 auto;padding:0 22px;}
+
+  a{color:var(--terra);font-weight:600;text-decoration:none;}
+  a:hover{text-decoration:underline;text-underline-offset:3px;}
+
+  code{
+    font-family:var(--mono);
+    background:var(--code-bg);
+    color:#5a3326;
+    padding:.12em .42em;
+    border-radius:6px;
+    font-size:.86em;
+    font-weight:600;
+    white-space:nowrap;
+  }
+
+  /* ---------- Header ---------- */
+  .site-header{
+    background:var(--header-bg);
+    text-align:center;
+    padding:30px 16px 34px;
+    background-image:radial-gradient(900px 220px at 50% -40%, rgba(201,162,75,.16), transparent 70%);
+  }
+  .site-header img{
+    width:100%;
+    max-width:520px;
+    height:auto;
+    display:block;
+    margin:0 auto;
+  }
+
+  /* ---------- Hero ---------- */
+  .hero{padding:54px 0 8px;}
+  .hero h1{
+    font-family:var(--serif);
+    color:var(--ink-strong);
+    font-weight:700;
+    font-size:clamp(2.3rem,6vw,3.4rem);
+    line-height:1.08;
+    margin:0 0 14px;
+    letter-spacing:-.01em;
+  }
+  .hero .lede{
+    font-style:italic;
+    color:var(--muted);
+    font-size:clamp(1.05rem,2.5vw,1.3rem);
+    margin:0 0 30px;
+    max-width:42ch;
+  }
+  .hero-actions{display:flex;flex-wrap:wrap;gap:14px;margin-bottom:8px;}
+
+  .btn{
+    display:inline-flex;align-items:center;gap:.55em;
+    font-family:var(--sans);font-weight:700;font-size:1rem;
+    padding:.85em 1.4em;border-radius:12px;border:2px solid transparent;
+    cursor:pointer;transition:transform .12s ease,box-shadow .12s ease,background .12s ease;
+  }
+  .btn svg{width:1.05em;height:1.05em;}
+  .btn-primary{background:var(--brick);color:#fff;box-shadow:0 8px 22px -10px rgba(140,59,46,.7);}
+  .btn-primary:hover{background:#7a3227;text-decoration:none;transform:translateY(-2px);box-shadow:0 12px 26px -10px rgba(140,59,46,.75);}
+  .btn-ghost{background:transparent;color:var(--brick);border-color:var(--card-border);}
+  .btn-ghost:hover{background:#fff;text-decoration:none;border-color:var(--gold);transform:translateY(-2px);}
+
+  /* ---------- Callouts ---------- */
+  .callout{
+    border-radius:14px;
+    padding:20px 22px;
+    margin:24px 0;
+    border:1px solid;
+    font-size:.98rem;
+  }
+  .callout p{margin:0;}
+  .callout .tag{font-weight:700;color:var(--brick);}
+  .callout.promise{background:var(--promise-bg);border-color:var(--promise-bd);}
+  .callout.keys{
+    background:var(--keys-bg);border-color:var(--keys-bd);
+    display:flex;gap:14px;align-items:flex-start;
+  }
+  .callout.keys .ico{font-size:1.5rem;line-height:1.2;flex:0 0 auto;}
+
+  .flow{font-size:1.02rem;margin:26px 0;}
+
+  /* ---------- Section headings ---------- */
+  .section{padding:30px 0 6px;}
+  .section-head{
+    color:var(--terra);
+    font-weight:800;
+    font-size:clamp(1.4rem,3.4vw,1.85rem);
+    letter-spacing:-.01em;
+    margin:0 0 6px;
+    scroll-margin-top:20px;
+  }
+  .section-sub{color:var(--muted);margin:0 0 22px;font-size:1rem;max-width:66ch;}
+
+  .group-head{
+    display:flex;align-items:center;gap:.6em;
+    color:var(--brick);font-weight:700;
+    font-size:1.18rem;margin:34px 0 16px;
+  }
+  .group-head::before{
+    content:"";width:11px;height:11px;border-radius:50%;
+    background:var(--gold);flex:0 0 auto;
+  }
+
+  /* big serif section divider */
+  .display{
+    font-family:var(--serif);color:var(--ink-strong);font-weight:700;
+    font-size:clamp(1.8rem,4.6vw,2.5rem);line-height:1.12;
+    margin:14px 0 18px;letter-spacing:-.01em;scroll-margin-top:20px;
+  }
+  .rule{border:0;border-top:2px solid var(--gold);opacity:.85;margin:54px 0 26px;}
+  .badge-inline{
+    display:inline-block;vertical-align:middle;margin-left:.5em;
+    font-size:.62em;font-weight:700;letter-spacing:.06em;text-transform:uppercase;
+    color:#fff;background:var(--muted-2);padding:.34em .7em;border-radius:999px;
+    font-family:var(--sans);
+  }
+
+  /* ---------- Cards ---------- */
+  .cards{
+    display:grid;
+    grid-template-columns:repeat(auto-fill,minmax(min(100%,330px),1fr));
+    gap:18px;margin:6px 0 8px;
+  }
+  .card{
+    background:var(--card-bg);
+    border:1px solid var(--card-border);
+    border-left:4px solid var(--gold);
+    border-radius:14px;
+    padding:18px 20px 20px;
+    display:flex;flex-direction:column;
+    transition:transform .12s ease,box-shadow .12s ease;
+  }
+  .card:hover{transform:translateY(-3px);box-shadow:0 14px 30px -18px rgba(36,25,20,.4);}
+  .card.full{grid-column:1/-1;}
+  .card-top{display:flex;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:4px;}
+  .card-top h3{margin:0;font-size:1.18rem;color:var(--ink);font-weight:800;}
+  .badge{
+    font-size:.66rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;
+    color:#fff;padding:.28em .62em;border-radius:999px;white-space:nowrap;
+  }
+  .badge.gold{background:var(--gold);}
+  .badge.muted{background:var(--muted-2);}
+  .login{margin:.2em 0 .7em;color:var(--muted);font-size:.95rem;}
+  .card ol{margin:0;padding-left:1.25em;display:flex;flex-direction:column;gap:.42em;font-size:.95rem;}
+  .card ol li{padding-left:.15em;}
+  .card .note{
+    margin-top:12px;font-size:.86rem;color:var(--muted);
+    background:rgba(201,162,75,.1);border-radius:8px;padding:9px 12px;
+  }
+  .grab{
+    margin-top:14px;padding-top:12px;border-top:1px dashed var(--card-border);
+    font-size:.92rem;color:var(--ink);
+  }
+  .grab b{
+    color:var(--terra);text-transform:uppercase;font-size:.7rem;
+    letter-spacing:.06em;display:block;margin-bottom:1px;
+  }
+
+  /* ---------- Step 0 single ---------- */
+  .install-card{
+    background:var(--card-bg);border:1px solid var(--card-border);
+    border-left:4px solid var(--gold);border-radius:14px;
+    padding:18px 20px;margin-bottom:14px;
+  }
+  .install-card h3{margin:0 0 2px;font-size:1.2rem;}
+  .install-card .login{margin:0;}
+
+  /* ---------- Timeline / steps ---------- */
+  .timeline{list-style:none;margin:8px 0 0;padding:0;position:relative;}
+  .timeline::before{
+    content:"";position:absolute;left:18px;top:14px;bottom:14px;width:2px;
+    background:linear-gradient(var(--gold),var(--card-border));
+  }
+  .timeline > li{position:relative;display:flex;gap:20px;padding-bottom:30px;}
+  .timeline > li:last-child{padding-bottom:0;}
+  .num{
+    flex:0 0 auto;width:38px;height:38px;border-radius:50%;
+    background:var(--terra);color:#fff;font-weight:800;font-size:1.05rem;
+    display:grid;place-items:center;z-index:1;
+    box-shadow:0 0 0 5px var(--page-bg);
+  }
+  .step-body{padding-top:3px;min-width:0;}
+  .step-body h3{margin:6px 0 8px;color:var(--terra);font-size:1.22rem;font-weight:800;}
+  .step-body p{margin:.4em 0;}
+
+  /* ---------- Download block ---------- */
+  .download{
+    background:var(--card-bg);border:1px solid var(--card-border);
+    border-radius:16px;padding:24px;margin:16px 0 18px;
+    text-align:center;
+    box-shadow:0 16px 40px -28px rgba(36,25,20,.5);
+  }
+  .dl-btn{
+    display:inline-flex;align-items:center;gap:.6em;
+    background:var(--brick);color:#fff;font-weight:700;font-size:1.12rem;
+    padding:1em 1.7em;border-radius:13px;
+    box-shadow:0 10px 26px -12px rgba(140,59,46,.8);
+    transition:transform .12s ease,background .12s ease,box-shadow .12s ease;
+  }
+  .dl-btn:hover{background:#7a3227;text-decoration:none;transform:translateY(-2px);box-shadow:0 14px 30px -12px rgba(140,59,46,.85);}
+  .dl-btn svg{width:1.15em;height:1.15em;}
+
+  /* ---------- Safety layer ---------- */
+  .safety{list-style:none;margin:8px 0 0;padding:0;display:flex;flex-direction:column;gap:14px;}
+  .safety li{
+    display:flex;gap:14px;align-items:flex-start;
+    background:var(--card-bg);border:1px solid var(--card-border);
+    border-radius:12px;padding:15px 18px;
+  }
+  .safety .chk{
+    flex:0 0 auto;width:26px;height:26px;border-radius:50%;
+    background:var(--brick);color:#fff;display:grid;place-items:center;
+    font-size:.85rem;margin-top:1px;
+  }
+  .safety b{color:var(--ink-strong);}
+
+  /* normal-not-bugs list */
+  .normal{margin:8px 0 0;padding:0;list-style:none;display:flex;flex-direction:column;gap:12px;}
+  .normal li{
+    padding-left:20px;position:relative;
+  }
+  .normal li::before{
+    content:"";position:absolute;left:0;top:.62em;width:8px;height:8px;
+    border-radius:50%;background:var(--gold);
+  }
+  .normal b{color:var(--brick);}
+
+  /* community / video blocks */
+  .feature{
+    background:var(--card-bg);border:1px solid var(--card-border);
+    border-left:4px solid var(--terra);border-radius:14px;padding:20px 22px;
+  }
+  .feature p{margin:0;}
+
+  /* ---------- Bonus downloads ---------- */
+  .bonus-intro{color:var(--muted);margin:0 0 24px;font-size:1.04rem;max-width:66ch;}
+  .dl-desc{margin:.15em 0 18px;font-size:.95rem;color:var(--ink);flex:1;}
+  .card-dl{
+    display:inline-flex;align-items:center;justify-content:center;gap:.5em;
+    margin-top:auto;background:var(--brick);color:#fff;font-weight:700;font-size:.96rem;
+    padding:.74em 1.1em;border-radius:11px;width:100%;
+    box-shadow:0 8px 20px -12px rgba(140,59,46,.7);
+    transition:transform .12s ease,background .12s ease,box-shadow .12s ease;
+  }
+  .card-dl:hover{background:#7a3227;text-decoration:none;transform:translateY(-2px);box-shadow:0 12px 24px -12px rgba(140,59,46,.8);}
+  .card-dl svg{width:1.05em;height:1.05em;}
+  .card-dl .sz{font-weight:600;opacity:.78;font-size:.86em;}
+
+  /* ---------- Footer ---------- */
+  footer{
+    background:var(--header-bg);color:#cdbfae;margin-top:64px;
+    padding:34px 22px;text-align:center;font-size:.92rem;
+  }
+  footer .promise-line{max-width:640px;margin:0 auto 6px;}
+  footer b{color:#f5ecd9;}
+  footer a{color:var(--terra);}
+
+  @media (max-width:560px){
+    body{font-size:16px;}
+    .timeline > li{gap:14px;}
+    .num{width:34px;height:34px;}
+    .download{padding:18px;}
+    .cards{grid-template-columns:1fr;}
+  }
+</style>
+</head>
+<body>
+
+  <header class="site-header">
+    <img src="assets/solnest-revenue-manager-logo.png" alt="Solnest AI — Revenue Manager">
+  </header>
+
+  <main class="wrap">
+
+    <!-- HERO -->
+    <section class="hero">
+      <h1>Your Setup Guide</h1>
+      <p class="lede">You don't need to be technical — most people are running their first pricing check in under 30 minutes.</p>
+      <div class="hero-actions">
+        <a class="btn btn-primary" href="#setup">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12l7 7 7-7"/></svg>
+          Start setup
+        </a>
+        <a class="btn btn-ghost" href="https://www.loom.com/share/738aa85f18144db08004ed9c144df92a" target="_blank" rel="noopener">📺 Watch the 5-min walkthrough</a>
+      </div>
+
+      <div class="callout promise">
+        <p><span class="tag">The promise, up front:</span> this tool <b>recommends, you approve — always.</b> It reads your calendar and pricing data, shows you exactly where you're leaving money on the table, and never pushes a single price change to your pricing tool or booking system without your explicit yes. Your keys stay on your own computer. Nothing is shared.</p>
+      </div>
+
+      <p class="flow">The whole flow: install a few free tools → download the folder → open it in Claude Code → say <code>set this up</code> → answer a few questions. Claude does the technical parts for you, one step at a time, and checks each step worked before moving on. This guide also lists exactly where to find every API key so you can have them ready.</p>
+
+      <div class="callout keys">
+        <span class="ico">🔐</span>
+        <p><span class="tag">How your keys are handled — read this once.</span> You will never paste a key into the chat. When a key is needed, Claude creates a small file on your computer and opens it for you; you paste the key into that file and save. Keys live only on your machine, are never committed, and are only ever sent to the tool they belong to. When you gather keys ahead of time (below), just keep them somewhere safe like a password manager.</p>
+      </div>
+    </section>
+
+    <!-- STEP 0 -->
+    <section class="section" id="start">
+      <h2 class="section-head">Step 0 — Install these first <span class="badge-inline" style="background:var(--gold)">all free</span></h2>
+      <div class="install-card">
+        <h3>Claude Code</h3>
+        <p class="login"><a href="https://claude.ai/code" target="_blank" rel="noopener">claude.ai/code</a></p>
+      </div>
+      <p class="section-sub" style="margin-top:14px">That's it — nothing else to install. When you run the setup, it installs everything else it needs — Node.js (and Python, only if you add a Python-based add-on) — for you automatically, on Mac or Windows.</p>
+    </section>
+
+    <!-- GATHER KEYS -->
+    <section class="section">
+      <h2 class="section-head">Gather your API keys — where to find each one</h2>
+      <p class="section-sub">You only need <b>two</b> to start: your PMS (booking system) and your pricing tool. Plus a free Supabase account. The rest are optional. Find your tools below and grab the keys — Claude will tell you when to paste each into the file it opens.</p>
+
+      <!-- PMS -->
+      <h3 class="group-head">Your booking system (PMS) — find yours</h3>
+      <div class="cards">
+
+        <article class="card">
+          <div class="card-top"><h3>Hospitable</h3><span class="badge gold">Pre-built</span></div>
+          <p class="login">Log in at <a href="https://my.hospitable.com/" target="_blank" rel="noopener">my.hospitable.com</a></p>
+          <ol>
+            <li>Profile → Account Settings → API Access (<a href="https://my.hospitable.com/apps/api-access" target="_blank" rel="noopener">my.hospitable.com/apps/api-access</a>)</li>
+            <li>Create a Personal Access Token, name it <code>Claude MCP</code>, full scopes → copy it (shown once)</li>
+          </ol>
+          <p class="grab"><b>You'll grab</b> the Personal Access Token</p>
+        </article>
+
+        <article class="card">
+          <div class="card-top"><h3>Hostaway</h3></div>
+          <p class="login">Log in at <a href="https://dashboard.hostaway.com/" target="_blank" rel="noopener">dashboard.hostaway.com</a></p>
+          <ol>
+            <li>Settings (gear) → Hostaway API → Create</li>
+            <li>Copy both values (the Secret is shown once)</li>
+          </ol>
+          <p class="grab"><b>You'll grab</b> Account ID + API Secret Key</p>
+        </article>
+
+        <article class="card">
+          <div class="card-top"><h3>Guesty (Pro)</h3></div>
+          <p class="login">Log in at <a href="https://app.guesty.com/" target="_blank" rel="noopener">app.guesty.com</a></p>
+          <ol>
+            <li>Integrations → API &amp; Webhooks → New application</li>
+            <li>Grant scopes for listings, reservations, guests, calendars, messaging</li>
+          </ol>
+          <p class="grab"><b>You'll grab</b> Client ID + Client Secret <span style="color:var(--muted)">(if "API &amp; Webhooks" is hidden, your plan needs it enabled — contact Guesty)</span></p>
+        </article>
+
+        <article class="card">
+          <div class="card-top"><h3>Guesty For Hosts</h3></div>
+          <p class="login">Log in at <a href="https://app.guestyforhosts.com/" target="_blank" rel="noopener">app.guestyforhosts.com</a></p>
+          <ol>
+            <li>Profile → Account → API Keys → Generate new key</li>
+          </ol>
+          <p class="grab"><b>You'll grab</b> the API Key</p>
+        </article>
+
+        <article class="card">
+          <div class="card-top"><h3>Hostfully</h3></div>
+          <p class="login">Log in at <a href="https://platform.hostfully.com/app/#/agency-settings" target="_blank" rel="noopener">platform.hostfully.com</a> → Agency Settings</p>
+          <ol>
+            <li>Find the API section → Generate API Key (shown once)</li>
+            <li>Scroll to the bottom of the page → note your Agency UID</li>
+          </ol>
+          <p class="grab"><b>You'll grab</b> API Key + Agency UID</p>
+        </article>
+
+        <article class="card">
+          <div class="card-top"><h3>OwnerRez</h3></div>
+          <p class="login">Log in at <a href="https://secure.ownerrez.com/" target="_blank" rel="noopener">secure.ownerrez.com</a></p>
+          <ol>
+            <li>Settings → Advanced Tools → Developer / API Settings</li>
+            <li>New Personal Access Token (starts with <code>pt_</code>, shown once)</li>
+          </ol>
+          <p class="grab"><b>You'll grab</b> your login email + the Personal Access Token</p>
+        </article>
+
+        <article class="card">
+          <div class="card-top"><h3>Lodgify</h3></div>
+          <p class="login">Log in at <a href="https://app.lodgify.com/" target="_blank" rel="noopener">app.lodgify.com</a></p>
+          <ol>
+            <li>Settings → Public API → copy the key (or Request access if none)</li>
+          </ol>
+          <p class="grab"><b>You'll grab</b> the API Key</p>
+        </article>
+
+        <article class="card">
+          <div class="card-top"><h3>Uplisting</h3></div>
+          <p class="login">Log in at <a href="https://app.uplisting.io/" target="_blank" rel="noopener">app.uplisting.io</a> as the Account Owner</p>
+          <ol>
+            <li>Connect → API tab → generate a key if none exists</li>
+          </ol>
+          <p class="grab"><b>You'll grab</b> the API Key</p>
+        </article>
+
+        <article class="card">
+          <div class="card-top"><h3>Smoobu</h3></div>
+          <p class="login">Log in at <a href="https://login.smoobu.com/" target="_blank" rel="noopener">login.smoobu.com</a> (needs a Professional/Subscriber plan)</p>
+          <ol>
+            <li>Settings → Advanced → API Keys → generate</li>
+          </ol>
+          <p class="grab"><b>You'll grab</b> the API Key</p>
+        </article>
+
+      </div>
+
+      <!-- PRICING -->
+      <h3 class="group-head">Your pricing tool (required — pick one)</h3>
+      <div class="cards">
+
+        <article class="card">
+          <div class="card-top"><h3>PriceLabs</h3><span class="badge gold">Pre-built</span><span class="badge gold">Recommended</span></div>
+          <p class="login">Log in at <a href="https://app.pricelabs.co/" target="_blank" rel="noopener">app.pricelabs.co</a></p>
+          <ol>
+            <li>Profile avatar (top-right) → Account Settings → API Details</li>
+            <li>Click Get PriceLabs API Key → copy</li>
+          </ol>
+          <p class="grab"><b>You'll grab</b> the API Key <span style="color:var(--muted)">(API access is ~$1/listing/mo on actively syncing listings)</span></p>
+        </article>
+
+        <article class="card">
+          <div class="card-top"><h3>Wheelhouse</h3></div>
+          <p class="login">Log in at <a href="https://app.usewheelhouse.com/u/account/api_token" target="_blank" rel="noopener">app.usewheelhouse.com/u/account/api_token</a></p>
+          <ol>
+            <li>Click Generate API Key → copy</li>
+          </ol>
+          <p class="grab"><b>You'll grab</b> your Wheelhouse API key</p>
+          <p class="note">If you don't see an API key option, Wheelhouse's API is in beta — email <a href="mailto:hello@usewheelhouse.com">hello@usewheelhouse.com</a> to enable it.</p>
+        </article>
+
+        <article class="card">
+          <div class="card-top"><h3>Beyond</h3></div>
+          <p class="login">Self-serve API — Personal Access Token</p>
+          <ol>
+            <li>Beyond has a self-serve API for your own account — no partner application needed.</li>
+            <li>Click your sign-in icon → Settings → Tokens (or open <a href="https://v2.beyondpricing.com/dashboard/user/personal-access-tokens" target="_blank" rel="noopener">v2.beyondpricing.com</a> → Personal Access Tokens)</li>
+            <li>Click Generate — the token starts with <code>bpat_</code> and is shown once, so copy it immediately</li>
+          </ol>
+          <p class="grab"><b>You'll grab</b> a Personal Access Token (<code>bpat_…</code>)</p>
+        </article>
+
+      </div>
+
+      <!-- DATABASE -->
+      <h3 class="group-head">Your audit database (required, free)</h3>
+      <div class="cards">
+        <article class="card full">
+          <div class="card-top"><h3>Supabase</h3></div>
+          <p class="login">Sign up free at <a href="https://supabase.com/" target="_blank" rel="noopener">supabase.com</a> — no credit card</p>
+          <ol>
+            <li>Create the account now; Claude helps you create the project and runs the database setup for you during setup.</li>
+            <li>When prompted, you'll create a Personal Access Token at <a href="https://supabase.com/dashboard/account/tokens" target="_blank" rel="noopener">supabase.com/dashboard/account/tokens</a> → Generate new token.</li>
+          </ol>
+          <p class="grab"><b>You'll grab</b> a Supabase login (+ a Personal Access Token when Claude asks)</p>
+        </article>
+      </div>
+
+      <!-- OPTIONAL -->
+      <h3 class="group-head">Optional add-ons — skip any you don't use</h3>
+      <div class="cards">
+
+        <article class="card">
+          <div class="card-top"><h3>Turno</h3><span class="badge gold">Pre-built</span><span class="badge muted">Optional</span></div>
+          <p class="login">Cleaning / ops · Partner-gated API</p>
+          <ol>
+            <li>Email <a href="mailto:support@turno.com">support@turno.com</a> to enable External API v2 access.</li>
+            <li>Once enabled, grab the long JWT access token (starts with <code>eyJ</code>) and your partner UUID.</li>
+          </ol>
+          <p class="grab"><b>You'll grab</b> JWT access token + partner UUID <span style="color:var(--muted)">(needs Python 3.11+)</span></p>
+        </article>
+
+        <article class="card">
+          <div class="card-top"><h3>RankBreeze</h3><span class="badge gold">Pre-built</span><span class="badge muted">Optional</span></div>
+          <p class="login">Search ranking · Log in at <a href="https://app.rankbreeze.com/" target="_blank" rel="noopener">app.rankbreeze.com</a> — no API key, it uses a session cookie</p>
+          <ol>
+            <li>Open your browser's DevTools → Application → Cookies → app.rankbreeze.com</li>
+            <li>Copy the value of the <code>_godzilla_session</code> cookie</li>
+          </ol>
+          <p class="grab"><b>You'll grab</b> the <code>_godzilla_session</code> cookie value</p>
+        </article>
+
+        <article class="card">
+          <div class="card-top"><h3>AirROI</h3><span class="badge gold">Pre-built</span><span class="badge muted">Optional</span></div>
+          <p class="login">Competitor comps · Free developer key</p>
+          <ol>
+            <li>Activate a free key at <a href="https://www.airroi.com/api/developer/activate" target="_blank" rel="noopener">airroi.com/api/developer/activate</a></li>
+          </ol>
+          <p class="grab"><b>You'll grab</b> the API Key <span style="color:var(--muted)">(returns each market's local currency — covers Canada + international)</span></p>
+        </article>
+
+        <article class="card">
+          <div class="card-top"><h3>Breezeway</h3><span class="badge muted">Optional</span></div>
+          <p class="login">Cleaning / inspections · Request credentials (1–2 business days)</p>
+          <ol>
+            <li>Fill out the form at <a href="https://developer.breezeway.io/docs/obtaining-credentials" target="_blank" rel="noopener">developer.breezeway.io/docs/obtaining-credentials</a></li>
+            <li>Breezeway emails you a Client ID + Client Secret</li>
+          </ol>
+          <p class="grab"><b>You'll grab</b> Client ID + Client Secret</p>
+        </article>
+
+      </div>
+    </section>
+
+    <!-- SETUP STEPS -->
+    <hr class="rule">
+    <section id="setup">
+      <h2 class="display">Setup — step by step <span class="badge-inline">~30 min</span></h2>
+      <ol class="timeline">
+
+        <li>
+          <div class="num">1</div>
+          <div class="step-body">
+            <h3>Download the bundle</h3>
+            <p>Click this one-click download:</p>
+
+            <div class="download">
+              <a class="dl-btn" href="https://github.com/Solnest-AI/solnest-revenue-manager/releases/download/v1.0-revenue-manager/solnest-revenue-manager-v1.0.zip">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 10l5 5 5-5M5 21h14"/></svg>
+                Download the Revenue Manager (.zip)
+              </a>
+            </div>
+
+            <p>Or browse the project at <a href="https://github.com/Solnest-AI/solnest-revenue-manager" target="_blank" rel="noopener">github.com/Solnest-AI/solnest-revenue-manager</a> → green <strong>Code</strong> button → Download ZIP. Either way: unzip it and put the folder somewhere easy to find, like your Desktop.</p>
+          </div>
+        </li>
+
+        <li>
+          <div class="num">2</div>
+          <div class="step-body">
+            <h3>Open the folder in Claude Code</h3>
+            <p>Open Claude Code with that folder. (Not sure how? Open Claude Code, then drag the folder into the window.)</p>
+          </div>
+        </li>
+
+        <li>
+          <div class="num">3</div>
+          <div class="step-body">
+            <h3>Say "set this up"</h3>
+            <p>Type <code>set this up</code> and send. That's the magic phrase — Claude reads the included <code>SETUP.md</code> and guides you from here, one question at a time, waiting for you at every step.</p>
+          </div>
+        </li>
+
+        <li>
+          <div class="num">4</div>
+          <div class="step-body">
+            <h3>Connect your booking system (PMS)</h3>
+            <p>Claude walks you to your PMS key (the exact steps are in the cards above), opens a file for you, and you paste the key into that file and save — never into the chat. Claude tests the connection on your real data before moving on.</p>
+          </div>
+        </li>
+
+        <li>
+          <div class="num">5</div>
+          <div class="step-body">
+            <h3>Connect your pricing tool (and optional extras)</h3>
+            <p>Same flow for PriceLabs (or Wheelhouse / Beyond). Optionally add Turno, RankBreeze, AirROI, or Breezeway — skip any you don't use; you can always add them later.</p>
+          </div>
+        </li>
+
+        <li>
+          <div class="num">6</div>
+          <div class="step-body">
+            <h3>Set up your audit database (Supabase)</h3>
+            <p>Your private log — every recommendation and approved change is recorded so your pricing history compounds. Claude creates the free database and runs the setup for you. It's your account; the data lives with you.</p>
+          </div>
+        </li>
+
+        <li>
+          <div class="num">7</div>
+          <div class="step-body">
+            <h3>Install the plugin and do your first run</h3>
+            <p>Claude installs the Revenue Manager, reads your existing pricing-tool min/max as your safety limits, confirms your markup, and runs your first report. Just say <code>check my pricing</code> — you'll get a plain-English breakdown of where you're underpriced, overpriced, and what to change, as recommendations you approve.</p>
+          </div>
+        </li>
+
+        <li>
+          <div class="num">8</div>
+          <div class="step-body">
+            <h3>Get your spreadsheet</h3>
+            <p>At the end of a run, Claude offers a spreadsheet. Say yes and it builds a workbook on your Desktop: a Summary tab for the whole portfolio, plus one tab per property with the full breakdown — current vs recommended prices, comps, occupancy, red flags, and reasoning. Report-only, like everything else.</p>
+          </div>
+        </li>
+
+      </ol>
+    </section>
+
+    <!-- NORMAL NOT BUGS -->
+    <hr class="rule">
+    <section>
+      <h2 class="display">A few things that are normal (not bugs)</h2>
+      <ul class="normal">
+        <li><b>You'll be asked about a second folder.</b> If you use a tool that isn't pre-built, Claude builds a connector for it and asks where you keep your projects — point it at Documents. That's expected.</li>
+        <li><b>Restart Claude Code when asked.</b> After connecting a tool, a full restart (quit and reopen, not reload) is sometimes needed for it to show up. Claude tells you when.</li>
+        <li><b>Your keys never touch the chat.</b> If anything ever asks you to paste a key into the conversation, that's not how this works — keys only go into the local files Claude opens for you.</li>
+        <li><b>Some tools are plan-gated.</b> A few APIs (PriceLabs, Smoobu, Lodgify, Turno, Breezeway) require a paid tier or an approval step — if access is blocked, contact that vendor's support.</li>
+      </ul>
+    </section>
+
+    <!-- SAFETY -->
+    <hr class="rule">
+    <section>
+      <h2 class="display">Why you can trust it — the safety layer</h2>
+      <p class="section-sub">Every recommendation passes through built-in guardrails before you ever see it:</p>
+      <ul class="safety">
+        <li><span class="chk">✓</span><div><b>Floor &amp; ceiling:</b> never a price below your minimum or above your maximum.</div></li>
+        <li><span class="chk">✓</span><div><b>No wild swings:</b> no single recommendation moves your price more than 25% at once.</div></li>
+        <li><span class="chk">✓</span><div><b>Honest about thin data:</b> if the comp data is light, it says so instead of faking confidence.</div></li>
+        <li><span class="chk">✓</span><div><b>Currency-safe:</b> it won't mix currencies and hand you a nonsense number.</div></li>
+        <li><span class="chk">✓</span><div><b>Human approval, always:</b> it recommends, you approve, then — and only then — it logs the change. Nothing is ever pushed silently.</div></li>
+      </ul>
+    </section>
+
+    <!-- WALKTHROUGH -->
+    <hr class="rule">
+    <section>
+      <h2 class="display">Watch the walkthrough</h2>
+      <div class="feature">
+        <p>📺 <a href="https://www.loom.com/share/738aa85f18144db08004ed9c144df92a" target="_blank" rel="noopener">Watch the 5-minute setup walkthrough</a> — it shows the whole flow end to end. You don't need it to start (the setup is fully self-contained and Claude guides every step), but it's a great overview.</p>
+      </div>
+    </section>
+
+    <!-- COMMUNITY -->
+    <hr class="rule">
+    <section>
+      <h2 class="display">Want help, or want to go deeper?</h2>
+      <div class="feature">
+        <p>This came out of the <b>Solnest AI community</b>, where we teach STR operators to wire AI into their business themselves. Come hang out, ask questions live, and tune your pricing strategy with us: <a href="https://www.skool.com/solnest-ai" target="_blank" rel="noopener">skool.com/solnest-ai</a></p>
+      </div>
+    </section>
+
+    <!-- BONUS DOWNLOADS -->
+    <hr class="rule">
+    <section id="bonus">
+      <h2 class="display">🎁 Bonus — the rest of the toolkit</h2>
+      <p class="bonus-intro">While you're here, grab the other Solnest AI kits — all free. Each one is a drop-in Claude Code skill: download the <code>.zip</code>, unzip it, drag the folder into Claude Code, and say <code>set this up</code>. Same easy flow as the Revenue Manager above.</p>
+      <div class="cards">
+
+        <article class="card dl-card">
+          <div class="card-top"><h3>Set Up My Connectors</h3><span class="badge gold">Start here</span></div>
+          <p class="dl-desc">One-shot setup that wires <b>Higgsfield</b>, <b>Descript</b> &amp; <b>Firecrawl</b> into Claude Code for you — the integrations the kits below rely on.</p>
+          <a class="card-dl" href="downloads/Set-Up-My-Connectors.zip" download>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 10l5 5 5-5M5 21h14"/></svg>
+            Download <span class="sz">.zip</span>
+          </a>
+        </article>
+
+        <article class="card dl-card">
+          <div class="card-top"><h3>Lexi — Listing Copywriter</h3></div>
+          <p class="dl-desc">Paste a property link, answer one question, and Lexi writes a long-form, SEO-optimized listing description — plus trimmed Airbnb &amp; VRBO versions, ready to paste.</p>
+          <a class="card-dl" href="downloads/Lexi-Setup-Kit.zip" download>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 10l5 5 5-5M5 21h14"/></svg>
+            Download <span class="sz">.zip</span>
+          </a>
+        </article>
+
+        <article class="card dl-card">
+          <div class="card-top"><h3>Stella — Listing Video Director</h3></div>
+          <p class="dl-desc">Paste a listing link and walk away. Stella hands back a finished 20–25 second cinematic luxury walkthrough video, ready to post. Zero code.</p>
+          <a class="card-dl" href="downloads/Stella-Setup-Kit.zip" download>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 10l5 5 5-5M5 21h14"/></svg>
+            Download <span class="sz">.zip</span>
+          </a>
+        </article>
+
+        <article class="card dl-card">
+          <div class="card-top"><h3>Goldie — Content Gold Miner</h3></div>
+          <p class="dl-desc">Turns your meeting transcripts into a week of content — it finds the moments worth posting (the wins, the aha lines) and writes the posts for you.</p>
+          <a class="card-dl" href="downloads/goldie-content-miner.zip" download>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 10l5 5 5-5M5 21h14"/></svg>
+            Download <span class="sz">.zip</span>
+          </a>
+        </article>
+
+        <article class="card dl-card">
+          <div class="card-top"><h3>Carrie — Carousel Sniper</h3></div>
+          <p class="dl-desc">Turns your ideas into scroll-stopping, multi-slide carousel posts — set it up once and let it run.</p>
+          <a class="card-dl" href="downloads/Carrie.zip" download>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 10l5 5 5-5M5 21h14"/></svg>
+            Download <span class="sz">.zip</span>
+          </a>
+        </article>
+
+        <article class="card dl-card">
+          <div class="card-top"><h3>VIP Listing Audit</h3></div>
+          <p class="dl-desc">Runs a full VIP audit of a short-term-rental listing against market benchmarks — the gaps, the fixes, and the money left on the table.</p>
+          <a class="card-dl" href="downloads/VIP-Listing-Audit.zip" download>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 10l5 5 5-5M5 21h14"/></svg>
+            Download <span class="sz">.zip</span>
+          </a>
+        </article>
+
+      </div>
+    </section>
+
+  </main>
+
+  <footer>
+    <p class="promise-line">Built by <b>Solnest AI</b>. Recommend-only — you approve every change, nothing is pushed silently. That's the whole promise.</p>
+    <p><a href="https://www.skool.com/solnest-ai" target="_blank" rel="noopener">skool.com/solnest-ai</a></p>
+  </footer>
+
+</body>
+</html>
