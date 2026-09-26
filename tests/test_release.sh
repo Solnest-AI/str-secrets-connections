@@ -36,11 +36,20 @@ cat > "$BIN/netlify" <<'SH'
 echo "netlify $*" >> "$STATE/calls.log"
 [ "${NETLIFY_AUTH_TOKEN:-}" = good-token ] || { echo "JSONHTTPError: Unauthorized" >&2; exit 1; }
 case "$1 $2" in
-  "api getSite") printf '{"name":"kit","published_deploy":{"id":"%s"}}\n' "$(cat "$STATE/deploy_id")" ;;
+  "api getSite") printf '{"name":"kit","account_id":"acct-1","published_deploy":{"id":"%s"}}\n' "$(cat "$STATE/deploy_id")" ;;
+  "api getAccount") if [ -f "$STATE/credit_deploys" ]; then   # a credit plan; otherwise a plan with no credits
+                    echo '{"plan_credits":300,"current_billing_period_start":"2026-09-01T00:00:00.000-07:00","next_billing_period_start":"2026-10-01T00:00:00.000-07:00"}'
+                  else echo '{}'; fi ;;
+  "api listSites") echo '[{"id":"site-1","account_id":"acct-1"},{"id":"other","account_id":"acct-2"}]' ;;
+  "api listSiteDeploys") python3 -c 'import json,sys; n=int(open(sys.argv[1]).read()) if len(sys.argv)>1 else 0
+print(json.dumps([{"id":"h%d"%i,"context":"production","state":"ready","created_at":"2026-09-10T10:00:00.000Z"} for i in range(n)]
+ + [{"id":"old","context":"production","state":"ready","created_at":"2026-08-10T10:00:00.000Z"},
+    {"id":"pre","context":"deploy-preview","state":"ready","created_at":"2026-09-11T10:00:00.000Z"}]))' $( [ -f "$STATE/credit_deploys" ] && echo "$STATE/credit_deploys") ;;
   "api restoreSiteDeploy") id="$(printf '%s' "$4" | python3 -c 'import json,sys; print(json.load(sys.stdin)["deploy_id"])')"
                   [ -d "$STATE/deploys/$id" ] || exit 1
                   echo "$id" > "$STATE/deploy_id"; rm -rf "$STATE/web"; cp -R "$STATE/deploys/$id" "$STATE/web"; echo '{}' ;;
-  "deploy "*) dir=""; while [ $# -gt 0 ]; do [ "$1" = --dir ] && dir="$2"; shift; done
+  "deploy "*) [ -f "$STATE/forbid" ] && { echo " ›   JSONHTTPError: Forbidden" >&2; exit 1; }
+                  dir=""; while [ $# -gt 0 ]; do [ "$1" = --dir ] && dir="$2"; shift; done
                   id="d$(( $(ls "$STATE/deploys" | wc -l) + 1 ))"
                   cp -R "$dir" "$STATE/deploys/$id"; rm -rf "$STATE/web"; cp -R "$dir" "$STATE/web"; echo "$id" > "$STATE/deploy_id"
                   echo "Deploy path: $dir"; printf '{"deploy_id":"%s","site_name":"kit"}\n' "$id" ;;
@@ -56,6 +65,7 @@ emit() { if [ -n "$out" ]; then cat > "$out"; else cat; fi; }
 case "$url" in
   https://github.com/*/releases/latest/download/*) f="$STATE/assets/${url##*/}"; [ -f "$f" ] || exit 22; emit < "$f" ;;
   "$SITE_URL/?"*|"$SITE_URL/")   # the live page, with the two things Netlify really injects (and optional damage)
+    [ -f "$STATE/web/index.html" ] || exit 22
     python3 - "$STATE/web/index.html" "$STATE/corrupt" <<'PY' | emit
 import os, sys
 lines = open(sys.argv[1]).read().split("\n")
@@ -91,7 +101,7 @@ set_version() {
 commit_at() { g add -A; GIT_AUTHOR_DATE="@$1 +0000" GIT_COMMITTER_DATE="@$1 +0000" g commit -qm "$2"; }
 run() {
   ( cd "$R" && iso_home "$W/home" && env PATH="$BIN:$PATH" STATE="$STATE" SITE_URL="$SITE_URL" \
-      RELEASE_REPO=test/kit RELEASE_SITE_ID=site-1 RELEASE_SITE_URL="$SITE_URL" NETLIFY_AUTH_TOKEN="${TOKEN:-good-token}" \
+      RELEASE_POLL_SECONDS=0 RELEASE_REPO=test/kit RELEASE_SITE_ID=site-1 RELEASE_SITE_URL="$SITE_URL" NETLIFY_AUTH_TOKEN="${TOKEN:-good-token}" \
       bash scripts/release.sh "$@" ) > "$W/out.txt" 2>&1
 }
 calls() { grep -c "$1" "$STATE/calls.log" 2>/dev/null || true; }
@@ -133,19 +143,33 @@ t "prints the rollback to the previous page"     "grep -q 'rollback d1' '$W/out.
 : > "$STATE/calls.log"
 t "publish again succeeds"                       "run --publish"
 t "re-run skips push, tag and release"           "grep -q 'already on GitHub, skip' '$W/out.txt' && grep -q 'already at this commit, skip' '$W/out.txt' && [ \$(calls 'release create') = 0 ]"
+t "re-run does not redeploy a matching page"     "grep -q 'already matches v1.0.9, no deploy needed' '$W/out.txt' && [ \$(calls 'netlify deploy') = 0 ]"
+t "re-run marks the release Latest explicitly"   "grep -q 'gh release edit v1.0.9 .*--latest' '$STATE/calls.log'"
 
 # ---------- rollback ----------
 t "rollback to the old page"                     "run --rollback d1 && [ \"\$(cat '$STATE/deploy_id')\" = d1 ] && grep -q 'Version 1.0.8' '$W/out.txt'"
 t "rollback to an unknown deploy fails"          "! run --rollback nope"
 
 # ---------- a site that has never been deployed ----------
-: > "$STATE/deploy_id"
+: > "$STATE/deploy_id"; rm -rf "$STATE/web"
 t "first deploy says there is nothing to roll back to" "run --publish && grep -q \"site's first deploy\" '$W/out.txt' && ! grep -qE 'rollback *\$' '$W/out.txt'"
 
 # ---------- a damaged live page is caught ----------
 touch "$STATE/corrupt"
-t "damaged live page fails the publish"          "! run --publish && grep -q 'differs from v1.0.9' '$W/out.txt' && grep -q 'rollback' '$W/out.txt'"
+t "damaged live page fails the publish"          "! run --publish && grep -q 'content differs' '$W/out.txt' && grep -q 'rollback' '$W/out.txt'"
 rm -f "$STATE/corrupt"
+
+# ---------- Netlify credits (free plan: 15 per production deploy, the whole team pauses at the limit) ----------
+rm -rf "$STATE/web"; echo 2 > "$STATE/credit_deploys"
+t "credit use shown in the check"                "run && grep -q '2 production deploys on this Netlify team since 2026-09-01 = 30 of 300' '$W/out.txt'"
+echo 17 > "$STATE/credit_deploys"
+t "deploy refused when credits run low"          "! run && grep -q 'pauses EVERY site' '$W/out.txt' && grep -q 'until 2026-10-01' '$W/out.txt'"
+t "publish refused before touching GitHub"       ": > '$STATE/calls.log'; ! run --publish && [ \$(calls 'release create') = 0 ] && [ \$(calls 'release upload') = 0 ] && [ \$(calls 'release edit') = 0 ] && [ \$(calls 'netlify deploy') = 0 ]"
+run --rollback d2 >/dev/null 2>&1 || cp -R "$STATE/deploys/d2" "$STATE/web"
+t "low credits do not block when no deploy is needed" "run && grep -q 'already matches v1.0.9, skip' '$W/out.txt'"
+rm -f "$STATE/credit_deploys"; rm -rf "$STATE/web"; touch "$STATE/forbid"
+t "Netlify 403 explained as the credit limit"    "! run --publish && grep -q '403 Forbidden' '$W/out.txt' && grep -q 'live page is unchanged' '$W/out.txt'"
+rm -f "$STATE/forbid"
 
 # ---------- refusals ----------
 TOKEN=bad t "no Netlify login that sees the site"   "! run && grep -q 'no Netlify login' '$W/out.txt'"

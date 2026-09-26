@@ -22,6 +22,7 @@ SITE_URL="${RELEASE_SITE_URL:-https://str-secrets-connections.netlify.app}"
 ZIP_NAME="str-secrets-connections"
 GUIDE="guide/connections-setup-guide.html"
 PDF="guide/Connections-Setup-Guide.pdf"
+POLL="${RELEASE_POLL_SECONDS:-5}"   # seconds between live checks (the offline tests set 0)
 
 say() { printf '%s\n' "$*"; }
 ok()  { printf '  ok    %s\n' "$*"; }
@@ -96,16 +97,6 @@ nf() { NETLIFY_AUTH_TOKEN="$NF_TOKEN" netlify "$@"; }
 # fetch_live OUT : download the live guide page, bypassing caches.
 fetch_live() { curl -fsS -H 'Cache-Control: no-cache' -o "$1" "$SITE_URL/?release-check=$(date +%s)$RANDOM"; }
 
-# wait_live_version V OUT : poll the live page (up to ~60s) until it shows exactly "Version V".
-wait_live_version() {
-  local i
-  for i in 1 2 3 4 5 6 7 8 9 10 11 12; do
-    if fetch_live "$2" 2>/dev/null && [ "$(live_version "$2")" = "Version $1" ]; then return 0; fi
-    sleep 5
-  done
-  return 1
-}
-
 # build_site REV OUT : the guide page exactly as committed at REV: index.html plus every local file it links.
 build_site() {
   local rev="$1" out="$2" ref
@@ -154,6 +145,84 @@ sys.exit(1 if bad else 0)
 PY
 }
 
+# live_matches DIR : 0 when the live page and every file it links are the same as DIR's (Netlify's own injected
+# lines aside). On a mismatch, sets MISMATCH to what differs.
+MISMATCH=""
+live_matches() {
+  local dir="$1" f
+  MISMATCH=""
+  fetch_live "$TMP/live.html" 2>/dev/null || { MISMATCH="the live page did not load"; return 1; }
+  [ "$(live_version "$TMP/live.html")" = "$(live_version "$dir/index.html")" ] \
+    || { MISMATCH="the live page shows '$(live_version "$TMP/live.html")'"; return 1; }
+  same_as_built "$TMP/live.html" "$dir/index.html" > "$TMP/mismatch.txt" \
+    || { MISMATCH="the live page's content differs:
+$(cat "$TMP/mismatch.txt")"; return 1; }
+  while IFS= read -r f; do
+    f="${f#./}"
+    [ "$f" = index.html ] && continue
+    curl -fsS -o "$TMP/live-file" "$SITE_URL/$f" 2>/dev/null && cmp -s "$TMP/live-file" "$dir/$f" \
+      || { MISMATCH="the live $f is missing or different"; return 1; }
+  done < <(cd "$dir" && find . -type f)
+  return 0
+}
+
+# netlify_credits : on Netlify's credit plans a production deploy costs 15 credits, and when a team runs out,
+# Netlify pauses EVERY site on that team (this page included) until the next billing period. Counts this period's
+# production deploys across the whole team; sets NF_CREDIT_LINE, and NF_CREDIT_BLOCK when one more deploy would
+# leave less than a traffic reserve (page views and bandwidth also cost credits and are not visible in the API).
+NF_CREDIT_LINE=""; NF_CREDIT_BLOCK=""
+netlify_credits() {
+  local acct out
+  acct="$(json_get "$TMP/site.json" account_id)"
+  [ -n "$acct" ] || return 0
+  nf api getAccount --data "{\"account_id\":\"$acct\"}" > "$TMP/account.json" 2>/dev/null || return 0
+  nf api listSites --data '{"filter":"all","per_page":100}' > "$TMP/sites.json" 2>/dev/null || return 0
+  out="$(NETLIFY_AUTH_TOKEN="$NF_TOKEN" python3 - "$TMP/account.json" "$TMP/sites.json" "$acct" <<'PY'
+import json, subprocess, sys
+from datetime import datetime
+acct = json.load(open(sys.argv[1])); sites = json.load(open(sys.argv[2])); acct_id = sys.argv[3]
+plan = acct.get("plan_credits") or ((acct.get("capabilities") or {}).get("credits") or {}).get("included")
+start = acct.get("current_billing_period_start") or acct.get("current_usage_period_start")
+nxt = (acct.get("next_billing_period_start") or acct.get("next_usage_period_start") or "")[:10]
+if not plan or not start:
+    sys.exit(0)                                    # not a credit plan: nothing to guard
+start = datetime.fromisoformat(start.replace("Z", "+00:00"))
+count = 0
+for s in sites:
+    if s.get("account_id") != acct_id:
+        continue
+    for page in range(1, 11):
+        r = subprocess.run(["netlify", "api", "listSiteDeploys", "--data",
+                            json.dumps({"site_id": s["id"], "page": page, "per_page": 100})],
+                           capture_output=True, text=True)
+        try:
+            ds = json.loads(r.stdout)
+        except Exception:
+            print("ERR"); sys.exit(0)
+        recent = [d for d in ds if datetime.fromisoformat(d["created_at"].replace("Z", "+00:00")) >= start]
+        count += sum(1 for d in recent if d.get("context") == "production" and d.get("state") == "ready")
+        if len(ds) < 100 or len(recent) < len(ds):
+            break
+used = count * 15
+reserve = max(45, int(plan * 0.15))
+line = (f"{count} production deploys on this Netlify team since {start.date()} = {used} of {plan} credits "
+        f"(resets {nxt}; page traffic uses credits too and is not counted)")
+block = used + 15 > plan - reserve
+print(("BLOCK\t" if block else "OK\t") + line + f"\t{nxt}\t{reserve}")
+PY
+)"
+  case "$out" in
+    ERR*|"") NF_CREDIT_LINE="Netlify credit count unavailable" ;;
+    *) NF_CREDIT_LINE="$(printf '%s' "$out" | cut -f2)"
+       if [ "$(printf '%s' "$out" | cut -f1)" = BLOCK ]; then
+         NF_CREDIT_BLOCK="Netlify: $NF_CREDIT_LINE.
+   One more production deploy would leave under $(printf '%s' "$out" | cut -f4) credits for page traffic. When the team runs
+   out, Netlify pauses EVERY site on it, this guide page included, until $(printf '%s' "$out" | cut -f3).
+   Wait until then, or move the team to a plan with more credits. Nothing was changed."
+       fi ;;
+  esac
+}
+
 # ---------- rollback ----------
 
 if [ "$MODE" = rollback ]; then
@@ -161,7 +230,7 @@ if [ "$MODE" = rollback ]; then
   say "Putting guide page deploy $ROLLBACK_ID back live (Netlify login: $NF_WHO)"
   nf api restoreSiteDeploy --data "{\"site_id\":\"$SITE_ID\",\"deploy_id\":\"$ROLLBACK_ID\"}" > "$TMP/restore.json" 2>&1 \
     || { tail -3 "$TMP/restore.json" >&2; die "Netlify refused the rollback. Deploy IDs: netlify api listSiteDeploys --data '{\"site_id\":\"$SITE_ID\"}'"; }
-  sleep 3
+  sleep "$POLL"
   nf api getSite --data "{\"site_id\":\"$SITE_ID\"}" > "$TMP/site.json"
   now="$(json_get "$TMP/site.json" published_deploy.id)"
   [ "$now" = "$ROLLBACK_ID" ] || die "Netlify still reports deploy $now as live, not $ROLLBACK_ID"
@@ -260,6 +329,11 @@ prev_deploy="$(json_get "$TMP/site.json" published_deploy.id)"
 live_now="unreachable"
 fetch_live "$TMP/live-before.html" 2>/dev/null && live_now="$(live_version "$TMP/live-before.html")"
 ok "Netlify login $NF_WHO can deploy the guide site (live now: ${live_now:-no version shown})"
+need_deploy=1
+if live_matches "$TMP/check-site"; then need_deploy=0; fi
+netlify_credits
+[ -n "$NF_CREDIT_LINE" ] && ok "$NF_CREDIT_LINE"
+if [ "$need_deploy" = 1 ] && [ -n "$NF_CREDIT_BLOCK" ]; then die "$NF_CREDIT_BLOCK"; fi
 
 # ---------- plan ----------
 
@@ -268,7 +342,8 @@ say "Release $TAG from ${HEAD_SHA:0:7} \"$(git log -1 --format=%s)\""
 if [ "$push_n" -gt 0 ]; then say "  1. push main       $push_n new commit(s) to GitHub"; else say "  1. push main       already on GitHub, skip"; fi
 if [ -n "$remote_tag" ]; then say "  2. tag            $TAG already at this commit, skip"; else say "  2. tag            create $TAG at ${HEAD_SHA:0:7}"; fi
 if [ "$rel_exists" = 1 ]; then say "  3. GitHub release $TAG exists, re-check its zips"; else say "  3. GitHub release create $TAG with both zips, mark it Latest"; fi
-say "  4. guide page     deploy index.html + $((n_files - 1)) linked file(s) from $TAG (live now: ${live_now:-?})"
+if [ "$need_deploy" = 1 ]; then say "  4. guide page     deploy index.html + $((n_files - 1)) linked file(s) from $TAG (live now: ${live_now:-?})"
+else say "  4. guide page     live page already matches $TAG, skip (no Netlify credits used)"; fi
 say "  5. verify         the download link and the live page both match $TAG"
 
 if [ "$MODE" = check ]; then
@@ -302,7 +377,9 @@ else
     python3 -c 'import json,sys; sys.exit(0 if any(a.get("name")==sys.argv[2] for a in json.load(open(sys.argv[1])).get("assets",[])) else 1)' "$TMP/rel.json" "$n" \
       || { gh release upload "$TAG" "$z" -R "$REPO" >/dev/null || die "could not attach $n"; ok "attached missing $n"; }
   done
-  [ "$latest" = "$TAG" ] || { gh release edit "$TAG" -R "$REPO" --latest >/dev/null; ok "marked $TAG Latest"; }
+  # Always set it explicitly: GitHub's releases/latest download link can lag minutes behind an automatic Latest.
+  gh release edit "$TAG" -R "$REPO" --latest >/dev/null || die "could not mark $TAG as the Latest release"
+  ok "$TAG marked Latest"
 fi
 
 gh release download "$TAG" -R "$REPO" -D "$TMP/dl" -p "$ZIP_NAME-$TAG.zip" -p "$ZIP_NAME.zip" --clobber >/dev/null \
@@ -311,47 +388,55 @@ cmp -s "$TMP/dl/$ZIP_NAME-$TAG.zip" "$Z1" && cmp -s "$TMP/dl/$ZIP_NAME.zip" "$Z1
   || die "the zips on the $TAG release are not git archive of $TAG. Replace them:
    git archive --format=zip --prefix=$ZIP_NAME/ $TAG -o $ZIP_NAME.zip && cp $ZIP_NAME.zip $ZIP_NAME-$TAG.zip
    gh release upload $TAG $ZIP_NAME.zip $ZIP_NAME-$TAG.zip --clobber -R $REPO"
-latest_ok=0
-for i in 1 2 3 4 5 6; do
+latest_ok=0; waited=0
+for i in $(seq 1 36); do
   if curl -fsSL -o "$TMP/dl/latest.zip" "https://github.com/$REPO/releases/latest/download/$ZIP_NAME.zip" 2>/dev/null \
      && cmp -s "$TMP/dl/latest.zip" "$Z1"; then latest_ok=1; break; fi
-  sleep 5
+  [ "$waited" = 1 ] || { say "  ..    waiting for GitHub's download link to switch to $TAG (can take a minute or two)"; waited=1; }
+  sleep "$POLL"
 done
-[ "$latest_ok" = 1 ] || die "the README's download link (releases/latest) does not serve $TAG yet. The page was NOT deployed; run this again"
+[ "$latest_ok" = 1 ] || die "after 3 minutes the README's download link (releases/latest) still does not serve $TAG.
+   The page was NOT deployed. Run this again in a few minutes (it skips what is already done)"
 ok "download link serves $TAG, byte-identical to the tag"
 
 mkdir -p "$TMP/web"
 build_site "$HEAD_SHA" "$TMP/web/site"
-( cd "$TMP/web" && nf deploy --prod --no-build --dir site --site "$SITE_ID" --message "$TAG (${HEAD_SHA:0:7})" --json ) \
-  > "$TMP/deploy.json" 2> "$TMP/deploy.err" \
-  || { tail -5 "$TMP/deploy.err" >&2; die "netlify deploy failed. Netlify only switches the live page once a deploy completes, so it should still be ${live_now:-the previous version}"; }
-new_deploy="$(json_get "$TMP/deploy.json" deploy_id)"
-[ -n "$new_deploy" ] || die "netlify deploy returned no deploy id; check the site before re-running"
-ok "deployed the guide page (deploy $new_deploy)"
-
 if [ -n "$prev_deploy" ]; then undo="   Undo the page: scripts/release.sh --rollback $prev_deploy"
 else undo="   This was the site's first deploy, so there is no earlier page to roll back to."; fi
-wait_live_version "$V" "$TMP/live.html" \
-  || die "the live page shows '$(live_version "$TMP/live.html")', not Version $V, after 60s.
+if live_matches "$TMP/web/site"; then
+  new_deploy="$prev_deploy"
+  undo="   The page was not redeployed, so there is nothing to undo."
+  ok "the live page already matches $TAG, no deploy needed (no Netlify credits used)"
+else
+  ( cd "$TMP/web" && nf deploy --prod --no-build --dir site --site "$SITE_ID" --message "$TAG (${HEAD_SHA:0:7})" --json ) \
+    > "$TMP/deploy.json" 2> "$TMP/deploy.err" || {
+      tail -5 "$TMP/deploy.err" >&2
+      if grep -q 'Forbidden' "$TMP/deploy.err"; then
+        die "Netlify refused the deploy (403 Forbidden). On Netlify's free credit plan that means the team's monthly
+   credits are (nearly) used up. ${NF_CREDIT_LINE:-}. The live page is unchanged. GitHub already has $TAG, so
+   re-run this after the credits reset (it skips what is already done)"
+      fi
+      die "netlify deploy failed. Netlify only switches the live page once a deploy completes, so it should still be ${live_now:-the previous version}"
+    }
+  new_deploy="$(json_get "$TMP/deploy.json" deploy_id)"
+  [ -n "$new_deploy" ] || die "netlify deploy returned no deploy id; check the site before re-running"
+  ok "deployed the guide page (deploy $new_deploy)"
+  ok_live=0
+  for i in $(seq 1 12); do
+    if live_matches "$TMP/web/site"; then ok_live=1; break; fi
+    sleep "$POLL"
+  done
+  [ "$ok_live" = 1 ] || die "after 60s, $MISMATCH
 $undo"
-same_as_built "$TMP/live.html" "$TMP/web/site/index.html" \
-  || die "the live page shows Version $V but its content differs from $TAG (lines above).
+  nf api getSite --data "{\"site_id\":\"$SITE_ID\"}" > "$TMP/site-after.json"
+  [ "$(json_get "$TMP/site-after.json" published_deploy.id)" = "$new_deploy" ] \
+    || die "Netlify reports a different deploy as live than the one just made.
 $undo"
-while IFS= read -r f; do
-  f="${f#./}"
-  [ "$f" = index.html ] && continue
-  curl -fsS -o "$TMP/live-file" "$SITE_URL/$f" 2>/dev/null && cmp -s "$TMP/live-file" "$TMP/web/site/$f" \
-    || die "the live page's $f is missing or differs from $TAG.
-$undo"
-done < <(cd "$TMP/web/site" && find . -type f)
-nf api getSite --data "{\"site_id\":\"$SITE_ID\"}" > "$TMP/site-after.json"
-[ "$(json_get "$TMP/site-after.json" published_deploy.id)" = "$new_deploy" ] \
-  || die "Netlify reports a different deploy as live than the one just made.
-$undo"
+fi
 ok "live page shows Version $V and matches $TAG byte for byte (apart from Netlify's own tags)"
 
 say ""
 say "✅ $TAG released"
 say "   GitHub: https://github.com/$REPO/releases/tag/$TAG"
-say "   Guide:  $SITE_URL (deploy $new_deploy)"
+say "   Guide:  $SITE_URL (deploy ${new_deploy:-unknown})"
 say "$undo"
