@@ -3,31 +3,44 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Connections Setup Guide | Solnest AI</title>
+<title>Connections Setup Guide | STR Secrets AI Summit 2.0</title>
 <meta name="description" content="Everything you need to connect your tools before STR Secrets AI Summit 2.0. Do it the week before, at home.">
-<link rel="icon" href="assets/solnest-logo.png">
+<link rel="icon" href="assets/str-secrets-favicon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Roboto+Slab:wght@400;700&family=Open+Sans:wght@400;600;700&display=swap" rel="stylesheet">
 <style>
   :root{
-    --page-bg:#faf7f1;
-    --card-bg:#fcfaf6;
-    --card-border:#e4dccd;
-    --ink:#241914;
-    --ink-strong:#0d0d0b;
-    --muted:#6f635a;
-    --muted-2:#9a8f84;
-    --brick:#8c3b2e;
-    --terra:#c65d3b;
-    --gold:#c9a24b;
-    --code-bg:#efe7d6;
-    --promise-bg:#f6efe6;
-    --promise-bd:#e7d8c4;
-    --keys-bg:#fbeee9;
-    --keys-bd:#e8c7ba;
-    --today-bg:#fbf3df;
-    --today-bd:#e9d49c;
-    --header-bg:#0d0d0b;
-    --sans:"Segoe UI",system-ui,-apple-system,Roboto,Helvetica,Arial,sans-serif;
-    --serif:Georgia,"Times New Roman",serif;
+    /* Palette lifted from strsecrets.com (Avada theme, computed styles) */
+    --blue:#0a99d2;        /* links, accents, dividers, hero band */
+    --blue-dark:#0880b3;
+    --navy:#333c4e;        /* headings and dark sections */
+    --slate:#4a4e57;       /* body copy */
+    --grey:#7e8890;        /* muted copy */
+    --cyan:#00bcd4;        /* secondary CTA on their site */
+    --warm:#f7f5f4;        /* alternating section background */
+    --line:#e7e4e2;        /* borders */
+
+    --page-bg:#ffffff;
+    --card-bg:#ffffff;
+    --card-border:var(--line);
+    --ink:var(--slate);
+    --ink-strong:var(--navy);
+    --muted:var(--grey);
+    --muted-2:#9aa3a9;
+    --brick:var(--blue);
+    --terra:var(--blue);
+    --gold:var(--blue);   /* legacy alias, now brand blue */
+    --code-bg:var(--warm);
+    --promise-bg:var(--warm);
+    --promise-bd:var(--line);
+    --keys-bg:#eaf6fc;
+    --keys-bd:#bfe3f5;
+    --today-bg:#eaf6fc;
+    --today-bd:#bfe3f5;
+    --header-bg:#ffffff;
+    --sans:"Open Sans",Arial,Helvetica,sans-serif;
+    --serif:"Roboto Slab",Georgia,"Times New Roman",serif;
     --mono:ui-monospace,"Cascadia Mono",Consolas,"SF Mono",Menlo,monospace;
   }
 
@@ -52,9 +65,9 @@
   code{
     font-family:var(--mono);
     background:var(--code-bg);
-    color:#5a3326;
+    color:var(--navy);
     padding:.12em .42em;
-    border-radius:6px;
+    border-radius:0;
     font-size:.86em;
     font-weight:600;
   }
@@ -63,40 +76,45 @@
   .site-header{
     background:var(--header-bg);
     text-align:center;
-    padding:30px 16px 34px;
-    background-image:radial-gradient(900px 220px at 50% -40%, rgba(201,162,75,.16), transparent 70%);
+    padding:26px 16px 24px;
+    border-bottom:3px solid var(--blue);
   }
   .site-header img{
     width:100%;
-    max-width:420px;
+    max-width:320px;      /* 1500px master, so it stays crisp on retina */
     height:auto;
     display:block;
     margin:0 auto;
+    image-rendering:-webkit-optimize-contrast;
+  }
+  .site-header .by{
+    margin:14px 0 0;color:var(--grey);font-size:.74rem;font-weight:700;
+    letter-spacing:.14em;text-transform:uppercase;
   }
 
   /* ---------- Watch this first (top of page, above the hero) ---------- */
   .watch-first{
-    background:var(--header-bg);
-    background-image:radial-gradient(900px 260px at 50% -30%, rgba(198,93,59,.30), transparent 72%);
-    border-top:3px solid var(--terra);
-    border-bottom:3px solid var(--terra);
+    background:var(--navy);
+    border-top:0;
+    border-bottom:4px solid var(--blue);
     padding:26px 16px 30px;
     text-align:center;
   }
   .watch-first .wf-kicker{
     display:inline-block;
-    background:var(--terra);
+    background:var(--blue);
     color:#fff;
-    font-weight:800;
-    letter-spacing:.08em;
+    font-weight:700;
+    letter-spacing:.14em;
     text-transform:uppercase;
-    font-size:.78rem;
-    padding:5px 13px;
-    border-radius:999px;
-    margin:0 0 12px;
+    font-size:.74rem;
+    padding:6px 14px;
+    border-radius:0;
+    margin:0 0 14px;
   }
   .watch-first h2{
     font-family:var(--serif);
+    letter-spacing:-.015em;
     color:#fff;
     font-weight:700;
     font-size:clamp(1.5rem,4vw,2.1rem);
@@ -104,7 +122,7 @@
     margin:0 0 8px;
   }
   .watch-first p.wf-sub{
-    color:#e8ded2;
+    color:#c9d0d8;
     font-size:clamp(.95rem,2.2vw,1.06rem);
     margin:0 auto 18px;
     max-width:54ch;
@@ -115,29 +133,32 @@
     max-width:760px;
     margin:0 auto 16px;
     padding-top:56.25%;
-    border-radius:12px;
+    border-radius:0;
     overflow:hidden;
     border:1px solid rgba(255,255,255,.18);
     box-shadow:0 18px 44px rgba(0,0,0,.45);
     background:#000;
   }
   .wf-frame iframe{position:absolute;inset:0;width:100%;height:100%;border:0;}
+  .wf-btn:hover{background:var(--blue-dark);}
   .wf-btn{
     display:inline-block;
-    background:var(--terra);
+    background:var(--blue);
     color:#fff !important;
-    font-weight:800;
-    font-size:1rem;
-    padding:12px 24px;
-    border-radius:999px;
+    font-weight:700;
+    font-size:.88rem;
+    letter-spacing:.1em;
+    text-transform:uppercase;
+    padding:14px 30px;
+    border-radius:0;
     text-decoration:none;
   }
-  .wf-url{color:#b9ada0;font-size:.82rem;margin:12px 0 0;word-break:break-all;}
+  .wf-url{color:#8d99a5;font-size:.82rem;margin:12px 0 0;word-break:break-all;}
 
   /* ---------- Hero ---------- */
   .hero{padding:44px 0 8px;}
   .hero .kicker{
-    color:var(--terra);font-weight:800;letter-spacing:.06em;text-transform:uppercase;
+    color:var(--blue);font-weight:700;letter-spacing:.14em;text-transform:uppercase;
     font-size:.86rem;margin:0 0 10px;
   }
   .hero h1{
@@ -147,7 +168,7 @@
     font-size:clamp(2.1rem,5.6vw,3.1rem);
     line-height:1.08;
     margin:0 0 14px;
-    letter-spacing:-.01em;
+    letter-spacing:-.015em;
   }
   .hero .lede{
     font-style:italic;
@@ -159,7 +180,7 @@
 
   /* ---------- Callouts ---------- */
   .callout{
-    border-radius:14px;
+    border-radius:0;
     padding:20px 22px;
     margin:22px 0;
     border:1px solid;
@@ -178,8 +199,9 @@
   /* ---------- Section headings ---------- */
   .section{padding:26px 0 6px;}
   .section-head{
-    color:var(--terra);
-    font-weight:800;
+    font-family:var(--serif);
+    color:var(--navy);
+    font-weight:700;
     font-size:clamp(1.35rem,3.2vw,1.75rem);
     letter-spacing:-.01em;
     margin:0 0 6px;
@@ -188,12 +210,13 @@
 
   .group-head{
     display:flex;align-items:center;gap:.6em;
-    color:var(--brick);font-weight:700;
+    font-family:var(--serif);
+    color:var(--navy);font-weight:700;
     font-size:1.14rem;margin:30px 0 14px;
   }
   .group-head::before{
-    content:"";width:11px;height:11px;border-radius:50%;
-    background:var(--gold);flex:0 0 auto;
+    content:"";width:11px;height:11px;border-radius:0;
+    background:var(--blue);flex:0 0 auto;
   }
 
   .display{
@@ -201,7 +224,7 @@
     font-size:clamp(1.65rem,4.2vw,2.2rem);line-height:1.14;
     margin:12px 0 16px;letter-spacing:-.01em;
   }
-  .rule{border:0;border-top:2px solid var(--gold);opacity:.85;margin:46px 0 24px;}
+  .rule{border:0;border-top:1px solid var(--blue);width:170px;margin:46px auto 26px;opacity:1;}
   .badge-inline{
     display:inline-block;vertical-align:middle;margin-left:.5em;
     font-size:.62em;font-weight:700;letter-spacing:.06em;text-transform:uppercase;
@@ -219,7 +242,7 @@
     background:var(--card-bg);
     border:1px solid var(--card-border);
     border-left:4px solid var(--gold);
-    border-radius:14px;
+    border-radius:0;
     padding:16px 18px 18px;
     display:flex;flex-direction:column;
   }
@@ -238,7 +261,7 @@
   .card ol li{padding-left:.1em;}
   .card .note{
     margin-top:10px;font-size:.84rem;color:var(--muted);
-    background:rgba(201,162,75,.1);border-radius:8px;padding:8px 11px;
+    background:var(--warm);border-radius:0;padding:8px 11px;
   }
   .grab{
     margin-top:12px;padding-top:10px;border-top:1px dashed var(--card-border);
@@ -253,46 +276,47 @@
   .install-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:12px 0;}
   .install-card{
     background:var(--card-bg);border:1px solid var(--card-border);
-    border-left:4px solid var(--gold);border-radius:14px;
+    border-left:4px solid var(--gold);border-radius:0;
     padding:16px 18px;
   }
   .install-card h3{margin:0 0 6px;font-size:1.08rem;}
   .install-card .login{margin:0 0 10px;}
   .btn{
     display:inline-flex;align-items:center;gap:.55em;
-    font-family:var(--sans);font-weight:700;font-size:.94rem;
-    padding:.7em 1.15em;border-radius:11px;border:2px solid transparent;
-    background:var(--brick);color:#fff;
+    font-family:var(--sans);font-weight:700;font-size:.82rem;
+    letter-spacing:.1em;text-transform:uppercase;
+    padding:.85em 1.3em;border-radius:0;border:0;
+    background:var(--blue);color:#fff;
   }
-  .btn:hover{background:#7a3227;text-decoration:none;}
+  .btn:hover{background:var(--blue-dark);text-decoration:none;}
   .btn-row{display:flex;flex-wrap:wrap;gap:12px;margin-top:6px;}
   .download p{text-align:left;margin:.45em 0;}
   .download .dl-label{font-weight:700;color:var(--brick);}
-  .download code.paste{display:block;padding:.7em .9em;background:#1a1512;color:#f6edd8;border-radius:9px;font-size:.92em;word-break:break-word;}
+  .download code.paste{display:block;padding:.7em .9em;background:var(--navy);color:#e9f4fa;border-radius:0;font-size:.92em;word-break:break-word;}
   .download .dl-btn{margin-top:10px;}
 
   /* ---------- Timeline / steps ---------- */
   .timeline{list-style:none;margin:8px 0 0;padding:0;position:relative;}
   .timeline::before{
     content:"";position:absolute;left:18px;top:14px;bottom:14px;width:2px;
-    background:linear-gradient(var(--gold),var(--card-border));
+    background:linear-gradient(var(--blue),var(--card-border));
   }
   .timeline > li{position:relative;display:flex;gap:18px;padding-bottom:26px;}
   .timeline > li:last-child{padding-bottom:0;}
   .num{
-    flex:0 0 auto;width:34px;height:34px;border-radius:50%;
-    background:var(--terra);color:#fff;font-weight:800;font-size:.98rem;
+    flex:0 0 auto;width:34px;height:34px;border-radius:0;
+    background:var(--blue);color:#fff;font-weight:700;font-size:.98rem;
     display:grid;place-items:center;
     box-shadow:0 0 0 5px var(--page-bg);
   }
   .step-body{padding-top:2px;min-width:0;}
-  .step-body h3{margin:4px 0 6px;color:var(--terra);font-size:1.14rem;font-weight:800;}
+  .step-body h3{margin:4px 0 6px;font-family:var(--serif);color:var(--navy);font-size:1.14rem;font-weight:700;}
   .step-body p{margin:.35em 0;}
 
   /* ---------- Download block ---------- */
   .download{
     background:var(--card-bg);border:1px solid var(--card-border);
-    border-radius:16px;padding:20px;margin:14px 0 16px;
+    border-radius:0;padding:20px;margin:14px 0 16px;
     text-align:center;
   }
   .dl-btn{
@@ -300,7 +324,7 @@
     background:var(--brick);color:#fff;font-weight:700;font-size:1.06rem;
     padding:.9em 1.5em;border-radius:13px;
   }
-  .dl-btn:hover{background:#7a3227;text-decoration:none;}
+  .dl-btn:hover{background:var(--blue-dark);text-decoration:none;}
 
   /* ---------- normal-not-bugs list ---------- */
   .normal{margin:8px 0 0;padding:0;list-style:none;display:flex;flex-direction:column;gap:12px;}
@@ -316,12 +340,12 @@
   .legend li{
     display:flex;gap:12px;align-items:baseline;
     background:var(--card-bg);border:1px solid var(--card-border);
-    border-radius:10px;padding:9px 14px;font-size:.95rem;
+    border-radius:0;padding:9px 14px;font-size:.95rem;
   }
   .legend .glyph{flex:0 0 auto;font-size:1.05rem;width:1.4em;}
 
   pre.sample{
-    background:var(--header-bg);color:#e9dfc9;border-radius:12px;
+    background:var(--navy);color:#e9f4fa;border-radius:0;
     padding:16px 18px;overflow-x:auto;font-family:var(--mono);
     font-size:.78rem;line-height:1.55;margin:12px 0;
   }
@@ -329,7 +353,7 @@
   /* ---------- feature / community blocks ---------- */
   .feature{
     background:var(--card-bg);border:1px solid var(--card-border);
-    border-left:4px solid var(--terra);border-radius:14px;padding:18px 20px;
+    border-left:4px solid var(--terra);border-radius:0;padding:18px 20px;
   }
   .feature p{margin:0 0 .5em;}
   .feature p:last-child{margin-bottom:0;}
@@ -337,13 +361,13 @@
   /* ---------- table (MCP directory) ---------- */
   table.mcp-directory{
     width:100%;border-collapse:collapse;margin:8px 0 6px;font-size:.88rem;
-    background:var(--card-bg);border:1px solid var(--card-border);border-radius:12px;overflow:hidden;
+    background:var(--card-bg);border:1px solid var(--card-border);border-radius:0;overflow:hidden;
   }
   table.mcp-directory th, table.mcp-directory td{
     text-align:left;padding:9px 12px;border-bottom:1px solid var(--card-border);vertical-align:top;
   }
   table.mcp-directory th{
-    background:var(--header-bg);color:#f0e6d2;font-weight:700;letter-spacing:.03em;
+    background:var(--navy);color:#ffffff;font-weight:700;letter-spacing:.06em;
     text-transform:uppercase;font-size:.72rem;
   }
   table.mcp-directory tr:last-child td{border-bottom:none;}
@@ -351,11 +375,11 @@
 
   /* ---------- Footer ---------- */
   footer{
-    background:var(--header-bg);color:#cdbfae;margin-top:56px;
+    background:var(--navy);color:#c9d0d8;margin-top:56px;
     padding:30px 22px;text-align:center;font-size:.9rem;
   }
   footer .promise-line{max-width:640px;margin:0 auto 6px;}
-  footer b{color:#f5ecd9;}
+  footer b{color:#ffffff;}
   footer a{color:var(--terra);}
   footer .version{color:var(--muted-2);font-size:.8rem;margin-top:10px;}
 
@@ -373,14 +397,16 @@
     a{color:var(--terra) !important;}
     .wrap{max-width:100%;padding:0;}
     .site-header{padding:12px 16px 14px;}
-    .site-header img{max-width:220px;}
+    .site-header img{max-width:190px;}
+    .site-header .by{font-size:.6rem;margin-top:8px;}
     .watch-first{padding:12px 16px 14px;border-top-width:2px;border-bottom-width:2px;}
     .watch-first .wf-kicker{font-size:.66rem;margin-bottom:6px;padding:3px 9px;}
     .watch-first h2{font-size:16px;margin:0 0 5px;}
     .watch-first p.wf-sub{font-size:10.5px;margin-bottom:8px;}
     .wf-frame{display:none;}
-    .wf-btn{font-size:11px;padding:7px 14px;}
-    .wf-url{font-size:9.6px;margin-top:8px;color:#8d8278;}
+    .wf-btn:hover{background:var(--blue-dark);}
+  .wf-btn{font-size:11px;padding:7px 14px;}
+    .wf-url{font-size:9.6px;margin-top:8px;color:#6b7680;}
     .hero{padding:14px 0 4px;}
     .hero .kicker{font-size:.72rem;margin-bottom:4px;}
     .hero h1{font-size:22px;margin:0 0 8px;}
@@ -432,7 +458,8 @@
 <body>
 
   <header class="site-header">
-    <img src="assets/solnest-logo.png" alt="Solnest AI">
+    <img src="assets/str-secrets-logo.png" alt="Short Term Rental Secrets">
+    <p class="by">AI Summit 2.0 &middot; Setup kit built by Solnest AI</p>
   </header>
 
   <!-- WATCH THIS FIRST -->
@@ -1119,7 +1146,7 @@ Summary: 14 connected, 0 missing, 1 pending vendor, 2 not used, 0 need restart, 
   <footer>
     <p class="promise-line">Built by <b>Solnest AI</b>. Your keys stay on your own computer, always. That's the whole promise.</p>
     <p><a href="mailto:ryan.lefebvre@strsecrets.com">ryan.lefebvre@strsecrets.com</a> · FB: Ryan Lefebvre · IG: <a href="https://www.instagram.com/ryan_le5" target="_blank" rel="noopener">ryan_le5</a></p>
-    <p class="version">Version 1.0.7</p>
+    <p class="version">Version 1.0.8</p>
   </footer>
 
 </body>

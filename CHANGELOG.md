@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.0.8 (2026-09-26)
+- The setup guide carries the STR Secrets AI Summit 2.0 branding (STR Secrets logo and favicon, page title) that the live guide page has shown since Sept 22. It was never committed, so the guide inside the download still said Solnest AI. The downloaded guide, its PDF and the web page now match.
+
 ## 1.0.7 (2026-09-26)
 - OwnerRez: the build doc and the OwnerRez connector said OwnerRez has no way to read nightly rates, so an OwnerRez server built from them could see bookings but not the attendee's own prices. It can: `GET /v2/calendar/{propertyId}` returns each night's status, rate, min nights and arrival/departure rules (measured live on 8 properties x 90 nights). Both files now say so and name the endpoint.
 - Smoobu: the build doc told Claude to connect with Smoobu's old single-key login (`Api-Key`, one variable) and to test it with a curl using that header, which contradicted the Smoobu connector page. A server built from the build doc would stop working when Smoobu switches that login off. The build doc now uses the signed login only (key plus secret, four headers, exactly as the connector page specifies) and says never to use the old one.
