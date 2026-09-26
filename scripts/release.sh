@@ -329,7 +329,8 @@ new_deploy="$(json_get "$TMP/deploy.json" deploy_id)"
 [ -n "$new_deploy" ] || die "netlify deploy returned no deploy id; check the site before re-running"
 ok "deployed the guide page (deploy $new_deploy)"
 
-undo="   Undo the page: scripts/release.sh --rollback $prev_deploy"
+if [ -n "$prev_deploy" ]; then undo="   Undo the page: scripts/release.sh --rollback $prev_deploy"
+else undo="   This was the site's first deploy, so there is no earlier page to roll back to."; fi
 wait_live_version "$V" "$TMP/live.html" \
   || die "the live page shows '$(live_version "$TMP/live.html")', not Version $V, after 60s.
 $undo"

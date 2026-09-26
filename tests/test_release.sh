@@ -138,6 +138,10 @@ t "re-run skips push, tag and release"           "grep -q 'already on GitHub, sk
 t "rollback to the old page"                     "run --rollback d1 && [ \"\$(cat '$STATE/deploy_id')\" = d1 ] && grep -q 'Version 1.0.8' '$W/out.txt'"
 t "rollback to an unknown deploy fails"          "! run --rollback nope"
 
+# ---------- a site that has never been deployed ----------
+: > "$STATE/deploy_id"
+t "first deploy says there is nothing to roll back to" "run --publish && grep -q \"site's first deploy\" '$W/out.txt' && ! grep -qE 'rollback *\$' '$W/out.txt'"
+
 # ---------- a damaged live page is caught ----------
 touch "$STATE/corrupt"
 t "damaged live page fails the publish"          "! run --publish && grep -q 'differs from v1.0.9' '$W/out.txt' && grep -q 'rollback' '$W/out.txt'"
