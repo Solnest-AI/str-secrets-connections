@@ -329,8 +329,28 @@ prev_deploy="$(json_get "$TMP/site.json" published_deploy.id)"
 live_now="unreachable"
 fetch_live "$TMP/live-before.html" 2>/dev/null && live_now="$(live_version "$TMP/live-before.html")"
 ok "Netlify login $NF_WHO can deploy the guide site (live now: ${live_now:-no version shown})"
+nf api listSiteSnippets --data "{\"site_id\":\"$SITE_ID\"}" > "$TMP/snips.json" 2>/dev/null || echo '[]' > "$TMP/snips.json"
+SNIPS="$(python3 -c 'import json,sys
+s = json.load(open(sys.argv[1])) or []
+print(", ".join(str(x.get("title") or x.get("id")) for x in s))' "$TMP/snips.json" 2>/dev/null || true)"
+[ -z "$SNIPS" ] || ok "note: Netlify injects snippet(s) into every page of this site: $SNIPS"
+SNIP_HINT=""
+[ -z "$SNIPS" ] || SNIP_HINT="
+   This site has Netlify snippet injection(s) that change every page: $SNIPS. List or remove them with:
+   netlify api listSiteSnippets --data '{\"site_id\":\"$SITE_ID\"}'"
+DEPLOY_TITLE="$TAG (${HEAD_SHA:0:7})"
 need_deploy=1
-if live_matches "$TMP/check-site"; then need_deploy=0; fi
+if live_matches "$TMP/check-site"; then
+  need_deploy=0
+elif [ "$(json_get "$TMP/site.json" published_deploy.title)" = "$DEPLOY_TITLE" ] && [ "$MISMATCH" = "the live page did not load" ]; then
+  die "Netlify says the $TAG deploy is live, but $SITE_URL does not load. Deploying again cannot fix that.
+   If the team ran out of Netlify credits, Netlify pauses its sites until the next billing period.
+   Otherwise wait a minute and run this again. Nothing was changed."
+elif [ "$(json_get "$TMP/site.json" published_deploy.title)" = "$DEPLOY_TITLE" ]; then
+  die "Netlify is already serving the $TAG deploy, but the live page differs from it: $MISMATCH
+   Something outside the deploy is changing the page, so deploying again cannot fix it and would only
+   spend 15 Netlify credits. Nothing was changed.$SNIP_HINT"
+fi
 netlify_credits
 [ -n "$NF_CREDIT_LINE" ] && ok "$NF_CREDIT_LINE"
 if [ "$need_deploy" = 1 ] && [ -n "$NF_CREDIT_BLOCK" ]; then die "$NF_CREDIT_BLOCK"; fi
@@ -408,7 +428,7 @@ if live_matches "$TMP/web/site"; then
   undo="   The page was not redeployed, so there is nothing to undo."
   ok "the live page already matches $TAG, no deploy needed (no Netlify credits used)"
 else
-  ( cd "$TMP/web" && nf deploy --prod --no-build --dir site --site "$SITE_ID" --message "$TAG (${HEAD_SHA:0:7})" --json ) \
+  ( cd "$TMP/web" && nf deploy --prod --no-build --dir site --site "$SITE_ID" --message "$DEPLOY_TITLE" --json ) \
     > "$TMP/deploy.json" 2> "$TMP/deploy.err" || {
       tail -5 "$TMP/deploy.err" >&2
       if grep -q 'Forbidden' "$TMP/deploy.err"; then
@@ -426,7 +446,7 @@ else
     if live_matches "$TMP/web/site"; then ok_live=1; break; fi
     sleep "$POLL"
   done
-  [ "$ok_live" = 1 ] || die "after 60s, $MISMATCH
+  [ "$ok_live" = 1 ] || die "after $((12 * POLL))s, $MISMATCH$SNIP_HINT
 $undo"
   nf api getSite --data "{\"site_id\":\"$SITE_ID\"}" > "$TMP/site-after.json"
   [ "$(json_get "$TMP/site-after.json" published_deploy.id)" = "$new_deploy" ] \

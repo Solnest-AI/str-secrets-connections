@@ -36,7 +36,8 @@ cat > "$BIN/netlify" <<'SH'
 echo "netlify $*" >> "$STATE/calls.log"
 [ "${NETLIFY_AUTH_TOKEN:-}" = good-token ] || { echo "JSONHTTPError: Unauthorized" >&2; exit 1; }
 case "$1 $2" in
-  "api getSite") printf '{"name":"kit","account_id":"acct-1","published_deploy":{"id":"%s"}}\n' "$(cat "$STATE/deploy_id")" ;;
+  "api getSite") printf '{"name":"kit","account_id":"acct-1","published_deploy":{"id":"%s","title":"%s"}}\n' "$(cat "$STATE/deploy_id")" "$(cat "$STATE/deploy_title" 2>/dev/null)" ;;
+  "api listSiteSnippets") cat "$STATE/snippets" 2>/dev/null || echo '[]' ;;
   "api getAccount") if [ -f "$STATE/credit_deploys" ]; then   # a credit plan; otherwise a plan with no credits
                     echo '{"plan_credits":300,"current_billing_period_start":"2026-09-01T00:00:00.000-07:00","next_billing_period_start":"2026-10-01T00:00:00.000-07:00"}'
                   else echo '{}'; fi ;;
@@ -47,10 +48,12 @@ print(json.dumps([{"id":"h%d"%i,"context":"production","state":"ready","created_
     {"id":"pre","context":"deploy-preview","state":"ready","created_at":"2026-09-11T10:00:00.000Z"}]))' $( [ -f "$STATE/credit_deploys" ] && echo "$STATE/credit_deploys") ;;
   "api restoreSiteDeploy") id="$(printf '%s' "$4" | python3 -c 'import json,sys; print(json.load(sys.stdin)["deploy_id"])')"
                   [ -d "$STATE/deploys/$id" ] || exit 1
-                  echo "$id" > "$STATE/deploy_id"; rm -rf "$STATE/web"; cp -R "$STATE/deploys/$id" "$STATE/web"; echo '{}' ;;
+                  echo "$id" > "$STATE/deploy_id"; cp "$STATE/deploys/$id.title" "$STATE/deploy_title" 2>/dev/null || : > "$STATE/deploy_title"
+                  rm -rf "$STATE/web"; cp -R "$STATE/deploys/$id" "$STATE/web"; echo '{}' ;;
   "deploy "*) [ -f "$STATE/forbid" ] && { echo " ›   JSONHTTPError: Forbidden" >&2; exit 1; }
-                  dir=""; while [ $# -gt 0 ]; do [ "$1" = --dir ] && dir="$2"; shift; done
-                  id="d$(( $(ls "$STATE/deploys" | wc -l) + 1 ))"
+                  dir=""; msg=""; while [ $# -gt 0 ]; do [ "$1" = --dir ] && dir="$2"; [ "$1" = --message ] && msg="$2"; shift; done
+                  id="d$(( $(ls -d "$STATE"/deploys/d* 2>/dev/null | grep -vc '\.title$') + 1 ))"
+                  printf '%s' "$msg" > "$STATE/deploys/$id.title"; printf '%s' "$msg" > "$STATE/deploy_title"
                   cp -R "$dir" "$STATE/deploys/$id"; rm -rf "$STATE/web"; cp -R "$dir" "$STATE/web"; echo "$id" > "$STATE/deploy_id"
                   echo "Deploy path: $dir"; printf '{"deploy_id":"%s","site_name":"kit"}\n' "$id" ;;
   *) echo "netlify stub: unhandled $*" >&2; exit 2 ;;
@@ -151,23 +154,30 @@ t "rollback to the old page"                     "run --rollback d1 && [ \"\$(ca
 t "rollback to an unknown deploy fails"          "! run --rollback nope"
 
 # ---------- a site that has never been deployed ----------
-: > "$STATE/deploy_id"; rm -rf "$STATE/web"
+: > "$STATE/deploy_id"; : > "$STATE/deploy_title"; rm -rf "$STATE/web"
 t "first deploy says there is nothing to roll back to" "run --publish && grep -q \"site's first deploy\" '$W/out.txt' && ! grep -qE 'rollback *\$' '$W/out.txt'"
 
 # ---------- a damaged live page is caught ----------
-touch "$STATE/corrupt"
+touch "$STATE/corrupt"; echo "v1.0.8 (old)" > "$STATE/deploy_title"
 t "damaged live page fails the publish"          "! run --publish && grep -q 'content differs' '$W/out.txt' && grep -q 'rollback' '$W/out.txt'"
-rm -f "$STATE/corrupt"
+: > "$STATE/calls.log"
+t "same version already live but page differs: no redeploy" "! run --publish && grep -q 'cannot fix it' '$W/out.txt' && [ \$(calls 'netlify deploy') = 0 ]"
+echo '[{"id":0,"title":"analytics tag"}]' > "$STATE/snippets"
+t "snippet injections are named"                 "! run && grep -q 'snippet(s) into every page of this site: analytics tag' '$W/out.txt' && grep -q 'listSiteSnippets' '$W/out.txt'"
+rm -f "$STATE/corrupt" "$STATE/snippets"
+mv "$STATE/web" "$STATE/web.away"
+t "this version live but the page down: explained, no deploy" ": > '$STATE/calls.log'; ! run --publish && grep -q 'does not load' '$W/out.txt' && grep -q 'pauses its sites' '$W/out.txt' && [ \$(calls 'netlify deploy') = 0 ]"
+mv "$STATE/web.away" "$STATE/web"
 
 # ---------- Netlify credits (free plan: 15 per production deploy, the whole team pauses at the limit) ----------
-rm -rf "$STATE/web"; echo 2 > "$STATE/credit_deploys"
+rm -rf "$STATE/web"; : > "$STATE/deploy_title"; echo 2 > "$STATE/credit_deploys"
 t "credit use shown in the check"                "run && grep -q '2 production deploys on this Netlify team since 2026-09-01 = 30 of 300' '$W/out.txt'"
 echo 17 > "$STATE/credit_deploys"
 t "deploy refused when credits run low"          "! run && grep -q 'pauses EVERY site' '$W/out.txt' && grep -q 'until 2026-10-01' '$W/out.txt'"
 t "publish refused before touching GitHub"       ": > '$STATE/calls.log'; ! run --publish && [ \$(calls 'release create') = 0 ] && [ \$(calls 'release upload') = 0 ] && [ \$(calls 'release edit') = 0 ] && [ \$(calls 'netlify deploy') = 0 ]"
 run --rollback d2 >/dev/null 2>&1 || cp -R "$STATE/deploys/d2" "$STATE/web"
 t "low credits do not block when no deploy is needed" "run && grep -q 'already matches v1.0.9, skip' '$W/out.txt'"
-rm -f "$STATE/credit_deploys"; rm -rf "$STATE/web"; touch "$STATE/forbid"
+rm -f "$STATE/credit_deploys"; rm -rf "$STATE/web"; : > "$STATE/deploy_title"; touch "$STATE/forbid"
 t "Netlify 403 explained as the credit limit"    "! run --publish && grep -q '403 Forbidden' '$W/out.txt' && grep -q 'live page is unchanged' '$W/out.txt'"
 rm -f "$STATE/forbid"
 
