@@ -170,6 +170,8 @@ $(cat "$TMP/mismatch.txt")"; return 1; }
 # Netlify pauses EVERY site on that team (this page included) until the next billing period. Counts this period's
 # production deploys across the whole team; sets NF_CREDIT_LINE, and NF_CREDIT_BLOCK when one more deploy would
 # leave less than a traffic reserve (page views and bandwidth also cost credits and are not visible in the API).
+# Netlify has no API for credits actually used, so this counts deploys: deploys on a site that has since been
+# deleted are not visible and still cost credits, so the count can run low until the period resets.
 NF_CREDIT_LINE=""; NF_CREDIT_BLOCK=""
 netlify_credits() {
   local acct out
