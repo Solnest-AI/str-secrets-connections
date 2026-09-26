@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.0.7 (2026-09-26)
+- OwnerRez: the build doc and the OwnerRez connector said OwnerRez has no way to read nightly rates, so an OwnerRez server built from them could see bookings but not the attendee's own prices. It can: `GET /v2/calendar/{propertyId}` returns each night's status, rate, min nights and arrival/departure rules (measured live on 8 properties x 90 nights). Both files now say so and name the endpoint.
+- Smoobu: the build doc told Claude to connect with Smoobu's old single-key login (`Api-Key`, one variable) and to test it with a curl using that header, which contradicted the Smoobu connector page. A server built from the build doc would stop working when Smoobu switches that login off. The build doc now uses the signed login only (key plus secret, four headers, exactly as the connector page specifies) and says never to use the old one.
+- Smoobu's cutoff for the old login is October 31, 2026 (Smoobu's docs, re-read 2026-09-25). The connector page said September 25.
+
 ## 1.0.6 (2026-09-22)
 - The setup walkthrough video is the first thing on the guide page: a Start here band above the title with the player embedded, a Play button and the plain URL under it (the PDF drops the player and keeps the link). It is also the first section of the README, above the download.
 - Support contact is Ryan directly: ryan.lefebvre@strsecrets.com, FB Ryan Lefebvre, IG ryan_le5, in the done message, the README and the guide. The Skool link is gone from the attendee-facing files.
