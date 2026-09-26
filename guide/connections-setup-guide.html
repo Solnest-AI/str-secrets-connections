@@ -511,11 +511,18 @@
         <p><code>To: support@breezeway.io</code><br>
         <code>Subject: Client API credentials for my Breezeway account</code></p>
         <p>Hi Breezeway team,<br><br>
-        I'm an STR operator using Breezeway for my own properties (not a software partner). I'd like to use the Client API to read my properties and tasks from my own account in my own tools.<br><br>
+        I'm a Breezeway account holder using it for my own short-term rental properties. I'm not a software vendor or partner, and I'm not building an integration for anyone else.<br><br>
+        I'd like Client API credentials so an AI assistant (Claude) on my own computer can read data from my own account. Single account, low volume, read-only. Nothing gets created or changed in Breezeway.<br><br>
+        The data I need to read:<br>
+        - Properties: list and details<br>
+        - Reservations: so tasks line up with stays<br>
+        - Tasks: cleaning, inspection and maintenance tasks, with status and costs<br><br>
+        I don't need guest messaging through the API, people or staff records, or write access.<br><br>
         Could you please issue a client_id and client_secret for my account (the email I'm writing from)?<br><br>
         Thanks,<br>
         &lt;your name&gt;<br>
         &lt;company, number of properties&gt;</p>
+        <p>If Breezeway sends you their request form, describe the same thing: read-only, your own account, properties, reservations and tasks. Don't mention guest communications or syncing with your PMS. Breezeway's API has no guest messaging, and that wording gets you a follow-up asking which data you need. If you already got that follow-up, tell Claude "Breezeway asked which data I need" and it prints the reply to send.</p>
       </div>
 
       <div class="callout today">
@@ -950,10 +957,10 @@ Summary: 14 connected, 0 missing, 1 pending vendor, 2 not used, 0 need restart, 
     <span class="badge badge-optional">OPTIONAL</span>
   </div>
   <p class="login">Needs: Revenue Manager</p>
-  <p>Breezeway is the ops board a lot of STR operators run their turnovers on: cleans, inspections, maintenance tickets, task costs, all tied to a property and a reservation. In the summit kit it fills the optional ops slot (same slot as Turno). The Revenue Manager and the other summit skills use it to read your properties, reservations and tasks, and to draft new tasks that you confirm before anything gets created.</p>
+  <p>Breezeway is the ops board a lot of STR operators run their turnovers on: cleans, inspections, maintenance tickets, task costs, all tied to a property and a reservation. In the summit kit it fills the optional ops slot (same slot as Turno). The Revenue Manager reads your properties, reservations and task costs to spot ops costs eating your margin. Read-only: nothing is ever created or changed in Breezeway.</p>
   <p class="login">Get it at <a href="https://app.breezeway.io" target="_blank" rel="noopener">https://app.breezeway.io</a></p>
   <ol>
-    <li>Email support@breezeway.io using the template (it is under "Do these today" at the top of the guide, and Claude prints it for you from <code>emails/breezeway.md</code>). Send it from the email you log in to Breezeway with, at <a href="https://app.breezeway.io" target="_blank" rel="noopener">https://app.breezeway.io</a>.</li>
+    <li>Email support@breezeway.io using the template (it is under "Do these today" at the top of the guide, and Claude prints it for you from <code>emails/breezeway-request.md</code>). Send it from the email you log in to Breezeway with, at <a href="https://app.breezeway.io" target="_blank" rel="noopener">https://app.breezeway.io</a>.</li>
     <li>Breezeway replies with two values: a <strong>client_id</strong> and a <strong>client_secret</strong>. Keep that email, there is no in-app page to see them again.</li>
     <li>When the reply lands, tell Claude "Breezeway sent the keys". Claude opens <code>.env</code> for you; paste each value after its <code>=</code> and save.</li>
   </ol>
@@ -1146,7 +1153,7 @@ Summary: 14 connected, 0 missing, 1 pending vendor, 2 not used, 0 need restart, 
   <footer>
     <p class="promise-line">Built by <b>Solnest AI</b>. Your keys stay on your own computer, always. That's the whole promise.</p>
     <p><a href="mailto:ryan.lefebvre@strsecrets.com">ryan.lefebvre@strsecrets.com</a> · FB: Ryan Lefebvre · IG: <a href="https://www.instagram.com/ryan_le5" target="_blank" rel="noopener">ryan_le5</a></p>
-    <p class="version">Version 1.0.8</p>
+    <p class="version">Version 1.0.9</p>
   </footer>
 
 </body>

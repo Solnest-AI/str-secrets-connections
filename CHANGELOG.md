@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.0.9 (2026-09-26)
+- Breezeway: the credentials request now says exactly what Breezeway's API team asks for. A summit attendee described the use case as automating guest communications and syncing Breezeway with Hospitable, and Breezeway came back asking which data they needed (guest messaging is not in Breezeway's API at all). The email template, the "Do these today" box in the guide and the request-form answer in the connector now all say the same thing: account holder, read-only, properties, reservations and tasks with status and costs, no people records, no guest messaging, nothing created or changed.
+- `emails/breezeway-request.md` also carries a ready reply for anyone who already got Breezeway's "which data do you need" follow-up, and what to say if Breezeway quotes a monthly fee. The connector's troubleshooting section tells Claude to print that reply.
+- The Breezeway card said the summit skills "draft new tasks" in Breezeway. They don't: Breezeway is read-only in the kit (write scope decided 2026-09-25). The card says read-only now, and the connector tells Claude to build read tools only, even though the build doc lists Breezeway write tools.
+- The Breezeway card told Claude to print the template from `emails/breezeway.md`, a file that does not exist. It points at `emails/breezeway-request.md` now.
+- For maintainers only: `scripts/release.sh` does a kit release in one command. It publishes the GitHub release with both zips, deploys the guide page, then checks that the download link and the live page both match the tag. Attendees never run it.
+
 ## 1.0.8 (2026-09-26)
 - The setup guide carries the STR Secrets AI Summit 2.0 branding (STR Secrets logo and favicon, page title) that the live guide page has shown since Sept 22. It was never committed, so the guide inside the download still said Solnest AI. The downloaded guide, its PDF and the web page now match.
 

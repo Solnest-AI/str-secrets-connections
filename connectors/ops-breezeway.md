@@ -10,17 +10,17 @@ portal: https://app.breezeway.io
 # Breezeway: cleaning, inspection and maintenance tasks for your properties
 
 ## 1. What it is
-Breezeway is the ops board a lot of STR operators run their turnovers on: cleans, inspections, maintenance tickets, task costs, all tied to a property and a reservation. In the summit kit it fills the optional ops slot (same slot as Turno). The Revenue Manager and the other summit skills use it to read your properties, reservations and tasks, and to draft new tasks that you confirm before anything gets created. Breezeway has no MCP of its own, so Claude builds a small one on your machine from Breezeway's public API and registers it as `breezeway`.
+Breezeway is the ops board a lot of STR operators run their turnovers on: cleans, inspections, maintenance tickets, task costs, all tied to a property and a reservation. In the summit kit it fills the optional ops slot (same slot as Turno). The Revenue Manager reads your properties, reservations and task costs to spot ops costs eating your margin. Read-only: nothing is ever created or changed in Breezeway. Its report flags things like turnover costs from too many 1-night stays, or maintenance climbing while occupancy looks strong, and it never touches guest messaging. Breezeway has no MCP of its own, so Claude builds a small one on your machine from Breezeway's public API and registers it as `breezeway`.
 
 ## 2. Required, cost, gate
 Optional. Turno, Breezeway, or neither. Skip it and the summit skills still run; they just cannot see your cleaning and maintenance board.
 
-No cost from us. Breezeway's Client API Request Form says: "For some use cases, we charge a $200 monthly fee." For an owner reading their own account it has not been charged (Ryan, 2026-09-21). If Breezeway quotes the fee, reply that you only need read access to your own properties and tasks, and hold off agreeing to anything until they confirm there is no charge. No plan gate that Breezeway publishes.
+No cost from us. Breezeway's Client API Request Form says: "For some use cases, we charge a $200 monthly fee." For an owner reading their own account it has not been charged (Ryan, 2026-09-21). If Breezeway quotes the fee, reply that you only need read access to your own properties, reservations and tasks, and hold off agreeing to anything until they confirm there is no charge. No plan gate that Breezeway publishes.
 
 The real gate: Breezeway staff issue the credentials. There is no page in the Breezeway app where you can make them yourself. Breezeway's own words: "Using the API as a Breezeway Account Holder. To obtain API keys for your Breezeway account, please complete THIS FORM." Two ways to ask, and you do both today:
 
 1. **Email support@breezeway.io** asking for Client API credentials for your own account. This is the path that has worked for Ryan. Template: `emails/breezeway-request.md`. (That address is the one Breezeway lists on breezeway.io/terms.)
-2. **Fill the vendor's Client API Request Form** (same day, not later): https://share.hsforms.com/1u3FL41u0TBqTZYMmW_VmqA1l00c. It is written for software vendors, so answer it like this: Job title = Owner (or whatever you are). Company name = your STR business. Use case = "Account holder. I want to read my own properties, reservations and tasks from my own Breezeway account into an AI assistant on my own computer (Claude Code). Single account, low volume, not a product for other companies." Reviewed the docs and confirmed compatible = Yes. Development team = No. Developer First Name = your own name. Technical email = the email you log into Breezeway with. Nothing in the form is a secret.
+2. **Fill the vendor's Client API Request Form** (same day, not later): https://share.hsforms.com/1u3FL41u0TBqTZYMmW_VmqA1l00c. It is written for software vendors, so answer it like this: Job title = Owner (or whatever you are). Company name = your STR business. Use case = "Account holder, not a software vendor. An AI assistant (Claude Code) on my own computer reads my own Breezeway account, read-only: properties, reservations, and tasks with their status and costs. Single account, low volume, not a product for other companies. No guest messaging, no people or staff records, nothing created or changed." Use that wording as written: an answer that mentions guest communications or syncing Breezeway with a PMS gets a follow-up from Breezeway asking which data you need (it happened to a summit attendee on 2026-09-25). Reviewed the docs and confirmed compatible = Yes. Development team = No. Developer First Name = your own name. Technical email = the email you log into Breezeway with. Nothing in the form is a secret.
 
 No published turnaround. Once the email is sent, Claude marks the row as waiting so the scoreboard stops nagging:
 ```bash
@@ -36,7 +36,7 @@ No MCP from Breezeway. Checked breezeway.io and developer.breezeway.io in full o
 ## 3. Path A: API key
 There is no API page inside Breezeway to click through; the keys come by email.
 
-1. Email support@breezeway.io using the template (it is under "Do these today" at the top of the guide, and Claude prints it for you from `emails/breezeway.md`). Send it from the email you log in to Breezeway with, at https://app.breezeway.io.
+1. Email support@breezeway.io using the template (it is under "Do these today" at the top of the guide, and Claude prints it for you from `emails/breezeway-request.md`). Send it from the email you log in to Breezeway with, at https://app.breezeway.io.
 2. Breezeway replies with two values: a **client_id** and a **client_secret**. Keep that email, there is no in-app page to see them again.
 3. When the reply lands, tell Claude "Breezeway sent the keys". Claude opens `.env` for you; paste each value after its `=` and save.
 
@@ -59,8 +59,8 @@ Windows: those three run in Git Bash (Claude's Bash tool) as-is. `$BUNDLE/.env` 
 - Auth: `POST https://api.breezeway.io/public/auth/v1/` with JSON `{"client_id": ..., "client_secret": ...}`, values read from the server's own `.env`, never typed by Claude. Response: `access_token` (24-hour life) and `refresh_token` (30 days).
 - Refresh: `POST https://api.breezeway.io/public/auth/v1/refresh` with the refresh token in the `Authorization: JWT` header. Every refresh hands back a new refresh token, so store the newest one. Build the auto-refresh in.
 - Every other call: header literally `Authorization: JWT <access_token>`. "JWT", not "Bearer".
-- Data lives under `https://api.breezeway.io/public/inventory/v1` for property, reservation AND task: list tasks is `GET /public/inventory/v1/task/` and create task is `POST /public/inventory/v1/task` (vendor OpenAPI, read 2026-09-21). The build doc's `/public/task/v1/task` is stale, so skip it in favor of the path above. Confirm every other path against developer.breezeway.io/reference before wiring it.
-- Reads first. Every create, update, close or delete needs `confirm=true` per call, same as the bundled Turno server.
+- Data lives under `https://api.breezeway.io/public/inventory/v1` for property, reservation AND task: list tasks is `GET /public/inventory/v1/task/` (vendor OpenAPI, read 2026-09-21). The build doc's `/public/task/v1/task` is stale, so skip it in favor of the path above. Confirm every other path against developer.breezeway.io/reference before wiring it.
+- Read tools only: list and get for properties, reservations and tasks. Build no create, update, close or delete tools, even though the build doc lists Breezeway write tools. Breezeway is read-only in the summit kit (write scope decided 2026-09-25), and the credentials request tells Breezeway read-only, so a write tool would break that promise.
 - Token endpoints are rate-limited to 1 req/min and answer 429 when hit: cache the token for its 24 hours and back off on 429.
 - Ship `.env.example` with the two variables, a `.gitignore` covering `.env`, and name the console script `breezeway-mcp` so the register line below is exact.
 
@@ -112,6 +112,7 @@ Scoreboard row **Breezeway API** (only shown when `STACK_OPS=breezeway`):
 Real-call test after the restart: ask Claude "Breezeway, list my properties". That is a read, it costs nothing, and it proves the token exchange plus the `JWT` header end to end.
 
 ## 6. Troubleshooting
+- **Breezeway replied asking for more detail or "which data do you need":** usually the form's use case mentioned guest communications or a sync with a PMS. Guest messaging is not in Breezeway's API at all. Print the "If Breezeway replies asking which data you need" reply from `emails/breezeway-request.md` for the attendee to send on the same thread: read-only, properties, reservations and tasks (status and costs), no people records, nothing created or changed. Mark the row pending again with today's date.
 - **`{"error":"inactive client"}` on a 200:** the pair is wrong, or Breezeway has not activated it yet. Re-open `.env` and check both lines for stray spaces or quotes. Still failing: reply to Breezeway's email and ask them to confirm the client is active.
 - **rc 3 right after an rc 0 or rc 1:** the 1 req/min token limit. The scoreboard, the WORKS check and the server's first start each spend one request. Space them out by a minute.
 - **429 from the server after the restart:** same limit. The built server must cache its access token for the full 24 hours and back off on 429. If it re-authenticates on every call, that is a build bug: re-run Track B step B3 on the auth code.
