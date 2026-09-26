@@ -109,7 +109,7 @@ All values verified against primary sources. This table is your **offline seed**
 | OwnerRez | `https://api.ownerrez.com/v2/` | HTTP Basic (account email + `pt_` PAT) **+ required** `User-Agent: <YourApp>/1.0` (any descriptive string: the `(c_xxx)` form is only for OAuth apps) | Settings → Advanced Tools → Developer/API Settings (self-serve PAT, shown once). nightly rates ARE readable: `GET /v2/calendar/{propertyId}` (status, rate, min nights, arrival/departure rules; measured live 2026-09-24); occupancy from `bookings`; write rates via `PATCH /v2/spotrates` |
 | Lodgify | `https://api.lodgify.com`: **no fixed version prefix; v1 and v2 coexist per-path** (rate *writes* are v1-only) | `X-ApiKey: <key>` | Settings → Public API |
 | Uplisting | `https://connect.uplisting.io` (no global version; a few `/v2/` endpoints) | `Authorization: Basic <base64(raw api_key)>` (encode the key alone: no `key:` colon) + `Content-Type: application/json` | Dashboard → Connect → API (`app.uplisting.io/connect/api`, as Account Owner). Docs = Postman collection (no `developer.uplisting.io`) |
-| Smoobu | `https://login.smoobu.com`: **host only** (most paths `/api/...`; availability is `/booking/...`, OAuth `/oauth/...`) | `Api-Key: <key>` | Settings → Advanced → API Keys (**paid Professional plan required**) |
+| Smoobu | `https://login.smoobu.com`: **host only** (most paths `/api/...`; availability is `/booking/...`, OAuth `/oauth/...`) | HMAC-signed: `X-API-Key`, `X-Timestamp`, `X-Nonce`, `X-Signature` on every call (the single `Api-Key` header is deprecated, sunset 2026-10-31; see `connectors/pms-smoobu.md`) | Settings → Advanced → API Keys (Key + Secret; the Secret is shown once) |
 
 ---
 
@@ -399,12 +399,12 @@ Send the block matching their PMS. This step is **orientation only**. It tells t
 
 > Let's find your Smoobu API key (you'll paste it into a local file shortly: not here).
 >
-> 1. Log into **https://login.smoobu.com/** (you need an active **Professional / Subscriber** Smoobu plan for API access).
+> 1. Log into **https://login.smoobu.com/** (plan requirements: see `connectors/pms-smoobu.md`, which supersedes the older plan note here).
 > 2. Left sidebar → **Settings** → **Advanced** → **API Keys**.
 > 3. Generate a new key → keep it on screen (format starts with a number, e.g., `1.xxxxxxxxx...`).
 
-**Env var:** `SMOOBU_API_KEY`.
-**Verify (Sanity Check 3, you run it by sourcing `.env`):** `curl -sS -H "Api-Key: $SMOOBU_API_KEY" "https://login.smoobu.com/api/me"` → 200 = ✅.
+**Env vars:** `SMOOBU_API_KEY` and `SMOOBU_API_SECRET`.
+**Verify:** use the kit's `probe_smoobu` (see `connectors/pms-smoobu.md`, WORKS). Do not hand-roll a curl with the legacy `Api-Key` header: it is deprecated and sunsets 2026-10-31.
 
 ---
 
@@ -516,8 +516,8 @@ If you'd rather use Python, **mirror the `mcp-servers/airroi/` server exactly** 
 - Write tools (gate with `confirm=true`): `update_calendar`, `send_message`
 
 ###### Smoobu
-- Base URL `https://login.smoobu.com`: **host only** (most paths `/api/...`; availability is `/booking/...`, OAuth `/oauth/...`: do NOT hardcode `/api/` as the base) · Env: `SMOOBU_API_KEY`
-- Header `Api-Key: <key>`. Limit 1000/min (X-RateLimit-* headers). Validation errors often return HTTP 500 with a `detail` message, parse it.
+- Base URL `https://login.smoobu.com`: **host only** (most paths `/api/...`; availability is `/booking/...`, OAuth `/oauth/...`: do NOT hardcode `/api/` as the base) · Env: `SMOOBU_API_KEY`, `SMOOBU_API_SECRET`
+- Auth: the four HMAC headers exactly as `connectors/pms-smoobu.md` specifies (canonical string, SHA-256, base64); NEVER the legacy `Api-Key` header (sunset 2026-10-31). Rate limit per Smoobu's live docs (X-RateLimit-* headers). Validation errors often return HTTP 500 with a `detail` message, parse it.
 - Endpoints: list `GET /api/apartments`; rates read `GET /api/rates?apartments[]={id}&start_date&end_date` (all three params mandatory, apartments as array); reservations `GET /api/reservations`; WRITE rates `POST /api/rates` body `{apartments:[ids], operations:[{dates:["YYYY-MM-DD" or "YYYY-MM-DD:YYYY-MM-DD"], daily_price, min_length_of_stay}]}` (can't set min-stay alone on a date with no price).
 - Note: Smoobu calls properties **"apartments."**
 - Read tools: `list_apartments`, `get_apartment`, `list_reservations`, `get_reservation`, `get_rates`
