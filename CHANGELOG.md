@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.0.12 (2026-09-28)
+- Day 1's Content Studio link is the summit's own skill now, github.com/Solnest-AI/str-secrets-content-studio (its own repo and install folder, like the Revenue Manager), instead of Solnest's Cinematic Director repo.
+
 ## 1.0.11 (2026-09-28)
 - The guide ends with **Day 1**: what to do the night before or Tuesday morning, and what we do together in the sessions. Three links, each pasted into Claude Code with "Set this up": the summit prep (the only thing to do ahead: tools, ffmpeg, the carousel browser), the Revenue Manager (Tuesday morning, in the session) and the STR Secrets Content Studio (Tuesday afternoon, in the session). It says plainly not to install the two tools before Tuesday morning.
 - The 1.0.10 Content Studio section in the middle of the guide is gone, and the Kie card is back to its 1.0.9 wording. The Kie top-up note now sits with the Content Studio link in Day 1.
