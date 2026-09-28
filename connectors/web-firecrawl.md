@@ -10,7 +10,7 @@ portal: https://www.firecrawl.dev/app/api-keys
 # Firecrawl: the web, turned into something Claude can read
 
 ## 1. What it is
-Firecrawl fetches web pages and hands them back as clean text or structured data. Search the web, scrape one page, map a whole site, crawl it. The Comping Agent uses it for address lookups. The Ad Spy uses it too. This kit registers Firecrawl's own hosted MCP server, named `firecrawl`, with your key sent as a header. Nothing to install, nothing to build. 27 tools as of 2026-09-21.
+Firecrawl fetches web pages and hands them back as clean text or structured data. Search the web, scrape one page, map a whole site, crawl it. The Comping Agent requires it (address and Zillow lookups; its setup check will not pass without this key). The Ad Spy uses it too. This kit registers Firecrawl's own hosted MCP server, named `firecrawl`, with your key sent as a header. Nothing to install, nothing to build. 27 tools as of 2026-09-21.
 
 ## 2. Required, cost, gate
 Required. Free. Firecrawl's pricing page lists the Free Plan at $0 with 1,000 credits a month and says "no credit card required" (effective Sept 4 2026). That is plenty for a summit weekend. No plan gate, no email to anyone.
