@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.0.10 (2026-09-28)
+- The guide has a Content Studio section for Tuesday afternoon: the one line to paste into Claude Code (it installs the Solnest Cinematic Director skill, videos and carousels, from its own repo; nothing added to the system, no admin), what the checklist means, and the two sentences to say on the day. Do it the night before, on home wifi.
+- Kie credits, stated plainly in both the new section and the Kie card: the 80 free credits do not cover a video (455 credits each, about $2.28), so top up $5 at kie.ai/billing before Tuesday. Carousels are free.
+
 ## 1.0.9 (2026-09-26)
 - Breezeway: the credentials request now says exactly what Breezeway's API team asks for. A summit attendee described the use case as automating guest communications and syncing Breezeway with Hospitable, and Breezeway came back asking which data they needed (guest messaging is not in Breezeway's API at all). The email template, the "Do these today" box in the guide and the request-form answer in the connector now all say the same thing: account holder, read-only, properties, reservations and tasks with status and costs, no people records, no guest messaging, nothing created or changed.
 - `emails/breezeway-request.md` also carries a ready reply for anyone who already got Breezeway's "which data do you need" follow-up, and what to say if Breezeway quotes a monthly fee. The connector's troubleshooting section tells Claude to print that reply.
