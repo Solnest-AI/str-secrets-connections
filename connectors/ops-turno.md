@@ -56,22 +56,20 @@ Then fill the server's own `.env` from the root one (declared keys only, values 
 cd "$BUNDLE" && bash fan-out-env.sh
 ```
 
-**Register (Mac):** build the server, register it, queue a restart. Windows users: skip this block and use the Windows block below instead.
+**Register (Mac):** build the server, then register it. Windows users: skip this block and use the Windows block below instead.
 ```bash
-cd "$BUNDLE/mcp-servers/turno" && uv sync --quiet
-uv run --python 3.13 python "$BUNDLE/lib/mcp_register.py" turno --stdio uv --directory "$BUNDLE/mcp-servers/turno" run turno-mcp && echo "turno registered ✅" || echo "turno register failed ❌"
-echo turno >> "$BUNDLE/.cache/needs-restart"
+cd "$BUNDLE/mcp-servers/turno" && uv sync --quiet --compile-bytecode --python 3.13
+uv run --no-project --python 3.13 python "$BUNDLE/lib/mcp_register.py" turno --stdio "$(command -v uv)" --directory "$BUNDLE/mcp-servers/turno" run turno-mcp && echo "turno registered ✅" || echo "turno register failed ❌"
 ```
-`uv` comes from `connectors/system-python-uv.md`; if `uv sync` says command not found, do that file first.
+Two things in there are deliberate. `--compile-bytecode` precompiles the server's Python once, which cut its first start from 13.7 to 4.6 seconds on the Windows laptop (2026-09-28): a cold Turno was hitting the app's 30 second startup limit when eight servers started together. And uv is registered by its full path (`$(command -v uv)`), not by name, so the app can start the server even when its own PATH has not caught up with a freshly installed uv. `uv` itself comes from `install-tools.sh` (`connectors/system-python-uv.md`); if `uv sync` says command not found, run that first.
 
-**Register (Windows, Git Bash):** run this INSTEAD of the Mac block. Claude Code on Windows is a native Windows process, so every absolute path handed to the register helper must be the `C:\...` form. Build, convert the path, then register with the converted path:
+**Register (Windows, Git Bash):** run this INSTEAD of the Mac block. Claude Code on Windows is a native Windows process, so every absolute path handed to the register helper must be the `C:\...` form, and `uv` must be its `C:\...\uv.exe` path for the same reason. Build, convert both paths, then register:
 ```bash
-cd "$BUNDLE/mcp-servers/turno" && uv sync --quiet
-BUNDLE_WIN="$(cygpath -w "$BUNDLE")"
-uv run --python 3.13 python "$BUNDLE/lib/mcp_register.py" turno --stdio uv --directory "$BUNDLE_WIN\mcp-servers\turno" run turno-mcp && echo "turno registered ✅" || echo "turno register failed ❌"
-echo turno >> "$BUNDLE/.cache/needs-restart"
+cd "$BUNDLE/mcp-servers/turno" && uv sync --quiet --compile-bytecode --python 3.13
+BUNDLE_WIN="$(cygpath -w "$BUNDLE")"; UV_EXE="$(cygpath -w "$(command -v uv)")"; case "$UV_EXE" in *.exe) ;; *) UV_EXE="$UV_EXE.exe" ;; esac
+uv run --no-project --python 3.13 python "$BUNDLE/lib/mcp_register.py" turno --stdio "$UV_EXE" --directory "$BUNDLE_WIN\mcp-servers\turno" run turno-mcp && echo "turno registered ✅" || echo "turno register failed ❌"
 ```
-Turno runs through `uv`, so no interpreter path is passed here. If you ever register a Python server by its venv interpreter instead, the Windows path is `.venv/Scripts/python.exe`, not `.venv/bin/python`.
+(Git Bash reports `uv` without its `.exe`; the `case` line puts it back.) Turno runs through `uv`, so no interpreter path is passed here. If you ever register a Python server by its venv interpreter instead, the Windows path is `.venv/Scripts/python.exe`, not `.venv/bin/python`.
 
 Then quit and reopen the Claude Code desktop app so the new server loads. After it, say "Check my connections".
 
@@ -85,7 +83,7 @@ The checker calls `GET https://api.turnoverbnb.com/v2/userinfo` with three heade
 - **JSON 401**: rc 1, `⚠️ Turno API registered, key fails`. Wrong token or wrong Partner ID. The probe cannot tell you which, so check both lines.
 - **An HTML page saying "Just a moment"** (usually a 403): rc 3. The scoreboard row still says `⚠️ Turno API registered, key fails`, but the arrow hint after it reads `vendor unreachable or blocked; try again`. Read the hint: that is Cloudflare's challenge, not your credentials. No need to make a new token, just run the check again in a minute.
 - **rc 2**: one of the two lines in `.env` is still blank.
-- `🔒 needs a full restart of Claude Code`: registered, not loaded yet. Quit and reopen.
+- `🔒 needs a full restart of Claude Code`: registered, not loaded yet. Quit and reopen; the row clears itself once the checker sees the app was started after the register.
 - `⏳ Turno API waiting on vendor (emailed <date>)`: you are still waiting on help@turno.com. Nothing to fix.
 
 After the restart, the real test: ask Claude "Turno, check the connection". It runs `turno_check_connection` and should report `production` as the active environment and `https://api.turnoverbnb.com` as the base URL. If it says sandbox, see troubleshooting.
@@ -97,8 +95,12 @@ After the restart, the real test: ask Claude "Turno, check the connection". It r
 - **HTML "Just a moment" instead of JSON:** Cloudflare challenge. The probe already sends a browser User-Agent; retry in a minute. If it keeps happening, try a different network (a phone hotspot); some venue wifi trips Cloudflare's challenge.
 - **`turno_check_connection` says sandbox:** `TURNO_ENV` in your root `.env` is set to `sandbox`. Blank it, run `bash fan-out-env.sh`, quit and reopen the Claude Code desktop app. The summit runs production only.
 - **Sandbox hosts in Turno's docs:** every host printed on apidocs.turnoverbnb.com is `sandbox.turnoverbnb.com`. Production is `api.turnoverbnb.com`, confirmed live 2026-09-21. Your token from the Turno app is a production token.
-- **`uv: command not found` during register:** install uv per `connectors/system-python-uv.md` (that step needs a real terminal, once, to install uv itself), then quit and reopen the Claude Code desktop app so its Bash tool picks up the new PATH, and run the register block again.
-- **Windows: server shows failed after restart:** the registered path was probably the `/c/Users/...` form. Re-run the Windows register block above; it overwrites the old entry with the `cygpath -w` form.
+- **`uv: command not found` during register:** run `bash "$BUNDLE/install-tools.sh"` (it installs uv and Python 3.13 from inside the app; `connectors/system-python-uv.md`), quit and reopen the Claude Code desktop app so its Bash tool picks up the new PATH, and run the register block again.
+- **`turno` shows `failed` in the app's server list right after the restart, then works on Reconnect:** a cold start. The first launch reads a few thousand Python files and Windows scans each one; precompiled it is about 5 seconds here, but on a laptop that has just installed everything it can brush the app's 30 second limit when eight servers start at once. Nothing is broken: in the desktop app Claude calls `reconnect_session_connector` for `turno` (by hand: Reconnect in the app's MCP list) and it comes up warm in about 4 seconds. If it keeps timing out on that machine, raise the app's startup limit once to 60 seconds (`MCP_TIMEOUT`, milliseconds, read from `~/.claude/settings.json`; a backup of the file is kept next to it), then quit and reopen the app:
+  ```bash
+  uv run --no-project --python 3.13 python -c 'import json,os,shutil,time; p=os.path.expanduser("~/.claude/settings.json"); d=json.load(open(p,encoding="utf-8-sig")) if os.path.isfile(p) else {}; os.path.isfile(p) and shutil.copy(p, p+".bak-"+time.strftime("%Y%m%d-%H%M%S")); d.setdefault("env",{})["MCP_TIMEOUT"]="60000"; json.dump(d, open(p,"w",encoding="utf-8"), indent=2); print("MCP_TIMEOUT=60000 set; quit and reopen the Claude Code desktop app")'
+  ```
+- **Windows: server shows failed after restart, and Reconnect does not help:** the registered path was probably the `/c/Users/...` form, or `uv` was registered by bare name and the app's PATH does not have it yet. Re-run the Windows register block above; it overwrites the old entry with the `cygpath -w` forms.
 - **You pasted a token into chat by accident:** rotate it. Create a new token in Turno, paste the new one into `.env`, run `bash fan-out-env.sh`, restart. Remove the exposed token in Turno if the page offers a delete.
 
 ## 7. Sources

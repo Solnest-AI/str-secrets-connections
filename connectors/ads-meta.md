@@ -72,14 +72,13 @@ Outcomes:
   Then Claude registers it as a header:
   ```bash
   set -a; . "$BUNDLE/.env"; set +a
-  uv run --python 3.13 python "$BUNDLE/lib/mcp_register.py" meta-ads --http https://mcp.facebook.com/ads --header "Authorization: Bearer META_ADS_TOKEN" && echo "meta-ads registered ✅" || echo "meta-ads register failed ❌"
-  echo meta-ads >> "$BUNDLE/.cache/needs-restart"
+  uv run --no-project --python 3.13 python "$BUNDLE/lib/mcp_register.py" meta-ads --http https://mcp.facebook.com/ads --header "Authorization: Bearer META_ADS_TOKEN" && echo "meta-ads registered ✅" || echo "meta-ads register failed ❌"
   ```
   The token lands in `~/.claude.json`, never in the chat. Treat that file as a secret from then on.
 - **Signed in with the wrong Facebook profile:** the browser used whichever profile was already logged in at facebook.com. Log out of facebook.com in that browser, remove the connector under + > Connectors > Manage connectors, add it again, and log in with the profile that owns the ad account.
 - **"List my ad accounts" works but Ad Library search errors:** you have an ad account but it is not active. Ads Manager will tell you why (no payment method, disabled, restricted). Fix it there, then retry.
 - **Claude says it created a campaign or ad set:** it is paused. Meta's rule: "Write tools create entities in a paused state." Open Ads Manager, look at it, delete it or leave it. It only starts spending if someone activates it, either in Ads Manager or through the `ads_activate_entity` tool. The kit never calls that tool; do not ask Claude to.
-- **Scoreboard stays on Restart (only happens if you used the token fallback above):** the `needs-restart` marker clears on the next launch. Quit the Claude Code desktop app fully (not just the window) and open it again. The Connectors-UI sign-in in section 4 never needs a restart.
+- **Scoreboard stays on Restart (only happens if you used the token fallback above):** the row clears itself the first time the scoreboard runs inside an app that was started after the register. Quit the Claude Code desktop app fully (not just the window), open it again, say "Check my connections". The Connectors-UI sign-in in section 4 never needs a restart.
 - **Ads MCP server is not under Integrations in Business Suite:** Meta's own note: "If you don't see this, you do not have access to this feature yet." The browser sign-in may still work; try it. If it also fails, wait for the rollout.
 
 ## 7. Sources

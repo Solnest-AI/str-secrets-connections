@@ -630,6 +630,7 @@ System
 ✅ Git                            connected
 ✅ Node.js                        connected
 ✅ uv (Python)                    connected
+✅ Python 3.13 (uv)               connected
 ✅ Claude Code                    connected
 
 PMS
@@ -1063,7 +1064,7 @@ Summary: 14 connected, 0 missing, 1 pending vendor, 2 not used, 0 need restart, 
     <span class="badge badge-required">REQUIRED</span>
   </div>
   <p class="login">Needs: Revenue Manager</p>
-  <p>Supabase is a hosted Postgres database. The summit skills keep their tables in it. One shared project, named <code>str-secrets-summit</code>, holds all of it. Claude reaches it through Supabase's MCP server (<code>supabase-revenue-manager</code>), which runs on Node through <code>npx</code>. It is not read-only.</p>
+  <p>Supabase is a hosted Postgres database. The summit skills keep their tables in it. One shared project, named <code>str-secrets-summit</code>, holds all of it. Claude reaches it through Supabase's MCP server (<code>supabase-revenue-manager</code>), a Node package the kit installs once, pinned, into <code>mcp-servers/supabase/</code>. It is not read-only.</p>
   <p class="login">Get it at <a href="https://supabase.com/dashboard/account/tokens" target="_blank" rel="noopener">https://supabase.com/dashboard/account/tokens</a></p>
   <ol>
     <li>Go to <a href="https://supabase.com/dashboard/account/tokens" target="_blank" rel="noopener">https://supabase.com/dashboard/account/tokens</a> (sign in, or sign up free first) and click <strong>Generate new token</strong>.</li>
@@ -1119,7 +1120,7 @@ Summary: 14 connected, 0 missing, 1 pending vendor, 2 not used, 0 need restart, 
   <footer>
     <p class="promise-line">Built by <b>Solnest AI</b>. Your keys stay on your own computer, always. That's the whole promise.</p>
     <p><a href="mailto:ryan.lefebvre@strsecrets.com">ryan.lefebvre@strsecrets.com</a> · FB: Ryan Lefebvre · IG: <a href="https://www.instagram.com/ryan_le5" target="_blank" rel="noopener">ryan_le5</a></p>
-    <p class="version">Version 1.0.6</p>
+    <p class="version">Version 1.0.7</p>
   </footer>
 
 </body>

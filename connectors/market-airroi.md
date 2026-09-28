@@ -37,24 +37,21 @@ Run this again after any `.env` change.
 
 **Register** the bundled server. Build its venv, then point Claude Code at it:
 ```bash
-cd "$BUNDLE/mcp-servers/airroi" && { [ -d .venv ] || uv venv --quiet .venv; } && uv pip install --quiet -r requirements.txt --python .venv
-uv run --python 3.13 python "$BUNDLE/lib/mcp_register.py" airroi --stdio "$BUNDLE/mcp-servers/airroi/.venv/bin/python" "$BUNDLE/mcp-servers/airroi/server.py" && echo "airroi registered ✅" || echo "register failed ❌"
-echo airroi >> "$BUNDLE/.cache/needs-restart"
+cd "$BUNDLE/mcp-servers/airroi" && { [ -d .venv ] || uv venv --quiet --python 3.13 .venv; } && uv pip install --quiet --compile-bytecode -r requirements.txt --python .venv
+uv run --no-project --python 3.13 python "$BUNDLE/lib/mcp_register.py" airroi --stdio "$BUNDLE/mcp-servers/airroi/.venv/bin/python" "$BUNDLE/mcp-servers/airroi/server.py" && echo "airroi registered ✅" || echo "register failed ❌"
 ```
 The server reads the key from its own `.env`, which `fan-out-env.sh` fills from the root `.env`. The key itself never goes into the register line.
 
 **Windows note:** the venv interpreter is `.venv/Scripts/python.exe`, not `.venv/bin/python`, and Claude Code is a native Windows process, so every absolute path gets converted with `cygpath -w` before it is registered. Same build line, then:
 ```bash
-uv run --python 3.13 python "$BUNDLE/lib/mcp_register.py" airroi --stdio "$(cygpath -w "$BUNDLE/mcp-servers/airroi/.venv/Scripts/python.exe")" "$(cygpath -w "$BUNDLE/mcp-servers/airroi/server.py")" && echo "airroi registered ✅" || echo "register failed ❌"
-echo airroi >> "$BUNDLE/.cache/needs-restart"
+uv run --no-project --python 3.13 python "$BUNDLE/lib/mcp_register.py" airroi --stdio "$(cygpath -w "$BUNDLE/mcp-servers/airroi/.venv/Scripts/python.exe")" "$(cygpath -w "$BUNDLE/mcp-servers/airroi/server.py")" && echo "airroi registered ✅" || echo "register failed ❌"
 ```
 
 ## 4. Path B: official MCP
 AirROI hosts its own MCP at https://mcp.airroi.com. Auth is the key in a header, not a browser login, so there is no `/mcp` > Authenticate step and no browser window will open. Source the `.env` first so the shell can read the key's variable name, then register (the value itself is never typed into this line):
 ```bash
 set -a; . "$BUNDLE/.env"; set +a
-uv run --python 3.13 python "$BUNDLE/lib/mcp_register.py" airroi-official --http https://mcp.airroi.com --header "X-API-KEY: AIRROI_API_KEY" && echo "airroi-official registered ✅" || echo "register failed ❌"
-echo airroi-official >> "$BUNDLE/.cache/needs-restart"
+uv run --no-project --python 3.13 python "$BUNDLE/lib/mcp_register.py" airroi-official --http https://mcp.airroi.com --header "X-API-KEY: AIRROI_API_KEY" && echo "airroi-official registered ✅" || echo "register failed ❌"
 ```
 If `AIRROI_API_KEY` is blank in `.env`, the helper says so on its own and registers nothing; finish section 3 first.
 

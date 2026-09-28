@@ -32,6 +32,12 @@ $FIRECRAWL_API_KEY. Same blank-var rule as --env.
 
 A successful register prints nothing (exit 0); the caller's own "&& echo" is
 the one confirmation line. --remove prints "NAME removed".
+
+Every successful register also appends "NAME|<unix time>" to the kit's
+.cache/needs-restart (next to this lib/ folder; SSC_CACHE_DIR overrides it for
+tests). The scoreboard shows that server as 🔒 until the Claude Code app has
+been started after that moment (lib/app.sh, lib/matrix.sh), so a restart the
+attendee only promised cannot turn the row green.
 """
 import argparse
 import json
@@ -64,7 +70,8 @@ def load_config():
     if not os.path.isfile(path):
         return {"mcpServers": {}}
     try:
-        with open(path, "r", encoding="utf-8") as f:
+        # utf-8-sig: a BOM (Notepad, PowerShell's Out-File) is not a reason to reset the file.
+        with open(path, "r", encoding="utf-8-sig") as f:
             data = json.load(f)
     except (OSError, ValueError):
         return _backup_and_reset(path, "was not valid JSON")
@@ -158,10 +165,28 @@ def cmd_remove(name):
     return 0
 
 
+def stamp_restart(name):
+    """Append "name|<now>" to .cache/needs-restart. Best effort: a marker that could not be
+    written must never fail a register that already succeeded."""
+    cache = os.environ.get("SSC_CACHE_DIR") or os.path.join(
+        os.path.dirname(os.path.abspath(__file__)), os.pardir, ".cache")
+    try:
+        os.makedirs(cache, exist_ok=True)
+        with open(os.path.join(cache, "needs-restart"), "a", encoding="utf-8") as f:
+            f.write("%s|%d\n" % (name, int(time.time())))
+    except OSError:
+        pass
+
+
 def cmd_register(name, entry):
     data = load_config()
-    data.setdefault("mcpServers", {})[name] = entry
+    servers = data.setdefault("mcpServers", {})
+    if name in servers and servers[name] != entry:
+        # Name only, never the entry: a replaced one may carry a token in its env or headers.
+        print("%s: replaced an entry of the same name that was configured differently" % name)
+    servers[name] = entry
     save_config(data)
+    stamp_restart(name)
     # Silent on success. Every register line in the connector files already echoes
     # "<name> registered ✅" on exit 0, and printing here too showed it twice.
     return 0

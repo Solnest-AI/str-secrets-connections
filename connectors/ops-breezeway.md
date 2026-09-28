@@ -71,23 +71,21 @@ cd "$BUNDLE" && bash fan-out-env.sh
 
 **Register:** pick the line that matches what Claude built (same shape as Track B step B5, but run these lines, not the build doc's). Python with uv, modeled on the bundled Turno server, is the default:
 ```bash
-uv run --python 3.13 python "$BUNDLE/lib/mcp_register.py" breezeway --stdio uv --directory "$BUNDLE/mcp-servers/breezeway" run breezeway-mcp && echo "breezeway registered ✅" || echo "breezeway register failed ❌"
-echo breezeway >> "$BUNDLE/.cache/needs-restart"
+uv run --no-project --python 3.13 python "$BUNDLE/lib/mcp_register.py" breezeway --stdio uv --directory "$BUNDLE/mcp-servers/breezeway" run breezeway-mcp && echo "breezeway registered ✅" || echo "breezeway register failed ❌"
 ```
 If Claude built it in TypeScript (PriceLabs-style) or plain Python with a venv, swap the `--stdio` part for the matching one. Same name:
 ```bash
-uv run --python 3.13 python "$BUNDLE/lib/mcp_register.py" breezeway --stdio node "$BUNDLE/mcp-servers/breezeway/dist/index.js" && echo "breezeway registered ✅" || echo "breezeway register failed ❌"
-uv run --python 3.13 python "$BUNDLE/lib/mcp_register.py" breezeway --stdio "$BUNDLE/mcp-servers/breezeway/.venv/bin/python" "$BUNDLE/mcp-servers/breezeway/server.py" && echo "breezeway registered ✅" || echo "breezeway register failed ❌"
+uv run --no-project --python 3.13 python "$BUNDLE/lib/mcp_register.py" breezeway --stdio node "$BUNDLE/mcp-servers/breezeway/dist/index.js" && echo "breezeway registered ✅" || echo "breezeway register failed ❌"
+uv run --no-project --python 3.13 python "$BUNDLE/lib/mcp_register.py" breezeway --stdio "$BUNDLE/mcp-servers/breezeway/.venv/bin/python" "$BUNDLE/mcp-servers/breezeway/server.py" && echo "breezeway registered ✅" || echo "breezeway register failed ❌"
 ```
 Re-running any of these is safe any number of times; each one overwrites the old entry.
 
 **Windows note (Git Bash).** Claude Code on Windows is a native Windows process, so every absolute path handed to the register helper must be the `C:\...` form. Convert first, then register with the converted path:
 ```bash
 BUNDLE_WIN="$(cygpath -w "$BUNDLE")"
-uv run --python 3.13 python "$BUNDLE/lib/mcp_register.py" breezeway --stdio uv --directory "$BUNDLE_WIN\mcp-servers\breezeway" run breezeway-mcp && echo "breezeway registered ✅" || echo "breezeway register failed ❌"
-echo breezeway >> "$BUNDLE/.cache/needs-restart"
+uv run --no-project --python 3.13 python "$BUNDLE/lib/mcp_register.py" breezeway --stdio uv --directory "$BUNDLE_WIN\mcp-servers\breezeway" run breezeway-mcp && echo "breezeway registered ✅" || echo "breezeway register failed ❌"
 ```
-TypeScript build instead: `uv run --python 3.13 python "$BUNDLE/lib/mcp_register.py" breezeway --stdio node "$BUNDLE_WIN\mcp-servers\breezeway\dist\index.js" && echo "breezeway registered ✅" || echo "breezeway register failed ❌"`. Plain Python with a venv: the interpreter is `"$BUNDLE_WIN\mcp-servers\breezeway\.venv\Scripts\python.exe"` (never `.venv/bin/python`) followed by `"$BUNDLE_WIN\mcp-servers\breezeway\server.py"`. The `$BUNDLE/.cache/needs-restart` write stays inside Bash and works as-is.
+TypeScript build instead: `uv run --no-project --python 3.13 python "$BUNDLE/lib/mcp_register.py" breezeway --stdio node "$BUNDLE_WIN\mcp-servers\breezeway\dist\index.js" && echo "breezeway registered ✅" || echo "breezeway register failed ❌"`. Plain Python with a venv: the interpreter is `"$BUNDLE_WIN\mcp-servers\breezeway\.venv\Scripts\python.exe"` (never `.venv/bin/python`) followed by `"$BUNDLE_WIN\mcp-servers\breezeway\server.py"`. The `$BUNDLE/.cache/needs-restart` write stays inside Bash and works as-is.
 
 **Quit and reopen the Claude Code desktop app** fully (not just the window). Then say "Check my connections" again.
 

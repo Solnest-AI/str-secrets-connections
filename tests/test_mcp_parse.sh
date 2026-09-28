@@ -11,6 +11,9 @@ t "failed"         "[ \"\$(mcp_status firecrawl)\" = failed ]"
 t "pending"        "[ \"\$(mcp_status shared-server)\" = pending ]"
 t "disabled"       "[ \"\$(mcp_status old-thing)\" = disabled ]"
 t "absent"         "[ \"\$(mcp_status nothere)\" = absent ]"
+t "kind http (url column)"      "[ \"\$(mcp_kind rankbreeze)\" = http ]"
+t "kind stdio (command column)" "[ \"\$(mcp_kind hospitable)\" = stdio ]"
+t "kind absent"                 "[ \"\$(mcp_kind nothere)\" = absent ]"
 t "cache has no URL/secret" "! printf '%s' \"\$MCP_LIST_CACHE\" | grep -q rb_mcp_SECRET"
 t "windows glyphs" "printf 'x: cmd - √ Connected\ny: cmd - × Failed to connect\n' > /tmp/w.txt; CLAUDE_STUB_FIXTURE=/tmp/w.txt mcp_load; [ \"\$(mcp_status x)\" = connected ] && [ \"\$(mcp_status y)\" = failed ]"
 
@@ -21,11 +24,11 @@ t "windows glyphs" "printf 'x: cmd - √ Connected\ny: cmd - × Failed to connec
 # is just /usr/bin again).
 NOBIN_HOME="$(mktemp -d)"
 cat > "$NOBIN_HOME/.claude.json" <<'JSON'
-{"mcpServers":{"hospitable":{"type":"stdio","command":"node","args":["x"]}}}
+{"mcpServers":{"hospitable":{"type":"stdio","command":"node","args":["x"]},"hosted":{"type":"http","url":"https://x"},"untyped":{"url":"https://y"}}}
 JSON
 PYDIR="$(python_dir)"
-nobin_out="$(SSC_NO_CLAUDE_BIN=1 HOME="$NOBIN_HOME" PATH="${PYDIR:+$PYDIR:}/usr/bin:/bin" bash -c '. lib/mcp.sh; mcp_load; printf "%s|%s" "$(mcp_status hospitable)" "$(mcp_status nothere)"')"
-t "no-binary: present name is registered" "[ \"\$nobin_out\" = 'registered|absent' ]"
+nobin_out="$(SSC_NO_CLAUDE_BIN=1 HOME="$NOBIN_HOME" PATH="${PYDIR:+$PYDIR:}/usr/bin:/bin" bash -c '. lib/mcp.sh; mcp_load; printf "%s|%s|%s|%s|%s" "$(mcp_status hospitable)" "$(mcp_status nothere)" "$(mcp_kind hospitable)" "$(mcp_kind hosted)" "$(mcp_kind untyped)"')"
+t "no-binary: present name is registered, kinds from type or url" "[ \"\$nobin_out\" = 'registered|absent|stdio|http|http' ]"
 rm -rf "$NOBIN_HOME"
 
 exit $fail

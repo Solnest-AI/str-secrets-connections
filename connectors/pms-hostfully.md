@@ -57,7 +57,14 @@ Then Claude runs, in order:
 **FILLED:** `grep -q '^HOSTFULLY_API_KEY=.\+' .env && grep -q '^HOSTFULLY_AGENCY_UID=.\+' .env && echo "present ✅" || echo "still blank"`
 **WORKS:** `bash -c '. lib/env.sh; . lib/probes.sh; env_load .env; probe_hostfully; echo rc=$?'` (0 works, 1 rejected, 2 blank, 3 unreachable)
 
-**Build:** Follow `build/README.md` first, then `build/build-pms-mcp.md` (or `build-pricing-ops-mcp.md`) Steps B1 to B3 only (research, reference doc, write the server code into `$BUNDLE/mcp-servers/hostfully/`). Credentials, registering, fan-out and the restart are done from THIS file, not from the build doc. Three overrides for Hostfully: skip that file's Step 2 Hostfully card (it says to click a Generate API Key button that Hostfully's help does not describe; use section 3 above, the key is a field you copy), skip its post-build credential contract (steps 1 to 6 under 'After you finish writing the code'; the root `.env` plus `fan-out-env.sh` already fill `mcp-servers/hostfully/.env`, nothing gets pasted a second time), and make the server load its `.env` from its own folder, not the working directory, exactly like the bundled Hospitable server does (`config({ path: resolve(__dirname, "..", ".env") })` in `src/index.ts`), because `--scope user` means Claude Code can start it from any folder. Then:
+**Build:** Follow `build/README.md` first, then `build/build-pms-mcp.md` (or `build-pricing-ops-mcp.md`) Steps B1 to B3 only (research, reference doc, write the server code into `$BUNDLE/mcp-servers/hostfully/`). Credentials, registering, fan-out and the restart are done from THIS file, not from the build doc. Three overrides for Hostfully: skip that file's Step 2 Hostfully card (it says to click a Generate API Key button that Hostfully's help does not describe; use section 3 above, the key is a field you copy), skip its post-build credential contract (steps 1 to 6 under 'After you finish writing the code'; the root `.env` plus `fan-out-env.sh` already fill `mcp-servers/hostfully/.env`, nothing gets pasted a second time), and make the server load its `.env` from its own folder, not the working directory, exactly like the bundled Hospitable server does (`config({ path: resolve(__dirname, "..", ".env") })` in `src/index.ts`), because `--scope user` means Claude Code can start it from any folder.
+
+Three things the built server must get right, all from an attendee's first run (2026-09-28: a 30-day pull came back as one week, and one properties call was 100k characters):
+1. **Paging.** Hostfully returns 20 items per call unless told otherwise (`_limit`, up to 100) and hands back the next page's cursor as `_paging._nextCursor`, which the next call passes as `_cursor`. There is no `from`, `to`, `page` or `offset`; the date filters on `/leads` are `checkInFrom`, `checkInTo`, `checkOutFrom`, `checkOutTo` and `updatedSince` (`/properties` takes `updatedSince`, `_limit`, `_cursor`). So `list_leads` and `list_properties` take `limit` and `cursor` and return `next_cursor`, and `list_leads` also takes `check_in_from`, `check_in_to`, `check_out_from`, `check_out_to` and `updated_since`. When a date window is given, the tool keeps following `_nextCursor` (100 per call) until the window is covered or a page cap is hit, and says so if it stopped early. Never invent a parameter Hostfully does not have.
+2. **Size.** `list_properties` on a real agency is ~100k characters raw, more than Claude can read in one go. List tools return one compact row per item (uid, name, city and state, bedrooms, bathrooms, max guests, base price, active flag; for leads: uid, property uid, status, check-in, check-out, guest count, total) and `get_property` / `get_lead` for the rest. Cap any tool result around 8k characters and say how to page or narrow. Never return the raw payload.
+3. **Prove it after the restart** (section 5): the bookings test must page past 20.
+
+Then:
 ```bash
 cd "$BUNDLE/mcp-servers/hostfully" && npm install --silent && npm run build --silent && ls dist/index.js
 bash "$BUNDLE/fan-out-env.sh"
@@ -66,14 +73,12 @@ bash "$BUNDLE/fan-out-env.sh"
 
 **Register (Mac):**
 ```bash
-uv run --python 3.13 python "$BUNDLE/lib/mcp_register.py" hostfully --stdio node "$BUNDLE/mcp-servers/hostfully/dist/index.js" && echo "hostfully registered ✅" || echo "register failed ❌"
-echo hostfully >> "$BUNDLE/.cache/needs-restart"
+uv run --no-project --python 3.13 python "$BUNDLE/lib/mcp_register.py" hostfully --stdio node "$BUNDLE/mcp-servers/hostfully/dist/index.js" && echo "hostfully registered ✅" || echo "register failed ❌"
 ```
 
 **Register (Windows, in Git Bash):** Claude Code is a native Windows process, so it must be handed a `C:\...` path. Convert it first with `cygpath -w`:
 ```bash
-uv run --python 3.13 python "$BUNDLE/lib/mcp_register.py" hostfully --stdio node "$(cygpath -w "$BUNDLE/mcp-servers/hostfully/dist/index.js")" && echo "hostfully registered ✅" || echo "register failed ❌"
-echo hostfully >> "$BUNDLE/.cache/needs-restart"
+uv run --no-project --python 3.13 python "$BUNDLE/lib/mcp_register.py" hostfully --stdio node "$(cygpath -w "$BUNDLE/mcp-servers/hostfully/dist/index.js")" && echo "hostfully registered ✅" || echo "register failed ❌"
 ```
 (If Claude built this server in Python instead of Node, the interpreter on Windows is `.venv/Scripts/python.exe`, not `.venv/bin/python`, and that path gets the same `cygpath -w` treatment.)
 
@@ -93,7 +98,7 @@ The checker's `probe_hostfully` makes one real call: `GET https://api.hostfully.
 
 Our research did not capture the exact error text Hostfully returns for a bad key, so go by the status code, not the message.
 
-After the restart, the real test: ask Claude "list my Hostfully properties". If your listings come back, you are done. Claude shows you the scoreboard, not the raw server list.
+After the restart, two real tests. "List my Hostfully properties": your listings come back as short rows, not a wall of JSON. Then "pull my bookings for the last 30 days": Claude calls `list_leads` with the date window and reports how many pages it walked. Exactly 20 rows and no `next_cursor` means the server is not paging; fix `list_leads` per the paging rule in section 3 before moving on. Claude shows you the scoreboard, not the raw server list.
 
 ## 6. Troubleshooting
 - **No API Key field on Agency Settings:** the add-on is not enabled. In-app chat or the email in section 2. Nothing on your side can make the field appear.
@@ -101,9 +106,11 @@ After the restart, the real test: ask Claude "list my Hostfully properties". If 
 - **rc=1 but you are sure the key is right:** check the UID. Both values come from the same page, and the UID is at the very bottom, easy to miss or half-copy. Also check for a stray space or quote after the `=` in `.env`.
 - **400 from the properties call:** `agencyUid` is missing. It is a query parameter on list endpoints (properties, leads), not a header. The built server handles this; if you are testing by hand, add `?agencyUid=...`.
 - **404 on a call that should work, or rc=1 with a key you trust:** Hostfully's help pages show two base paths, `https://api.hostfully.com/v3/` and `https://api.hostfully.com/api/v3/`, and its developer docs pin `https://api.hostfully.com/api/v3.3/`. The checker uses `/v3/`; the server Claude builds uses `/api/v3.3/` (that is what `build/build-pms-mcp.md` tells it to do). All three answered on 2026-09-21. Note that a wrong version under `/api/` comes back as 401, not 404, so a bad base path in the built server can look like a rejected key. If Hostfully moves things, the base URL constant in `$BUNDLE/mcp-servers/hostfully/` is the first line to change.
+- **A 30-day pull comes back as about a week, or every list stops at 20:** the built server is not following `_paging._nextCursor`. Hostfully defaults `_limit` to 20 (max 100) and pages by cursor only; `from`/`to`/`offset` are silently ignored. Fix `list_leads` and `list_properties` per the paging rule in section 3, rebuild (`npm run build --silent`), quit and reopen the Claude Code desktop app.
+- **`list_properties` comes back as 100k characters and Claude cannot read it:** the server is returning the raw payload. Compact rows plus `get_property` for detail (section 3, the size rule), rebuild, restart.
 - **Rate limit:** Hostfully's developer docs say 10,000 calls an hour; their FAQ says 1,000. Plan for the lower number. A handful of properties checked a few times a day stays well under either.
 - **Server shows Failed to connect after restart (Windows):** the registered path is probably a `/c/Users/...` form. Re-run the Windows register line above; it overwrites the old entry with the `cygpath -w` form.
 - **Server connects, but every tool says the key is missing (often only from a different folder):** the built server is reading `.env` from the current directory instead of `$BUNDLE/mcp-servers/hostfully/.env`. Fix the dotenv path in `src/index.ts` to resolve relative to the file, rebuild (`npm run build --silent`), quit and reopen the Claude Code desktop app.
 
 ## 7. Sources
-help.hostfully.com articles 5520003 (API authentication: API key vs OAuth, base URL) and 3453789 (where the API key and agency UID live, api@hostfully.com for new keys, the in-app chat phrase for billing when the field is missing); dev.hostfully.com (header name, rate limit). Read 2026-09-21. No MCP found on any Hostfully property that day.
+help.hostfully.com articles 5520003 (API authentication: API key vs OAuth, base URL) and 3453789 (where the API key and agency UID live, api@hostfully.com for new keys, the in-app chat phrase for billing when the field is missing); dev.hostfully.com (header name, rate limit). Read 2026-09-21. dev.hostfully.com/reference/findleads and /reference/findbyagencyuid (the v3.3 OpenAPI: `_limit`, `_cursor`, `updatedSince`, the `checkIn*`/`checkOut*` date filters, the `_metadata` / `_paging._nextCursor` envelope) and /reference/hostfully-graphql-api ("By default, value of _limit is 20, and the upper boundary of that is 100"), read 2026-09-28 after an attendee's 30-day pull came back as a week. No MCP found on any Hostfully property that day.

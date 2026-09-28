@@ -1,13 +1,28 @@
 #!/usr/bin/env bash
 # Fan the root .env out to every connector and skill folder that declares its own .env.example.
 # MERGE, never overwrite: only declared keys, only non-blank root values, no existing line removed.
+# Only the folders in THIS attendee's stack get one: the chosen PMS, pricing and ops servers plus
+# the two everyone uses (airroi, kie). A Hostfully shop never gets a hospitable/.env (2026-09-28
+# report). A .env with no STACK_* answers yet (an older kit's file) still fans out to every folder.
 set -u
 cd "$(dirname "$0")"
 . lib/env.sh
-env_load ./.env || { echo "❌ No .env here. cp .env.template .env first."; exit 1; }
+env_load ./.env || { echo "❌ No .env here. Claude builds it from your four answers (CONNECTIONS.md Phase 1, lib/env_make.py)."; exit 1; }
 : "${TURNO_ENV:=production}"; export TURNO_ENV
-export HOSPITABLE_TOKEN="${HOSPITABLE_API_KEY:-}"     # alias for the Listing Optimizer
+case "${STACK_PMS:-hospitable}" in hospitable) export HOSPITABLE_TOKEN="${HOSPITABLE_API_KEY:-}" ;; esac   # alias for the Listing Optimizer
 MCP_SERVERS_DIR="${MCP_SERVERS_DIR:-$PWD/mcp-servers}"
+
+# in_stack NAME: is this server folder part of the attendee's stack?
+STACK_ALL=""
+if [ -z "${STACK_PMS:-}${STACK_PRICING:-}${STACK_RANKING:-}${STACK_OPS:-}" ]; then STACK_ALL=1; fi
+in_stack() {
+  [ -n "$STACK_ALL" ] && return 0
+  case "$1" in
+    airroi|kie) return 0 ;;
+    "${STACK_PMS:-none}"|"${STACK_PRICING:-none}"|"${STACK_RANKING:-none}"|"${STACK_OPS:-none}") return 0 ;;
+  esac
+  return 1
+}
 
 merge_env() {  # merge_env <dir>
   local dir="$1" ex="$1/.env.example" tgt="$1/.env" tmp key val names line
@@ -32,10 +47,14 @@ merge_env() {  # merge_env <dir>
 }
 
 echo "Fanning keys out (values are never printed)..."
+skipped=""
 for d in "$MCP_SERVERS_DIR"/*/; do
   [ -d "$d" ] || continue
-  if merge_env "${d%/}"; then echo "  ✅ $(basename "$d")"; fi
+  name="$(basename "$d")"
+  if ! in_stack "$name"; then [ -f "$d/.env.example" ] && skipped="$skipped $name"; continue; fi
+  if merge_env "${d%/}"; then echo "  ✅ $name"; fi
 done
+[ -n "$skipped" ] && echo "  ➖ not in your stack, left alone:$skipped"
 for v in SKILL_PATH_REVENUE_MANAGER SKILL_PATH_LISTING_OPTIMIZER SKILL_PATH_COMPING_AGENT; do
   eval "p=\"\${$v:-}\""
   [ -n "$p" ] && [ -d "$p" ] || continue

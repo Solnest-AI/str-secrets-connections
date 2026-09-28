@@ -21,9 +21,9 @@ portal: <https://... the exact page in the vendor app where the key or sign-in l
 **FILLED:** `grep -q '^VAR=.\+' .env && echo "present ✅" || echo "still blank"`
 **WORKS:** `bash -c '. lib/env.sh; . lib/probes.sh; env_load .env; probe_<vendor>; echo rc=$?'` (0 works, 1 rejected, 2 blank, 3 unreachable)
 **Register:** no `claude` CLI needed. Source `.env`, then call the bundled helper with `$BUNDLE` absolute paths, and hand it credential variable NAMES, never values:
-  - stdio (built or bundled server): `uv run --python 3.13 python "$BUNDLE/lib/mcp_register.py" <server> --stdio <command> <args...> --env <VAR> && echo "<server> registered ✅" || echo "<server> register failed ❌"`
-  - http with a key in a header: `uv run --python 3.13 python "$BUNDLE/lib/mcp_register.py" <server> --http <url> --header "<Header-Name>: <PREFIX> <VAR>" && echo "<server> registered ✅" || echo "<server> register failed ❌"`
-  Then `echo "<server>" >> "$BUNDLE/.cache/needs-restart"`. Re-running the same line any time (a new key, a rebuilt server) is always safe; it overwrites the old entry, nothing to remove first.
+  - stdio (built or bundled server): `uv run --no-project --python 3.13 python "$BUNDLE/lib/mcp_register.py" <server> --stdio <command> <args...> --env <VAR> && echo "<server> registered ✅" || echo "<server> register failed ❌"`
+  - http with a key in a header: `uv run --no-project --python 3.13 python "$BUNDLE/lib/mcp_register.py" <server> --http <url> --header "<Header-Name>: <PREFIX> <VAR>" && echo "<server> registered ✅" || echo "<server> register failed ❌"`
+  The helper stamps `.cache/needs-restart` itself; nothing to write by hand. Re-running the same line any time (a new key, a rebuilt server) is always safe; it overwrites the old entry, nothing to remove first.
 
 ## 4. Path B: official MCP
 Two shapes, depending on how the vendor's server authenticates.

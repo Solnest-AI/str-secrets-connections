@@ -1,5 +1,7 @@
 # Windows Phase-0 test (Ryan, 2026-09-21)
 
+> Superseded 2026-09-28: Phase 0 no longer sends anyone to PowerShell. `install-tools.sh` installs uv, Python 3.13 and Node from inside the Claude Code desktop app (see `connectors/system-python-uv.md` for the Store-app quirk it works around). This log stays as the record of the by-hand run.
+
 Run top to bottom in a NEW "Windows PowerShell" window (not "(x86)", not CMD). Paste each block, then record what you saw in the RESULT line. Open a NEW window wherever it says so; PATH changes never reach an open window.
 
 ## 0. Baseline

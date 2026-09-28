@@ -49,14 +49,13 @@ bash -c '. lib/env.sh; env_load .env; [ -n "${RANKBREEZE_MCP_URL:-}" ] || { echo
 **Register:**
 ```bash
 set -a; . "$BUNDLE/.env"; set +a
-uv run --python 3.13 python "$BUNDLE/lib/mcp_register.py" rankbreeze --http "$RANKBREEZE_MCP_URL" && echo "rankbreeze registered ✅" || echo "rankbreeze register failed ❌ (see section 6)"
-echo rankbreeze >> "$BUNDLE/.cache/needs-restart"
+uv run --no-project --python 3.13 python "$BUNDLE/lib/mcp_register.py" rankbreeze --http "$RANKBREEZE_MCP_URL" && echo "rankbreeze registered ✅" || echo "rankbreeze register failed ❌ (see section 6)"
 ```
-The helper never prints the URL, on success or failure, so it is safe to run as-is.
+The helper never prints the URL, on success or failure, so it is safe to run as-is. It overwrites whatever already sits under the name `rankbreeze`, and that is the point: the first Revenue Manager kit registered a cookie-based stdio server under this exact name, and that one has to go (its session cookie expires, and the summit skills expect the official hosted MCP). The scoreboard flags an old one for you (section 5).
 
 Then quit and reopen the Claude Code desktop app. New servers only show up after a restart.
 
-**Windows note:** run this under Git Bash (that is what Claude's Bash tool is). The `$BUNDLE/.env` and `$BUNDLE/.cache/needs-restart` paths are read by bash itself, so the Git Bash form (`/c/Users/...`) is correct as-is. Nothing here needs `cygpath -w` or `.venv/Scripts/python.exe`: the only thing handed to the register helper is the URL, and a URL is the same on every OS.
+**Windows note:** run this under Git Bash (that is what Claude's Bash tool is). The `$BUNDLE/.env` path is read by bash itself, so the Git Bash form (`/c/Users/...`) is correct as-is. Nothing here needs `cygpath -w` or `.venv/Scripts/python.exe`: the only thing handed to the register helper is the URL, and a URL is the same on every OS.
 
 ## 4. Path B: official MCP
 This IS the official MCP. There is no separate path and no second server name. The register line from section 3 registers it as an `http` server; it takes the URL alone, no `--header`.
@@ -75,6 +74,7 @@ The checker (`check-connections.sh`) does two things for the `RankBreeze MCP` ro
 - `❌ RankBreeze MCP   missing → not registered` means the register step has not run.
 - `🔒 RankBreeze MCP   needs a full restart of Claude Code` means you registered but have not restarted yet.
 - `⚠️ RankBreeze MCP   registered, key fails → server status: failed` means Claude Code could not connect: the URL in `.env` is wrong, truncated, or was reset.
+- `⚠️ RankBreeze MCP   registered, key fails → an older rankbreeze server from another kit sits on this name` (URL line blank) or `→ the registered rankbreeze is an older stdio server, not the official URL` (URL line filled) means the first Revenue Manager kit's cookie-based server is registered under this name. Nothing is broken: paste the URL if it is still blank, run the Register block in section 3, and it replaces the old one. `env_discover` cannot find a URL in that old entry, because it never had one; this is the one case where "I already have RankBreeze" still means a fresh Copy URL.
 - `➖ RankBreeze MCP   not used` means `STACK_RANKING` in `.env` is not set to `rankbreeze`. The checker skips this row entirely until it is. Tell Claude "I use RankBreeze" (or put `STACK_RANKING=rankbreeze` in `.env` yourself), then run the checker again.
 
 **The real proof, after the restart:** ask Claude "RankBreeze, look up my account". Claude calls `lookup_current_user` and comes back with your account and listing count. That is the end-to-end test, and it never needs the raw URL printed anywhere.
@@ -89,6 +89,7 @@ The checker (`check-connections.sh`) does two things for the `RankBreeze MCP` ro
 - **Impressions, click-through, views, wishlists, and booking rate all come back 0.** That listing is not connected to Airbnb Hosting inside RankBreeze. RankBreeze returns 0 for every performance field on an unconnected listing ("not tracked," not "no activity"). Connect the listing's Airbnb Hosting account in RankBreeze; real numbers show up within about 24 hours. Search rankings are not affected by this: RankBreeze gathers those by searching Airbnb directly, so if rankings are missing the cause is something else (ask Claude to check the listing's status with `get_user_listings`).
 - **The numbers look a day behind.** They are. RankBreeze collects rankings nightly and imports Airbnb data daily. Ask for yesterday, not today; today's numbers are usually still partial.
 - **You pasted the URL in chat, Skool, or a screenshot.** Treat it as burned. Reset URL in RankBreeze, re-paste, re-register, restart. Takes two minutes.
+- **An older `rankbreeze` from the Revenue Manager kit is registered (the board says "older ... server").** That was a cookie-based stdio server that logged in with a browser session. Do not keep it and do not rename it: the summit skills expect the name `rankbreeze` to be RankBreeze's own hosted MCP. Paste the URL into `.env`, run the Register block in section 3 (it overwrites the entry), quit and reopen the Claude Code desktop app. Reported 2026-09-28: the board used to say "paste it into .env" with no hint that a different server was already sitting on the name.
 - **No "API" item in your RankBreeze sidebar.** That is the REST add-on, and we do not use it. You are not missing anything. MCP Access under Settings is all you need.
 
 ## 7. Sources

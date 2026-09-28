@@ -50,16 +50,14 @@ The token has no permission settings of its own. It does whatever your Beyond lo
 ```bash
 cd "$BUNDLE/mcp-servers/beyond" && npm install --silent && npm run build --silent
 bash "$BUNDLE/fan-out-env.sh"
-uv run --python 3.13 python "$BUNDLE/lib/mcp_register.py" beyond --stdio node "$BUNDLE/mcp-servers/beyond/dist/index.js" && echo "beyond registered ✅" || echo "register failed ❌"
-echo beyond >> "$BUNDLE/.cache/needs-restart"
+uv run --no-project --python 3.13 python "$BUNDLE/lib/mcp_register.py" beyond --stdio node "$BUNDLE/mcp-servers/beyond/dist/index.js" && echo "beyond registered ✅" || echo "register failed ❌"
 ```
 
 **Register (Windows, Git Bash):** run all of this in Git Bash (that is what Claude's Bash tool is on Windows). Claude Code itself is a native Windows program, so the path handed to the register helper has to be the `C:\...` form. Convert it with `cygpath -w` and register that instead:
 ```bash
 cd "$BUNDLE/mcp-servers/beyond" && npm install --silent && npm run build --silent
 bash "$BUNDLE/fan-out-env.sh"
-uv run --python 3.13 python "$BUNDLE/lib/mcp_register.py" beyond --stdio node "$(cygpath -w "$BUNDLE/mcp-servers/beyond/dist/index.js")" && echo "beyond registered ✅" || echo "register failed ❌"
-echo beyond >> "$BUNDLE/.cache/needs-restart"
+uv run --no-project --python 3.13 python "$BUNDLE/lib/mcp_register.py" beyond --stdio node "$(cygpath -w "$BUNDLE/mcp-servers/beyond/dist/index.js")" && echo "beyond registered ✅" || echo "register failed ❌"
 ```
 If Claude built the Python flavour instead of Node, the interpreter on Windows is `.venv/Scripts/python.exe` (never `.venv/bin/python`), and both the interpreter path and the `server.py` path go through `cygpath -w` the same way.
 

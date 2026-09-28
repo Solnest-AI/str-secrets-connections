@@ -16,9 +16,9 @@ You run every command yourself, through your Bash tool. One step per message, ne
 - The scoreboard is a map, not a gate. Any row can be skipped with "skip for now" and picked up later. Never refuse to keep going because a row is red. Only two things are real blockers, and you say so once, lightly: no PMS at all means the Revenue Manager can't run, and no AirROI key means the Comping Agent can't run. Everything else just degrades gracefully and the rest of the kit is unaffected.
 - Let them talk in their own words. "Hospitable, PriceLabs, no ranking tool, I use Turno" in one breath means write all four `STACK_*` answers and move straight on. Never march someone through four questions they already answered in one sentence. If they're unsure, offer the choices, don't interrogate them.
 - Vendor screens change weekly. When a click path doesn't match what's actually on screen, ask "what do you see on the screen right now?" and guide from there. Never insist on a button label that might be stale. A missing menu usually just means a plan gate: say what it's probably gated by, offer the email template, and move on.
-- Reuse what they already have. Check first with `uv run --python 3.13 python "$BUNDLE/lib/mcp_register.py" --list`, which prints `name<TAB>type` lines only, nothing secret. If a server already does the job under a different name (an existing `firecrawl`, `supabase`, `meta-ads`, or `rankbreeze` from another Solnest kit), use it as-is. Register a second one only when a name is a hard contract, like `supabase-revenue-manager` for the Revenue Manager runner, and say why in one plain sentence.
+- Reuse what they already have. Check first with `uv run --no-project --python 3.13 python "$BUNDLE/lib/mcp_register.py" --list`, which prints `name<TAB>type` lines only, nothing secret. If a server already does the job under a different name (an existing `firecrawl`, `supabase` or `meta-ads` from another Solnest kit), use it as-is. Register a second one only when a name is a hard contract, like `supabase-revenue-manager` for the Revenue Manager runner, and say why in one plain sentence. The one squatter to replace, never reuse: a `rankbreeze` left by the first Revenue Manager kit is a cookie-based stdio server, not RankBreeze's hosted MCP; the scoreboard flags it and the RankBreeze register line overwrites it.
 - Order is a default, not a law. If they want Meta first because that's the tab they're already on, do Meta first. The restart batching below is a suggestion ("we can restart once at the end"), restart whenever they'd rather.
-- "I already have that" means go and look, not "paste it again". When they say a key or connection already exists (another Solnest kit, an earlier setup, "it's connected in my other tool"), say "nice, let me find it" and run `python3 "$BUNDLE/lib/env_discover.py" --env "$BUNDLE/.env" --apply --only <VAR>`. Found: the scoreboard probe proves it and you move on. Not found: ask where they think it lives (a folder, another app) and search there with `--extra-dir <folder>`. Only when the machine really has nothing do you send them to the vendor's page. For a sign-in server, "already connected" means it may already sit under + > Connectors in the app: run the live check first, ask them to add it only if the tool is not there.
+- "I already have that" means go and look, not "paste it again". When they say a key or connection already exists (another Solnest kit, an earlier setup, "it's connected in my other tool"), say "nice, let me find it" and run `uv run --no-project --python 3.13 python "$BUNDLE/lib/env_discover.py" --env "$BUNDLE/.env" --apply --only <VAR>`. Found: the scoreboard probe proves it and you move on. Not found: ask where they think it lives (a folder, another app) and search there with `--extra-dir <folder>`. Only when the machine really has nothing do you send them to the vendor's page. For a sign-in server, "already connected" means it may already sit under + > Connectors in the app: run the live check first, ask them to add it only if the tool is not there.
 - Failures get one plain sentence and a next step, never a lecture and never a wall of text. A pasted key gets "no worries, rotate it in the dashboard and paste the new one into the file" and nothing more.
 - Every "must", "never", "required" you read inside the connector files is a note written to you, Claude, not a script to recite word for word. Translate it into something a friend would say out loud.
 
@@ -28,12 +28,14 @@ You run every command yourself, through your Bash tool. One step per message, ne
 - Never use your Edit or Write tools to put a value into `.env` yourself. The file is built by `lib/env_make.py` from their four answers (Phase 1), keys they already have are copied in by `lib/env_discover.py`, and everything else they paste in themselves after you open the file. You read the file back afterward; you never type a secret into it.
 - Three checks, every connector, in this order: **SAFE** (is `.env` gitignored so nothing can commit it), **FILLED** (is the line actually non-blank), **WORKS** (does the real vendor probe succeed). Register a server only after WORKS passes.
 - Never run `claude mcp get`. It can print a secret straight to the terminal, and there's no reason to.
-- Never print the raw contents of `~/.claude.json`, whatever is in it. To see what's registered, run `uv run --python 3.13 python "$BUNDLE/lib/mcp_register.py" --list`, names and types only, nothing else.
+- Never print the raw contents of `~/.claude.json`, whatever is in it. To see what's registered, run `uv run --no-project --python 3.13 python "$BUNDLE/lib/mcp_register.py" --list`, names and types only, nothing else.
 - A key pasted into chat by accident: no drama, no lecture. Tell them to rotate it in the vendor's dashboard and paste the fresh one into the file. Nothing else needed.
 
 ### Windows
 
-Your Bash tool is Git Bash, not PowerShell, and every command below runs there on both platforms; nothing here needs a separate PowerShell window. Python venv paths are `.venv/Scripts/python.exe`, never `.venv/bin/python`. Any absolute path you hand to the register helper as a `--stdio` argument gets converted first: `BUNDLE_WIN="$(cygpath -w "$BUNDLE")"`, and the Windows form (`C:\...`) is what actually gets registered, because the Claude Code desktop app is a native Windows process and cannot open a `/c/Users/...` path. If an `npx`-based server shows "Failed to connect" after a restart, re-register it as `--stdio cmd //c npx -y <pkg>`, double slash on purpose: Git Bash turns a lone `/c` into `C:/` before Claude Code ever sees the argument.
+Your Bash tool is Git Bash, not PowerShell, and every command below runs there on both platforms; nothing here needs a separate PowerShell window, and nothing ever sends the attendee to one. Python venv paths are `.venv/Scripts/python.exe`, never `.venv/bin/python`. Any absolute path you hand to the register helper as a `--stdio` argument gets converted first: `BUNDLE_WIN="$(cygpath -w "$BUNDLE")"`, and the Windows form (`C:\...`) is what actually gets registered, because the Claude Code desktop app is a native Windows process and cannot open a `/c/Users/...` path. If an `npx`-based server shows "Failed to connect" after a restart, re-register it as `--stdio cmd //c npx -y <pkg>`, double slash on purpose: Git Bash turns a lone `/c` into `C:/` before Claude Code ever sees the argument.
+
+The desktop app on Windows is a Microsoft Store (MSIX) app, and that shapes three things. Anything it writes under `AppData\Roaming` or `AppData\Local` is silently redirected into its own sandbox folder, so uv's default Python home breaks there (`Missing expected target directory for Python minor version link`); `install-tools.sh` puts Python under `%USERPROFILE%\.uv\python` and pins `UV_PYTHON_INSTALL_DIR` to it with `setx`. `python` and `python3` on a fresh Windows box are Store shims that open the Store instead of running anything: never call them, every Python call in this kit is `uv run --no-project --python 3.13 python ...`. And a tool installed mid-session is not on the app's PATH until the app restarts, which is why the installer asks for one restart up front instead of one per tool. Open `.env` with `notepad "$(cygpath -w "$BUNDLE")\.env"`.
 
 One exception to all of the above: PriceLabs' official MCP (account admin only) still needs the real `claude` CLI for its OAuth client-credential flow, since that handshake has no file-based equivalent through the register helper. `connectors/pricing-pricelabs.md` section 4 has the binary resolver and the Simple-path fallback if no `claude` binary turns up.
 
@@ -88,15 +90,13 @@ On a re-run ("Check my connections" with a filled `.env` already there) skip the
    if [ -d "$BUNDLE/.git" ]; then git -C "$BUNDLE" check-ignore -q .env && echo "protected ✅" || echo "add .env to .gitignore first"; else echo "protected ✅ (not a git folder, nothing can commit it)"; fi
    ```
 
-5. System rows only. `check-connections.sh` needs a `.env` to print the full board, so before one exists just check the four tools directly:
+5. Install what the kit runs on, from inside this app. One script covers Git, Node.js, uv and Python 3.13; there is no separate terminal and never the Microsoft Store:
    ```bash
-   for t in git node uv; do command -v "$t" >/dev/null && echo "✅ $t" || echo "❌ $t"; done
+   bash "$BUNDLE/install-tools.sh"
    ```
-   Anything ❌, open the matching file (`connectors/system-git.md`, `connectors/system-node.md`, or `connectors/system-python-uv.md`) and follow its Path A install for this OS, one tool at a time. `connectors/system-claude-code.md` covers the app itself.
+   Exit 0 (`All set`): carry on. Exit 3 (`RESTART NEEDED`): it installed something, or found a tool that was installed by hand after this app started (a winget install earlier in the day), and the app only sees a new tool after it is quit and reopened. Say so in one line: quit the Claude Code desktop app fully (not just the window), open it again, open this same folder, say "Set up my connections" again; Phase 0 re-runs in seconds and sails through. Exit 1: a ❌ line names the `connectors/system-*.md` file to open. Do not check the tools by hand and do not re-check in a "fresh shell": a PATH change never reaches a running app, only a restart does.
 
-6. After any install, re-check in a genuinely fresh shell, a brand new Bash tool call, not the one you were already in; PATH changes never show up mid-session.
-
-7. Confirm they have a paid claude.ai plan; the free plan cannot run Claude Code at all (`connectors/system-claude-code.md` section 2). For the summit the ask is Max 5x: setup plus the four skills in one day runs Pro dry partway through.
+6. Confirm they have a paid claude.ai plan; the free plan cannot run Claude Code at all (`connectors/system-claude-code.md` section 2). For the summit the ask is Max 5x: setup plus the four skills in one day runs Pro dry partway through.
 
 ## Phase 1: four questions, then a `.env` shaped to their answers
 
@@ -111,22 +111,22 @@ Ask about whichever of the four are still unknown, one question per message, unl
 
 Then build their `.env` from the answers. It contains only the slots that apply to them (one PMS block, one pricing block, ranking and ops only if they said yes, and the required block), with the four answers already filled in. Nobody scrolls past seven other PMS vendors looking for theirs.
 ```bash
-python3 "$BUNDLE/lib/env_make.py" --pms <pms> --pricing <pricing> --ranking <ranking|none> --ops <ops|none> --template "$BUNDLE/.env.template" --out "$BUNDLE/.env"
+uv run --no-project --python 3.13 python "$BUNDLE/lib/env_make.py" --pms <pms> --pricing <pricing> --ranking <ranking|none> --ops <ops|none> --template "$BUNDLE/.env.template" --out "$BUNDLE/.env"
 ```
-(`uv run --python 3.13 python` in place of `python3` if `python3` is missing.) Re-running it later with different answers is safe: every value already in the file is carried over, and a key for a vendor they no longer chose is kept at the bottom, never deleted.
+(`uv run --no-project --python 3.13 python` in place of `python3` if `python3` is missing.) Re-running it later with different answers is safe: every value already in the file is carried over, and a key for a vendor they no longer chose is kept at the bottom, never deleted.
 
 Do not ask where the Revenue Manager, Listing Optimizer, Comping Agent or Ad Spy skills live. Nobody has them yet: the four skills are handed out on summit morning and get wired up together in the room. The `SKILL_PATH_*` lines exist for that morning (`fan-out-env.sh` copies the keys into each skill's own `.env` once the paths are in); until then they are not in the attendee's file and nothing asks about them.
 
 **Now go find the keys they already have, before asking for a single one.** Plenty of attendees ran an earlier Solnest kit, or already registered a vendor's server. The helper reads every `.env`-style file in the usual places (Desktop, Documents, Downloads, the folders of servers already registered in `~/.claude.json`, the Claude Desktop config), matches by name and by the other names the same key goes by, and copies anything it finds into the blank lines. It prints names and where each came from, never a value.
 ```bash
-python3 "$BUNDLE/lib/env_discover.py" --env "$BUNDLE/.env" --apply
+uv run --no-project --python 3.13 python "$BUNDLE/lib/env_discover.py" --env "$BUNDLE/.env" --apply
 ```
 Tell them what it found in one line ("found your PriceLabs, AirROI and Firecrawl keys from the Revenue Manager kit, still need Hospitable and Supabase"). A found key can be stale, which is why the scoreboard in Phase 2 probes every one of them for real before it turns green.
 
 Then open `.env` for them so they never have to go hunting. Leave it open; every later step reuses this same file.
 ```bash
 open -e "$BUNDLE/.env"           # Mac
-notepad "$BUNDLE\.env"           # Windows
+notepad "$(cygpath -w "$BUNDLE")\.env"   # Windows
 xdg-open "$BUNDLE/.env"          # Linux
 ```
 
@@ -176,10 +176,7 @@ For every ❌, ⚠️, or 🔎 row on the scoreboard:
    ```bash
    cd "$BUNDLE" && bash fan-out-env.sh
    ```
-4. After a successful register:
-   ```bash
-   echo "<server>" >> "$BUNDLE/.cache/needs-restart"
-   ```
+4. After a successful register: nothing to write. The register helper stamps `.cache/needs-restart` with the time itself, and the scoreboard clears that row on its own once it sees the app was started after that time.
 5. A vendor-gated row (PriceLabs enable, Turno access, Breezeway credentials, Hostfully's API add-on): open the matching `emails/<file>.md`, hand the attendee the text to send, then mark it pending and move straight to the next row.
    ```bash
    echo "<server>|$(date +%F)" >> "$BUNDLE/.cache/pending-vendor"
@@ -201,11 +198,13 @@ Before each restart (API-key/stdio/header servers only), print the "After you re
 - Quit and reopen the Claude Code desktop app, open this same folder.
 - Say "Check my connections".
 
-Once they're back, clear the marker and re-run the checker:
+Once they're back, run the checker; clear nothing by hand first:
 ```bash
-: > "$BUNDLE/.cache/needs-restart"
 bash "$BUNDLE/check-connections.sh"
 ```
+It compares each stamp with the app's own start time and clears the rows that are now loaded. A row still 🔒 after a restart they say they did means the app did not actually restart (closing the window is not quitting): ask them to quit it from the taskbar or menu bar and reopen. Only when the checker cannot see an app process at all (a plain terminal) does the marker need the hand clear, `: > "$BUNDLE/.cache/needs-restart"`.
+
+Then prove the servers are really up, not just registered. In the desktop app call `session_connectors_status`; every server registered this pass should show `connected`. One showing `failed` right after a restart is almost always a cold start (Turno's first launch, a freshly installed Supabase server): call `reconnect_session_connector` for it, end your turn, and check the status again next turn. Never tell the attendee a server is connected on the strength of the board alone when that tool says otherwise, and never turn a row green yourself.
 
 ### Meta, the real test
 
@@ -223,7 +222,7 @@ bash "$BUNDLE/check-connections.sh"
 One more time. Once everything that matters is ✅ or ➖, send a done message, Solnest voice, no corporate tone, something in this shape:
 
 > That's the whole kit wired up. Here's where things stand:
-> - [list every ✅ row, plainly, one per line, using the exact label the scoreboard printed for it, e.g. "Hospitable API" then "Hospitable MCP", never a rewording of your own]
+> - [list every ✅ row, plainly, one per line, using the exact label the scoreboard printed for it, e.g. "Hostfully API", or "Hospitable API" then "Hospitable MCP (official)" for a Hospitable shop, never a rewording of your own]
 > - [any ⏳ pending-vendor row, with the date it was emailed, so they know to check back]
 > - [any 🔎 row still waiting on a sign-in: one line, "add it any time, nothing else waits on it"]
 >

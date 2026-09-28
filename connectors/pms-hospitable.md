@@ -46,17 +46,15 @@ Then Claude runs, in this order:
 ```bash
 ( cd "$BUNDLE/mcp-servers/hospitable" && npm ci --silent && npm run build --silent ) && test -f "$BUNDLE/mcp-servers/hospitable/dist/index.js" && echo "built ✅" || echo "build failed ❌"
 bash "$BUNDLE/fan-out-env.sh" >/dev/null && echo "fanned out ✅" || echo "fan-out failed ❌"
-uv run --python 3.13 python "$BUNDLE/lib/mcp_register.py" hospitable --stdio node "$BUNDLE/mcp-servers/hospitable/dist/index.js" && echo "hospitable registered ✅" || echo "register failed ❌"
-echo hospitable >> "$BUNDLE/.cache/needs-restart"
+uv run --no-project --python 3.13 python "$BUNDLE/lib/mcp_register.py" hospitable --stdio node "$BUNDLE/mcp-servers/hospitable/dist/index.js" && echo "hospitable registered ✅" || echo "register failed ❌"
 ```
 `$BUNDLE` is the absolute path of this folder; Claude resolved it once in Phase 0. The bundled server reads `HOSPITABLE_API_KEY` from its own `.env`, which `bash "$BUNDLE/fan-out-env.sh"` fills from the root one. Run fan-out after any `.env` change. Re-running the register line is safe any number of times; it overwrites the old entry.
 
-**Windows (Git Bash):** run the build line above as-is, then use these three lines INSTEAD of the fan-out, register and needs-restart lines. Claude Code on Windows is a native Windows program, so it must be handed a `C:\...` path, not the `/c/Users/...` form Git Bash uses:
+**Windows (Git Bash):** run the build line above as-is, then use these lines INSTEAD of the fan-out and register lines. Claude Code on Windows is a native Windows program, so it must be handed a `C:\...` path, not the `/c/Users/...` form Git Bash uses:
 ```bash
 BUNDLE_WIN="$(cygpath -w "$BUNDLE")"
 bash "$BUNDLE/fan-out-env.sh" >/dev/null && echo "fanned out ✅" || echo "fan-out failed ❌"
-uv run --python 3.13 python "$BUNDLE/lib/mcp_register.py" hospitable --stdio node "$BUNDLE_WIN\mcp-servers\hospitable\dist\index.js" && echo "hospitable registered ✅" || echo "register failed ❌"
-echo hospitable >> "$BUNDLE/.cache/needs-restart"
+uv run --no-project --python 3.13 python "$BUNDLE/lib/mcp_register.py" hospitable --stdio node "$BUNDLE_WIN\mcp-servers\hospitable\dist\index.js" && echo "hospitable registered ✅" || echo "register failed ❌"
 ```
 This server is Node, so there is no venv here. The Python servers in this kit use `.venv/Scripts/python.exe` on Windows instead of `.venv/bin/python`; same rule, Windows form of the path.
 
@@ -88,8 +86,7 @@ HOSPITABLE_OFFICIAL_TOKEN=
 Then Claude registers it as a header:
 ```bash
 set -a; . "$BUNDLE/.env"; set +a
-uv run --python 3.13 python "$BUNDLE/lib/mcp_register.py" hospitable-official --http https://mcp.hospitable.com/mcp --header "Authorization: Bearer HOSPITABLE_OFFICIAL_TOKEN" && echo "hospitable-official registered ✅" || echo "register failed ❌"
-echo hospitable-official >> "$BUNDLE/.cache/needs-restart"
+uv run --no-project --python 3.13 python "$BUNDLE/lib/mcp_register.py" hospitable-official --http https://mcp.hospitable.com/mcp --header "Authorization: Bearer HOSPITABLE_OFFICIAL_TOKEN" && echo "hospitable-official registered ✅" || echo "register failed ❌"
 ```
 Quit and reopen the Claude Code desktop app afterwards. No browser sign-in step on this path; the header is the login.
 

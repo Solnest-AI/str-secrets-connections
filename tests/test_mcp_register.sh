@@ -6,6 +6,9 @@ fail=0; t(){ if eval "$2"; then echo "ok   $1"; else echo "FAIL $1"; fail=1; fi;
 
 TMPHOME="$(mktemp -d)"
 iso_home "$TMPHOME"
+# The restart stamps go here, never into the working folder's .cache. Native form: the helper is a
+# native Python and would read an MSYS /tmp/... as C:\tmp\... (environment values are not path-converted).
+export SSC_CACHE_DIR="$(native_path "$TMPHOME")/cache"
 PY="${PYTHON:-python3}"
 REG="lib/mcp_register.py"
 
@@ -22,6 +25,7 @@ out_stdio="$(MSYS_NO_PATHCONV=1 "$PY" "$REG" teststdio --stdio node /abs/path/se
 rc_stdio=$?
 t "stdio register exits 0"        "[ $rc_stdio -eq 0 ]"
 t "stdio register did not echo the secret" "! printf '%s' \"$out_stdio\" | grep -q sentinel123"
+t "register stamps needs-restart with the time" "grep -qE '^teststdio\\|[0-9]{10}$' \"$SSC_CACHE_DIR/needs-restart\""
 
 t "stdio shape matches" "\"$PY\" -c '
 import json, os
@@ -95,6 +99,7 @@ assert \"other\" in d[\"mcpServers\"]
 # --- removing something absent is not an error ---
 "$PY" "$REG" nothere --remove >/dev/null 2>&1
 t "remove absent exits 0"         "[ $? -eq 0 ]"
+t "remove writes no restart stamp" "! grep -q '^nothere' \"$SSC_CACHE_DIR/needs-restart\""
 
 # --- a blank env var exits 2 and writes nothing ---
 export FAKE_KEY=""

@@ -2,23 +2,40 @@
 # Copy bundled MCP servers from Ryan's local trees (read-only source), strip build products and secrets, record provenance.
 set -eu
 cd "$(dirname "$0")"
-RM="/Users/ryan_/Documents/Claude Code Repo/revenue-manager-next"
-KIE="$HOME/.claude/skills/solnest-install-kie-mcp/resources"
+# RM: the Revenue Manager tree the servers are copied from (override with RM=... on a machine
+# where it lives elsewhere, e.g. the public str-secrets-revenue-manager checkout on Windows).
+RM="${RM:-/Users/ryan_/Documents/Claude Code Repo/revenue-manager-next}"
+KIE="${KIE:-$HOME/.claude/skills/solnest-install-kie-mcp/resources}"
 # rsync: first matching rule wins, so .env.example is whitelisted before the .env.* exclude that would otherwise swallow it.
 EX=(--include=.env.example --exclude=.env --exclude='.env.*' --exclude=session.txt --exclude=node_modules --exclude=dist --exclude=.venv --exclude=__pycache__ --exclude='*.pyc' --exclude=.DS_Store --exclude=.cache --exclude=.pytest_cache)
+# Git for Windows ships no rsync: there, take the committed tree with git archive (the same
+# files, since build products, .env and caches are untracked in the source too).
+copy_server() {
+  rm -rf "mcp-servers/$1"
+  if command -v rsync >/dev/null 2>&1; then
+    rsync -a "${EX[@]}" "$RM/mcp-servers/$1/" "mcp-servers/$1/"
+  else
+    mkdir -p "mcp-servers/$1"
+    git -C "$RM" archive --format=tar HEAD "mcp-servers/$1" | tar -x --strip-components=2 -C "mcp-servers/$1"
+  fi
+}
 mkdir -p mcp-servers
 for s in hospitable pricelabs turno airroi; do
-  rm -rf "mcp-servers/$s"; rsync -a "${EX[@]}" "$RM/mcp-servers/$s/" "mcp-servers/$s/"
+  copy_server "$s"
   [ -f "mcp-servers/$s/.env.example" ] || { echo "missing .env.example in $s"; exit 1; }
   grep -q '^\.env$' "mcp-servers/$s/.gitignore" 2>/dev/null || printf '.env\n.env.*\n!.env.example\nnode_modules/\ndist/\n.venv/\n__pycache__/\n' >> "mcp-servers/$s/.gitignore"
 done
-rm -rf mcp-servers/kie; mkdir -p mcp-servers/kie
-cp "$KIE/server.py" "$KIE/models.json" "$KIE/requirements.txt" mcp-servers/kie/
-printf 'KIE_API_KEY=\n' > mcp-servers/kie/.env.example
 # PIN: both airroi and kie import mcp.server.fastmcp, which was removed in mcp 2.x (verified 2026-09-21: fresh install of unpinned 'mcp' fails on import).
 printf 'httpx\nmcp>=1.2,<2\npython-dotenv\n' > mcp-servers/airroi/requirements.txt
-printf 'mcp[cli]>=1.2,<2\n' > mcp-servers/kie/requirements.txt
-printf '.env\n.env.*\n!.env.example\n.venv/\n__pycache__/\n' > mcp-servers/kie/.gitignore
+if [ -d "$KIE" ]; then
+  rm -rf mcp-servers/kie; mkdir -p mcp-servers/kie
+  cp "$KIE/server.py" "$KIE/models.json" "$KIE/requirements.txt" mcp-servers/kie/
+  printf 'KIE_API_KEY=\n' > mcp-servers/kie/.env.example
+  printf 'mcp[cli]>=1.2,<2\n' > mcp-servers/kie/requirements.txt
+  printf '.env\n.env.*\n!.env.example\n.venv/\n__pycache__/\n' > mcp-servers/kie/.gitignore
+else
+  echo "note: $KIE is not on this machine; mcp-servers/kie left as it is"
+fi
 # build/*.md are NOT synced. They were seeded from $RM once, then curated in this repo
 # (em-dashes removed, register lines moved to lib/mcp_register.py, handoff section added).
 # Re-copying from $RM would silently undo that (it did, 2026-09-22). Only warn if upstream drifts.

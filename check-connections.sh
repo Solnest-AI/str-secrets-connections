@@ -3,7 +3,7 @@
 # Exit 0 = the checker ran (whatever it found). Exit 1 = the checker could not run.
 set -u
 cd "$(dirname "$0")"
-. lib/env.sh; . lib/mcp.sh; . lib/probes.sh 2>/dev/null || true; . lib/matrix.sh 2>/dev/null || true
+. lib/env.sh; . lib/mcp.sh; . lib/app.sh 2>/dev/null || true; . lib/probes.sh 2>/dev/null || true; . lib/matrix.sh 2>/dev/null || true
 
 # No hard gate on a `claude` CLI here: the attendee runs this from inside the Claude Code
 # desktop app, where the CLI is not guaranteed to be on PATH. mcp_load() (lib/mcp.sh) uses

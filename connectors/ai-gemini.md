@@ -37,11 +37,11 @@ Direct link: https://aistudio.google.com/apikey
 3. Click Create API key to generate a new key. "All new keys created in AI Studio are automatically created as auth keys."
 4. Copy the new auth API key.
 
-Why the Key Type column matters: Google is retiring the old key type. Their page says "On September 2026: the Gemini API will reject requests from standard keys." Only keys marked **Standard** are affected. "Starting May 28, 2026, all new API keys created in Google AI Studio are automatically created as auth keys," so anything you made on or after that date is already fine, and a key you create today is fine. The simplest move is to make a new one right now and use that. If you already have a key and its Key Type is not Standard, that one works too.
+Why the Key Type column matters: Google is retiring the old key type. Their page (as of 2026-09-28): "Starting May 28, 2026, all new API keys created in Google AI Studio are automatically created as auth keys," and "The Gemini API rejects requests from unrestricted standard keys. Standard API keys that have explicit restrictions applied continue to work." So anything you made on or after that date is already fine, and a key you create today is fine. The simplest move is to make a new one right now and use that. If you already have a key and its Key Type is not Standard, that one works too.
 
 Copy the key right away. Google's page does not say whether it shows the value again later, so do not bet on it.
 
-What you are copying: one string that starts with `AIza` and is 39 characters long, letters, digits, `-` and `_` only, no spaces. If what you copied does not start with `AIza`, you grabbed the key name or the project number, not the key. Go back and use the copy icon next to the key itself.
+What you are copying: one long string with no spaces. A key made in AI Studio today (an auth key) starts with `AQ.`; the older Standard keys start with `AIza` and are 39 characters. Either shape is fine; the live check in section 5 is the judge, not the prefix (an attendee's `AQ.` key passed it on 2026-09-28 while this file still said `AIza`). If what you copied is short, or has spaces, you grabbed the key name or the project number, not the key. Go back and use the copy icon next to the key itself.
 
 One key, one line in `.env`. Claude opens the file for you; put the key after the equals sign, save, close. The file is the only place it goes. Never the chat window.
 ```
@@ -71,13 +71,13 @@ _None for this connector._ The Listing Optimizer calls the Gemini API directly w
 The checker runs `probe_gemini`, which makes one real call: `GET https://generativelanguage.googleapis.com/v1beta/models` with your key in the `x-goog-api-key` header (the form Google's API-key page documents). It lists the models your key can see and does not generate anything. The row is **Gemini API key**:
 
 - **200** with a list of models: works. Row shows ✅.
-- **400 `API_KEY_INVALID`**, **401**, or **403**: key rejected. Row shows ⚠️ "re-check the line in .env". Either the key was copied wrong or it is a Standard-type key, which Google now rejects. Make a new key (section 3), paste it into `.env`, run `bash fan-out-env.sh`, say "Check my connections".
+- **400 `API_KEY_INVALID`**, **401**, or **403**: key rejected. Row shows ⚠️ "re-check the line in .env". Either the key was copied wrong or it is an unrestricted Standard-type key, which Google now rejects. Make a new key (section 3), paste it into `.env`, run `bash fan-out-env.sh`, say "Check my connections".
 - **Blank**: the `.env` line is empty. Row shows ❌ "paste the key into .env".
 - **Unreachable**: no network, or Google is down. Row shows ⚠️ "vendor unreachable". Try again in a minute.
 
 ## 6. Troubleshooting
 - **Fresh key shows a quota of 0 or 1 requests per day in AI Studio:** it happens on some new keys. Delete it and create another.
-- **Key Type column says Standard:** that key is on Google's rejection list ("On September 2026: the Gemini API will reject requests from standard keys"). Click Create API key, use the new one, paste it over the old value in `.env`.
+- **Key Type column says Standard:** Google rejects unrestricted standard keys ("The Gemini API rejects requests from unrestricted standard keys"). Click Create API key, use the new one (it starts with `AQ.`), paste it over the old value in `.env`.
 - **Key shows a Blocked tag in AI Studio:** Google's page: "Starting May 7, 2026, the Gemini API blocks unrestricted API keys that have been dormant for an extended period. These keys show a Blocked tag in AI Studio. You must generate a new key or use an existing restricted key to continue." Make a new key.
 - **400 `API_KEY_INVALID` on a key you just made:** most often a copy miss (a trailing space, a missing character). Open `.env`, delete the value, paste it again cleanly. If it still fails, make a new key.
 - **Existing Google Cloud user, the API Keys page is empty or will not let you create a key:** you skipped the import. Dashboard > Projects > Import projects, pick your project, then back to API Keys.
@@ -85,4 +85,4 @@ The checker runs `probe_gemini`, which makes one real call: `GET https://generat
 - **AI Studio is nudging you to set up billing:** ignore it. Free tier is enough for photo scoring. Tier 1 is the one that needs a linked billing account, and you do not need Tier 1.
 
 ## 7. Sources
-ai.google.dev/gemini-api/docs/api-key ("Last updated 2026-09-16"), ai.google.dev/gemini-api/docs/pricing, ai.google.dev/gemini-api/docs/rate-limits, Gemini API billing doc (tier table, 2026-09-20), aistudio.google.com/apikey. All read 2026-09-21. Probe shape and row name from the kit brief, task 3 and task 4.
+ai.google.dev/gemini-api/docs/api-key ("Last updated 2026-09-16"), ai.google.dev/gemini-api/docs/pricing, ai.google.dev/gemini-api/docs/rate-limits, Gemini API billing doc (tier table, 2026-09-20), aistudio.google.com/apikey. All read 2026-09-21; the api-key page re-read 2026-09-28 (auth keys start with `AQ.`, per Google staff on discuss.ai.google.dev thread 170567; the page itself does not print the shape). Probe shape and row name from the kit brief, task 3 and task 4.

@@ -69,7 +69,7 @@ Claude fills `STACK_PMS`, `STACK_PRICING`, `STACK_RANKING`, `STACK_OPS`, `TURNO_
 |---|---|---|---|---|
 | `AIRROI_API_KEY` | AirROI market data, comps, estimates | yes | airroi.com/api/developer | needs a $10 minimum deposit to activate |
 | `KIE_API_KEY` | Kie.ai image and video generation for ads | yes | kie.ai/api-key | 80 free credits, then prepaid |
-| `GEMINI_API_KEY` | Gemini photo scoring for the Listing Optimizer | yes | aistudio.google.com/apikey (make a NEW key; do not link billing) | free tier is enough |
+| `GEMINI_API_KEY` | Gemini photo scoring for the Listing Optimizer | yes | aistudio.google.com/apikey (make a NEW key; do not link billing). A key made today starts with `AQ.`; older ones start with `AIza`; both work | free tier is enough |
 | `FIRECRAWL_API_KEY` | Firecrawl, web pages turned into data | yes | firecrawl.dev/app/api-keys | free, 1,000 credits/month |
 | `SUPABASE_ACCESS_TOKEN` | the shared database every skill writes to | yes | supabase.com/dashboard/account/tokens > Generate new token > "Create legacy token" link > Expires: Custom, one year out | free tier, one project |
 

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Scoreboard rows. Depends on row(), mcp_status(), probe_*(), env_filled().
+# Scoreboard rows. Depends on row(), mcp_status(), mcp_kind(), probe_*(), env_filled(), app_boot_epoch().
 PENDING_FILE=.cache/pending-vendor
 RESTART_FILE=.cache/needs-restart
 LIVE_FILE=.cache/live-ok
@@ -26,8 +26,28 @@ _cfile() {
   esac
 }
 _pending_date() { [ -f "$PENDING_FILE" ] && awk -F'|' -v n="$1" '$1==n{print $2; exit}' "$PENDING_FILE"; }
-_needs_restart() { [ -f "$RESTART_FILE" ] && grep -qx "$1" "$RESTART_FILE"; }
 _live_date()    { [ -f "$LIVE_FILE" ] && awk -F'|' -v n="$1" '$1==n{print $2; exit}' "$LIVE_FILE"; }
+
+# .cache/needs-restart holds one line per server registered since the app last loaded its
+# server list: "server|<unix time of the register>", written by lib/mcp_register.py. A bare
+# "server" line is an older kit's marker; the file's own mtime stands in for its time, since
+# the last append can only be later than the line. _restart_prune drops every line older than
+# the app's own start time (lib/app.sh), so a real restart clears the 🔒 rows by itself and a
+# promised one does not (2026-09-28 report: Turno and RankBreeze went green while the app had
+# never restarted). On a machine where no Claude process can be seen above this shell nothing
+# is dropped; the hand clear in CONNECTIONS.md covers that. The file is rewritten only when a
+# line goes, so its mtime keeps meaning "last register".
+_restart_prune() {
+  [ -f "$RESTART_FILE" ] || return 0
+  command -v app_boot_epoch >/dev/null 2>&1 || return 0
+  local boot mtime; boot="$(app_boot_epoch 2>/dev/null)"; [ -n "$boot" ] || return 0
+  mtime="$(stat -c %Y "$RESTART_FILE" 2>/dev/null || stat -f %m "$RESTART_FILE" 2>/dev/null || echo "$boot")"
+  awk -F'|' -v b="$boot" -v m="$mtime" '
+    NF < 2 || $2 == "" { if ((m + 0) >= (b + 0)) print; next }
+    ($2 + 0) >= (b + 0) { print }' "$RESTART_FILE" > "$RESTART_FILE.tmp"
+  if cmp -s "$RESTART_FILE.tmp" "$RESTART_FILE"; then rm -f "$RESTART_FILE.tmp"; else mv "$RESTART_FILE.tmp" "$RESTART_FILE"; fi
+}
+_needs_restart() { [ -f "$RESTART_FILE" ] && awk -F'|' -v n="$1" '$1 == n { f = 1 } END { exit !f }' "$RESTART_FILE"; }
 
 # check_api_row LABEL SERVER PROBE  (stdio server whose key is in .env)
 check_api_row() {
@@ -70,21 +90,36 @@ check_env_row() {
   esac
 }
 # check_url_mcp_row LABEL SERVER VAR  (hosted MCP whose auth is a URL/header from .env)
+# An older kit's stdio server can sit on the same name (a cookie-based `rankbreeze`, 2026-09-28
+# report): the row says so instead of "paste it into .env", and the register line replaces it.
 check_url_mcp_row() {
-  local label="$1" server="$2" var="$3" st f
-  f=$(_cfile "$server")
-  env_filled "$var" || { row "$label" missing "paste it into .env (connectors/$f.md)"; return; }
+  local label="$1" server="$2" var="$3" st kind f
+  f=$(_cfile "$server"); kind=$(mcp_kind "$server")
+  if ! env_filled "$var"; then
+    if [ "$kind" = stdio ]; then row "$label" keyfail "an older $server server from another kit sits on this name; paste the official URL into .env and re-register, it replaces the old one (connectors/$f.md)"
+    else row "$label" missing "paste it into .env (connectors/$f.md)"; fi
+    return
+  fi
   if _needs_restart "$server"; then row "$label" restart; return; fi
   st=$(mcp_status "$server")
-  case "$st" in connected|registered) row "$label" ok ;; absent) row "$label" missing "not registered (connectors/$f.md)" ;; *) row "$label" keyfail "server status: $st" ;; esac
+  case "$st" in
+    connected|registered)
+      if [ "$kind" = stdio ]; then row "$label" keyfail "the registered $server is an older stdio server, not the official URL; re-run the register line (connectors/$f.md)"
+      else row "$label" ok; fi ;;
+    absent) row "$label" missing "not registered (connectors/$f.md)" ;;
+    *)      row "$label" keyfail "server status: $st" ;;
+  esac
 }
 
 scoreboard() {
+  _restart_prune
   echo "STR Secrets Connections: scoreboard ($(date '+%Y-%m-%d %H:%M'))"; echo
   echo "System"
   command -v git >/dev/null    && row "Git" ok || row "Git" missing "connectors/system-git.md"
-  command -v node >/dev/null   && row "Node.js" ok || row "Node.js" missing "connectors/system-node.md"
-  command -v uv >/dev/null     && row "uv (Python)" ok || row "uv (Python)" missing "connectors/system-python-uv.md"
+  command -v node >/dev/null   && row "Node.js" ok || row "Node.js" missing "bash install-tools.sh"
+  command -v uv >/dev/null     && row "uv (Python)" ok || row "uv (Python)" missing "bash install-tools.sh"
+  # uv python find never downloads; it says whether the 3.13 the kit runs on is reachable from here.
+  if command -v uv >/dev/null && uv python find 3.13 >/dev/null 2>&1; then row "Python 3.13 (uv)" ok; else row "Python 3.13 (uv)" missing "bash install-tools.sh"; fi
   row "Claude Code" ok
   echo; echo "PMS"
   case "${STACK_PMS:-}" in

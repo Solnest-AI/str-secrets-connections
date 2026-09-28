@@ -50,15 +50,13 @@ From inside `$BUNDLE`, Claude runs the three checks:
 **Register (macOS / Linux):**
 ```bash
 test -f "$BUNDLE/mcp-servers/uplisting/dist/index.js" && echo "built ✅" || echo "build missing ❌ (finish build/build-pms-mcp.md Path B first)"
-uv run --python 3.13 python "$BUNDLE/lib/mcp_register.py" uplisting --stdio node "$BUNDLE/mcp-servers/uplisting/dist/index.js" && echo "uplisting registered ✅" || echo "register failed ❌"
-echo uplisting >> "$BUNDLE/.cache/needs-restart"
+uv run --no-project --python 3.13 python "$BUNDLE/lib/mcp_register.py" uplisting --stdio node "$BUNDLE/mcp-servers/uplisting/dist/index.js" && echo "uplisting registered ✅" || echo "register failed ❌"
 ```
 
 **Register (Windows, Git Bash):** Claude Code is a native Windows process, so it must be handed a `C:\...` path even though you are typing in Git Bash. Skip the macOS block above on Windows; run this one instead, which converts the path with `cygpath -w` first:
 ```bash
 test -f "$BUNDLE/mcp-servers/uplisting/dist/index.js" && echo "built ✅" || echo "build missing ❌ (finish build/build-pms-mcp.md Path B first)"
-uv run --python 3.13 python "$BUNDLE/lib/mcp_register.py" uplisting --stdio node "$(cygpath -w "$BUNDLE/mcp-servers/uplisting/dist/index.js")" && echo "uplisting registered ✅" || echo "register failed ❌"
-echo uplisting >> "$BUNDLE/.cache/needs-restart"
+uv run --no-project --python 3.13 python "$BUNDLE/lib/mcp_register.py" uplisting --stdio node "$(cygpath -w "$BUNDLE/mcp-servers/uplisting/dist/index.js")" && echo "uplisting registered ✅" || echo "register failed ❌"
 ```
 Re-running either block is safe any number of times; it overwrites the old entry.
 

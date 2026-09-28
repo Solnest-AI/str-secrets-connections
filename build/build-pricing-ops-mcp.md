@@ -569,8 +569,8 @@ curl -sS -H "Authorization: JWT $TOKEN" "https://api.breezeway.io/public/invento
 ##### After building
 1. The operator's `.env` is already created and filled per the credential walkthrough above (from the `.env.example` you generated): the **operator pasted the values into the file**, you never typed them. If a value still needs to go in, re-run that tool's walkthrough (open the file, walk them to the key, paste-on-line, save, 3 sanity checks). Never echo a value in chat, never write one with the Edit/Write tool.
 2. Install deps and confirm it builds:
-   - **If the project uses `pyproject.toml` / uv** (the Turno-style Python pattern): `cd <folder> && uv sync`, and register later with `uv --directory <folder> run <console-script-name>`.
-   - **If the project uses `requirements.txt`** (plain Python): `cd <folder> && uv venv .venv && uv pip install -r requirements.txt --python .venv` (cross-platform; uv makes `.venv/bin` on Mac, `.venv/Scripts` on Windows, and avoids the bare-`python3` Microsoft Store stub), and register later with the absolute venv python + entry file.
+   - **If the project uses `pyproject.toml` / uv** (the Turno-style Python pattern): `cd <folder> && uv sync --compile-bytecode --python 3.13`, and register later with `uv --directory <folder> run <console-script-name>`.
+   - **If the project uses `requirements.txt`** (plain Python): `cd <folder> && uv venv --python 3.13 .venv && uv pip install --compile-bytecode -r requirements.txt --python .venv` (cross-platform; uv makes `.venv/bin` on Mac, `.venv/Scripts` on Windows, and avoids the bare-`python3` Microsoft Store stub), and register later with the absolute venv python + entry file.
    - **If the project is Node/TS** (the PriceLabs-style pattern): `cd <folder> && npm install && npm run build`, and register later with `node <folder>/dist/index.js`.
 3. Confirm folder structure (entry point, `src/`, `.env.example`, `.gitignore`, README, and for Node a built `dist/`).
 

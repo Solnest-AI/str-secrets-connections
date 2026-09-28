@@ -25,6 +25,7 @@ import json
 import os
 import re
 import sys
+import tempfile
 from pathlib import Path
 
 VAR_RE = re.compile(r"^\s*(?:export\s+)?([A-Za-z_][A-Za-z0-9_]*)\s*=\s*(.*?)\s*$")
@@ -106,13 +107,18 @@ def read_env(path: str | Path) -> dict[str, str]:
     return out
 
 
+DIRS_SEARCHED = 0   # folders os.walk actually entered, for the closing report line
+
+
 def walk_env_files(roots: list[Path], own_env: Path) -> list[Path]:
+    global DIRS_SEARCHED
     found: list[Path] = []
     seen: set[Path] = set()
     count = 0
     for root in roots:
         base_depth = len(root.parts)
         for dirpath, dirnames, filenames in os.walk(root, topdown=True, onerror=lambda e: None):
+            DIRS_SEARCHED += 1
             depth = len(Path(dirpath).parts) - base_depth
             dirnames[:] = [d for d in dirnames if d == ".claude" or (d not in SKIP_DIRS and not d.startswith("."))]
             if depth >= MAX_DEPTH:
@@ -241,20 +247,38 @@ def claude_json_candidates(own_env: Path | None = None) -> dict[str, tuple[str, 
     return out
 
 
-def fill_blank(env_path: str, var: str, value: str) -> bool:
-    """Replace `VAR=` with `VAR=value` (blank line only). Returns True if written."""
+def fill_blanks(env_path: str, values: dict) -> set:
+    """Replace `VAR=` with `VAR=value` for every var whose line is blank, in ONE atomic rewrite
+    (temp file + os.replace, as env_make.py writes). Returns the vars written. One read-modify-
+    write, so a Ctrl-C cannot leave .env truncated, and a key the attendee just saved in Notepad
+    is not overwritten by a stale in-memory copy on the next var."""
     p = Path(env_path)
-    lines = p.read_text(encoding="utf-8").splitlines()
+    lines = p.read_text(encoding="utf-8-sig").splitlines()
+    written = set()
     for i, line in enumerate(lines):
-        if line == f"{var}=":
-            lines[i] = f"{var}={value}"
-            p.write_text("\n".join(lines) + "\n", encoding="utf-8")
+        for var, value in values.items():
+            if line == f"{var}=":
+                lines[i] = f"{var}={value}"
+                written.add(var)
+    if written:
+        fd, tmp = tempfile.mkstemp(prefix=".env.", dir=str(p.parent))
+        try:
+            with os.fdopen(fd, "w", encoding="utf-8") as fh:
+                fh.write("\n".join(lines) + "\n")
             try:
-                os.chmod(p, 0o600)
+                os.chmod(tmp, 0o600)
             except OSError:
                 pass
-            return True
-    return False
+            os.replace(tmp, p)
+        finally:
+            if os.path.exists(tmp):
+                os.unlink(tmp)
+    return written
+
+
+def fill_blank(env_path: str, var: str, value: str) -> bool:
+    """One var; see fill_blanks."""
+    return var in fill_blanks(env_path, {var: value})
 
 
 def main() -> int:
@@ -297,21 +321,27 @@ def main() -> int:
         for k, v in vals.items():
             cands.setdefault(k, (v, str(f)))
 
-    found = 0
+    hits = {}
     for var in blank:
         names = [var] + ALIASES.get(var, [])
         hit = next(((cands[n][0], cands[n][1], n) for n in names if n in cands), None)
         if hit:
-            value, where, as_name = hit
+            hits[var] = hit
+    # Every found value lands in one atomic rewrite, not one rewrite per var.
+    written = fill_blanks(a.env, {var: hit[0] for var, hit in hits.items()}) if a.apply and hits else set()
+    for var in blank:
+        if var in hits:
+            value, where, as_name = hits[var]
             note = "" if as_name == var else f" (stored there as {as_name})"
-            if a.apply and fill_blank(a.env, var, value):
-                print(f"FOUND     {var}  <- {where}{note}  (copied into .env, Claude will test it)")
-            else:
-                print(f"FOUND     {var}  <- {where}{note}")
-            found += 1
+            copied = "  (copied into .env, Claude will test it)" if var in written else ""
+            print(f"FOUND     {var}  <- {where}{note}{copied}")
         else:
             print(f"not found {var}")
-    print(f"searched {len(files)} env file(s) and the registered MCP servers; {found} of {len(blank)} found")
+    found = len(hits)
+    # "searched 0 env files" read as a broken search when it only meant there was nothing to
+    # find (2026-09-28 report); say what was looked through and what turned up, separately.
+    print(f"looked through {DIRS_SEARCHED} folders (Desktop, Documents, Downloads, home) and the registered MCP servers, "
+          f"read {len(files)} env file(s) from other kits; {found} of {len(blank)} keys found")
     return 0
 
 

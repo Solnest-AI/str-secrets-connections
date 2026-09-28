@@ -25,6 +25,7 @@ t "intellihost not used"               "printf '%s' \"\$out\" | grep -q '➖ Int
 t "turno not used"                     "printf '%s' \"\$out\" | grep -q '➖ Turno API'"
 t "hostaway not shown"                 "! printf '%s' \"\$out\" | grep -q Hostaway"
 t "gemini ok (env-only row)"           "printf '%s' \"\$out\" | grep -q '✅ Gemini API key'"
+t "python row present"                 "printf '%s' \"\$out\" | grep -q 'Python 3.13 (uv)'"
 t "summary line present"               "printf '%s' \"\$out\" | grep -qE '^Summary: [0-9]+ connected, [0-9]+ missing, [0-9]+ pending vendor, [0-9]+ not used, [0-9]+ need restart, [0-9]+ need live check'"
 t "no secret in output"                "! printf '%s' \"\$out\" | grep -qE 'rb_mcp_|FIXTURESECRET|GEMKEY|abcdefghijklmnopqrst'"
 t "no URL in output"                   "! printf '%s' \"\$out\" | grep -q 'https://'"
@@ -45,6 +46,28 @@ t "live-ok: unrecorded sign-in row still 🔎"     "printf '%s' \"\$out5\" | gre
 t "live-ok: summary counts one fewer live check" "printf '%s' \"\$out5\" | grep -qE '^Summary: .* 1 need live check'"
 rm -f .cache/live-ok
 
+# --- restart stamps: lib/mcp_register.py writes "server|<time of the register>"; the row is 🔒 until
+# the app has been started after that time (lib/app.sh), then the checker clears the line itself ---
+rm -f .cache/pending-vendor
+printf 'rankbreeze|2000\n' > .cache/needs-restart
+out6="$(SSC_APP_BOOT_EPOCH=1000 bash check-connections.sh)"
+t "restart: stamp newer than the app start stays 🔒"        "printf '%s' \"\$out6\" | grep -q '🔒 RankBreeze MCP'"
+t "restart: that stamp is kept in the file"                  "grep -qx 'rankbreeze|2000' .cache/needs-restart"
+out7="$(SSC_APP_BOOT_EPOCH=3000 bash check-connections.sh)"
+t "restart: app started after the stamp clears the row"      "printf '%s' \"\$out7\" | grep -q '✅ RankBreeze MCP'"
+t "restart: cleared stamp is removed from the file"          "! grep -q '^rankbreeze' .cache/needs-restart"
+# an undated line (older kit): the file's own mtime stands in for the stamp
+printf 'rankbreeze\n' > .cache/needs-restart
+out8="$(SSC_APP_BOOT_EPOCH=3000 bash check-connections.sh)"
+t "restart: undated line, app older than the file: stays 🔒" "printf '%s' \"\$out8\" | grep -q '🔒 RankBreeze MCP'"
+touch -t 200001010000 .cache/needs-restart
+out8b="$(SSC_APP_BOOT_EPOCH=$(date +%s) bash check-connections.sh)"
+t "restart: undated line, app newer than the file: cleared"  "printf '%s' \"\$out8b\" | grep -q '✅ RankBreeze MCP' && ! grep -q '^rankbreeze' .cache/needs-restart"
+printf 'rankbreeze|2000\n' > .cache/needs-restart
+out9="$(SSC_APP_BOOT_EPOCH=none bash check-connections.sh)"
+t "restart: no app process in sight keeps the row 🔒"        "printf '%s' \"\$out9\" | grep -q '🔒 RankBreeze MCP'"
+rm -f .cache/needs-restart
+
 # --- no claude binary anywhere (desktop-app-only case): mcp_load reads ~/.claude.json ---
 # A PATH with a curl stub but no claude anywhere, and a HOME whose ~/.claude.json already
 # has entries, is exactly the attendee's environment: Claude Code itself is running (that's
@@ -53,7 +76,7 @@ cp tests/fixtures/env-hospitable-full.env .env; rm -f .env.bak
 rm -rf .cache
 NOBIN_HOME="$(mktemp -d)"
 cat > "$NOBIN_HOME/.claude.json" <<'JSON'
-{"mcpServers":{"hospitable":{"type":"stdio","command":"node","args":["x"]},"meta-ads":{"type":"http","url":"https://mcp.facebook.com/ads"}}}
+{"mcpServers":{"hospitable":{"type":"stdio","command":"node","args":["x"]},"meta-ads":{"type":"http","url":"https://mcp.facebook.com/ads"},"rankbreeze":{"type":"stdio","command":"node","args":["old-cookie-server.js"]}}}
 JSON
 NOBIN_STUBS="$(mktemp -d)"
 cp tests/stubs/curl "$NOBIN_STUBS/curl"; chmod +x "$NOBIN_STUBS/curl"
@@ -63,6 +86,11 @@ out4="$(SSC_NO_CLAUDE_BIN=1 HOME="$NOBIN_HOME" PATH="$NOBIN_STUBS:${PYDIR:+$PYDI
 t "no-binary: exits 0"                 "[ $rc4 -eq 0 ]"
 t "no-binary: meta-ads shows live-check glyph" "printf '%s' \"\$out4\" | grep -q '🔎 Meta Ads MCP.*add it under + > Connectors; Claude checks it live'"
 t "no-binary: keyed row with a passing probe is ok" "printf '%s' \"\$out4\" | grep -q '✅ Hospitable API'"
+# an older kit's cookie-based stdio `rankbreeze` sits on the name (2026-09-28 report): the URL row says so
+t "no-binary: old stdio server under the rankbreeze name, URL filled: re-register hint" "printf '%s' \"\$out4\" | grep -q '⚠️ RankBreeze MCP .*older stdio server'"
+sed -i.bak 's/^RANKBREEZE_MCP_URL=.*/RANKBREEZE_MCP_URL=/' .env; rm -f .env.bak
+out4b="$(SSC_NO_CLAUDE_BIN=1 HOME="$NOBIN_HOME" PATH="$NOBIN_STUBS:${PYDIR:+$PYDIR:}/usr/bin:/bin" CURL_STUB_DIR="$PWD/tests/fixtures/curl" bash check-connections.sh)"
+t "no-binary: old stdio server under the rankbreeze name, URL blank: names the clash, not 'paste it'" "printf '%s' \"\$out4b\" | grep -q '⚠️ RankBreeze MCP .*older rankbreeze server'"
 rm -rf "$NOBIN_HOME" "$NOBIN_STUBS"
 
 exit $fail

@@ -34,10 +34,10 @@ Then Claude runs, in this order:
 
 **Register** the bundled server. Build its venv, then point Claude Code at it. Run exactly one of the two blocks: the first on Mac/Linux, the second on Windows.
 ```bash
-if ( cd "$BUNDLE/mcp-servers/kie" && { [ -d .venv ] || uv venv --quiet .venv; } && uv pip install --quiet -r requirements.txt --python .venv ) && [ -x "$BUNDLE/mcp-servers/kie/.venv/bin/python" ]; then
+if ( cd "$BUNDLE/mcp-servers/kie" && { [ -d .venv ] || uv venv --quiet --python 3.13 .venv; } && uv pip install --quiet --compile-bytecode -r requirements.txt --python .venv ) && [ -x "$BUNDLE/mcp-servers/kie/.venv/bin/python" ]; then
   echo "kie venv built ✅"
   export KIE_ENV_PATH="$BUNDLE/.env"
-  uv run --python 3.13 python "$BUNDLE/lib/mcp_register.py" kie --stdio "$BUNDLE/mcp-servers/kie/.venv/bin/python" "$BUNDLE/mcp-servers/kie/server.py" --env KIE_ENV_PATH && { echo "kie registered ✅"; echo kie >> "$BUNDLE/.cache/needs-restart"; } || echo "kie register failed ❌"
+  uv run --no-project --python 3.13 python "$BUNDLE/lib/mcp_register.py" kie --stdio "$BUNDLE/mcp-servers/kie/.venv/bin/python" "$BUNDLE/mcp-servers/kie/server.py" --env KIE_ENV_PATH && echo "kie registered ✅" || echo "kie register failed ❌"
 else
   echo "kie venv build failed ❌. Nothing registered. Is uv installed? See connectors/system-python-uv.md, then run this block again."
 fi
@@ -46,10 +46,10 @@ fi
 
 **Windows note:** the venv interpreter is `.venv/Scripts/python.exe`, not `.venv/bin/python`, and Claude Code is a native Windows process, so every absolute path gets converted with `cygpath -w` before it is registered. That includes the `.env` path handed to `KIE_ENV_PATH`, because the server is a native Windows Python and cannot open a `/c/Users/...` path.
 ```bash
-if ( cd "$BUNDLE/mcp-servers/kie" && { [ -d .venv ] || uv venv --quiet .venv; } && uv pip install --quiet -r requirements.txt --python .venv ) && [ -f "$BUNDLE/mcp-servers/kie/.venv/Scripts/python.exe" ]; then
+if ( cd "$BUNDLE/mcp-servers/kie" && { [ -d .venv ] || uv venv --quiet --python 3.13 .venv; } && uv pip install --quiet --compile-bytecode -r requirements.txt --python .venv ) && [ -f "$BUNDLE/mcp-servers/kie/.venv/Scripts/python.exe" ]; then
   echo "kie venv built ✅"
   export KIE_ENV_PATH="$(cygpath -w "$BUNDLE/.env")"
-  uv run --python 3.13 python "$BUNDLE/lib/mcp_register.py" kie --stdio "$(cygpath -w "$BUNDLE/mcp-servers/kie/.venv/Scripts/python.exe")" "$(cygpath -w "$BUNDLE/mcp-servers/kie/server.py")" --env KIE_ENV_PATH && { echo "kie registered ✅"; echo kie >> "$BUNDLE/.cache/needs-restart"; } || echo "kie register failed ❌"
+  uv run --no-project --python 3.13 python "$BUNDLE/lib/mcp_register.py" kie --stdio "$(cygpath -w "$BUNDLE/mcp-servers/kie/.venv/Scripts/python.exe")" "$(cygpath -w "$BUNDLE/mcp-servers/kie/server.py")" --env KIE_ENV_PATH && echo "kie registered ✅" || echo "kie register failed ❌"
 else
   echo "kie venv build failed ❌. Nothing registered. Is uv installed? See connectors/system-python-uv.md, then run this block again."
 fi

@@ -51,13 +51,12 @@ cd "$BUNDLE" && bash fan-out-env.sh
 **Register** (build first, one time):
 ```bash
 cd "$BUNDLE/mcp-servers/pricelabs" && npm ci --silent && npm run build --silent
-uv run --python 3.13 python "$BUNDLE/lib/mcp_register.py" pricelabs --stdio node "$BUNDLE/mcp-servers/pricelabs/dist/index.js" && echo "pricelabs registered ✅" || echo "pricelabs failed ❌"
-echo pricelabs >> "$BUNDLE/.cache/needs-restart"
+uv run --no-project --python 3.13 python "$BUNDLE/lib/mcp_register.py" pricelabs --stdio node "$BUNDLE/mcp-servers/pricelabs/dist/index.js" && echo "pricelabs registered ✅" || echo "pricelabs failed ❌"
 ```
 
 **Windows note.** Run all of this in Git Bash (that is what Claude's Bash tool is on Windows). Claude Code itself is a native Windows program, so the path handed to the register helper has to be the `C:\...` form. Convert it with `cygpath -w` and register that instead:
 ```bash
-uv run --python 3.13 python "$BUNDLE/lib/mcp_register.py" pricelabs --stdio node "$(cygpath -w "$BUNDLE/mcp-servers/pricelabs/dist/index.js")" && echo "pricelabs registered ✅" || echo "pricelabs failed ❌"
+uv run --no-project --python 3.13 python "$BUNDLE/lib/mcp_register.py" pricelabs --stdio node "$(cygpath -w "$BUNDLE/mcp-servers/pricelabs/dist/index.js")" && echo "pricelabs registered ✅" || echo "pricelabs failed ❌"
 ```
 This server runs on Node, so there is no venv here. For the Python servers in this kit the Windows interpreter is `.venv/Scripts/python.exe`, never `.venv/bin/python`.
 

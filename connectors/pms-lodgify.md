@@ -40,8 +40,7 @@ Save the file, then tell Claude "saved". The key never goes in the chat.
 
 **Register:**
 ```bash
-uv run --python 3.13 python "$BUNDLE/lib/mcp_register.py" lodgify --stdio node "$BUNDLE/mcp-servers/lodgify/dist/index.js" && echo "lodgify registered ✅" || echo "register failed ❌"
-echo lodgify >> "$BUNDLE/.cache/needs-restart"
+uv run --no-project --python 3.13 python "$BUNDLE/lib/mcp_register.py" lodgify --stdio node "$BUNDLE/mcp-servers/lodgify/dist/index.js" && echo "lodgify registered ✅" || echo "register failed ❌"
 ```
 **Windows:** run this under Git Bash (that is what Claude's Bash tool is). Claude Code is a native Windows program and needs a `C:\...` path, so convert first and register the converted one: `BUNDLE_WIN="$(cygpath -w "$BUNDLE")"`, then use `"$BUNDLE_WIN\mcp-servers\lodgify\dist\index.js"` in place of the `$BUNDLE` path above. If Claude built the server in Python instead of Node, the interpreter is `.venv/Scripts/python.exe` on Windows (`.venv/bin/python` on Mac) and the entry is `server.py`; same `cygpath -w` rule for both paths.
 

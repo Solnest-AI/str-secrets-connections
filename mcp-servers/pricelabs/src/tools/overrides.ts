@@ -21,7 +21,7 @@ export function registerOverrideTools(server: McpServer): void {
 
   server.registerTool("pricelabs_set_overrides", {
     title: "Set Date-Specific Overrides",
-    description: "Create or update date-specific overrides (DSOs) for a listing — set custom prices (fixed or percent), min stays, min/max price bounds, and check-in/check-out day restrictions.",
+    description: "Create or update date-specific overrides (DSOs) for a listing — set custom prices (fixed or percent), min stays, min/max price bounds, and check-in/check-out day restrictions. Applies to this listing only (update_children is always sent as false).",
     inputSchema: {
       listing_id: z.string().describe("Listing ID"),
       pms: z.string().describe("PMS name from list_listings (e.g. 'airbnb'; Hospitable uses 'smartbnb')"),
@@ -48,6 +48,8 @@ export function registerOverrideTools(server: McpServer): void {
       const res = await getPriceLabs().post(`/v1/listings/${listing_id}/overrides`, {
         overrides,
         pms,
+        // Always explicit: never let a DSO silently cascade to child listings.
+        update_children: false,
       });
       return { content: [{ type: "text", text: formatResponse(res.data) }] };
     } catch (e) { return { isError: true, content: [{ type: "text", text: handleError(e) }] }; }
@@ -63,9 +65,13 @@ export function registerOverrideTools(server: McpServer): void {
         date: z.string().describe("Date to remove override for (YYYY-MM-DD)"),
       })).describe("Array of dates to delete overrides for"),
       update_children: z.boolean().optional().describe("Also delete overrides from child listings (default false)"),
+      confirm: z.boolean().describe("Must be true. Pass it only after the operator has seen the exact dates (and whether child listings are included) and said yes; the tool refuses otherwise."),
     },
     annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: true, openWorldHint: true }
-  }, async ({ listing_id, pms, overrides, update_children }) => {
+  }, async ({ listing_id, pms, overrides, update_children, confirm }) => {
+    if (confirm !== true) {
+      return { isError: true, content: [{ type: "text", text: "Refused: pricelabs_delete_overrides needs confirm: true, given only after the operator has seen the exact dates and said yes. Nothing was deleted." }] };
+    }
     try {
       const res = await getPriceLabs().delete(`/v1/listings/${listing_id}/overrides`, {
         data: { overrides, pms, update_children: update_children || false },

@@ -63,7 +63,7 @@ t "discover ignores .env.example files"          "! grep -q 'kie_from_example' '
 t "discover reports the not-found ones"          "printf '%s' \"\$REPORT\" | grep -q '^not found GEMINI_API_KEY'"
 t "discover never overwrites a filled line"      "printf 'X\n' >/dev/null; grep -c '^PRICELABS_API_KEY=pl_from_rm$' '$OUT' | grep -q '^1$'"
 t "discover helper has no em-dash"               "! grep -q '—' lib/env_discover.py lib/env_make.py"
-t "discover counts each env file once"           "printf '%s' \"\$REPORT\" | grep -q '^searched 3 env file(s)'"   # kit/.env from the first block, revenue-manager/.env (reached from two roots, counted once), the hospitable server dir
+t "discover counts each env file once"           "printf '%s' \"\$REPORT\" | grep -q 'read 3 env file(s)'"   # kit/.env from the first block, revenue-manager/.env (reached from two roots, counted once), the hospitable server dir
 t "discover reports home .env under its own path, not a server's" "printf '%s' \"\$REPORT\" | grep -q 'HOSPITABLE_API_KEY  <- .claude.json (registered MCP servers): hospitable -> hospitable/.env'"
 
 # ---- a package name is not a path: "@scope/pkg@latest" must never walk the current directory ----

@@ -1,9 +1,11 @@
 #!/usr/bin/env bash
-# Parse the live MCP server list into name|status. Never keeps or prints the command/URL column.
+# Parse the live MCP server list into name|status|kind. Never keeps or prints the command/URL column.
 # The attendee runs everything inside the Claude Code desktop app and may never have the
 # `claude` CLI on PATH (it is not guaranteed there; the app bundles its own binary). So this
 # resolves a binary if one exists and uses it, and otherwise reads registrations straight out
 # of ~/.claude.json (every server there gets the status "registered").
+# kind is stdio or http (sse counts as http): the URL rows of the scoreboard use it to notice an
+# older stdio server squatting on a name like `rankbreeze` (2026-09-28 report).
 MCP_LIST_CACHE=""
 
 # _mcp_resolve_claude_bin: prints an absolute path to a working `claude` binary, or nothing.
@@ -26,8 +28,10 @@ _mcp_resolve_claude_bin() {
 }
 
 # _mcp_load_from_config: no claude binary anywhere. Read ~/.claude.json's mcpServers keys
-# directly and print "name|registered" per entry. Python-only (stdlib), falls back to
-# `uv run python` if python3 is not on PATH either.
+# directly and print "name|registered|kind" per entry. Python-only (stdlib). uv goes first: on
+# a stock Windows install the `python3` and `python` on PATH are Microsoft Store stubs that
+# print an install prompt and exit 9009, which would read here as "nothing registered".
+# UV_PYTHON_DOWNLOADS=never keeps that call from downloading an interpreter of its own.
 _mcp_load_from_config() {
   local cfg="$HOME/.claude.json"
   [ -f "$cfg" ] || return 0
@@ -40,19 +44,28 @@ except Exception:
     sys.exit(0)
 servers = data.get("mcpServers") if isinstance(data, dict) else None
 if isinstance(servers, dict):
-    for name in servers:
-        print(name + "|registered")
+    for name, entry in servers.items():
+        kind = "stdio"
+        if isinstance(entry, dict):
+            t = entry.get("type")
+            if t in ("http", "sse") or (not t and entry.get("url")):
+                kind = "http"
+        print(name + "|registered|" + kind)
 '
-  if command -v python3 >/dev/null 2>&1; then
-    python3 -c "$py_snippet" "$cfg" 2>/dev/null
-  elif command -v python >/dev/null 2>&1; then
-    python -c "$py_snippet" "$cfg" 2>/dev/null
-  elif command -v uv >/dev/null 2>&1; then
-    uv run python -c "$py_snippet" "$cfg" 2>/dev/null
+  local out
+  if command -v uv >/dev/null 2>&1; then
+    out="$(UV_PYTHON_DOWNLOADS=never uv run --no-project python -c "$py_snippet" "$cfg" 2>/dev/null)" && { printf '%s\n' "$out"; return 0; }
   fi
+  if command -v python3 >/dev/null 2>&1; then
+    out="$(python3 -c "$py_snippet" "$cfg" 2>/dev/null)" && { printf '%s\n' "$out"; return 0; }
+  fi
+  if command -v python >/dev/null 2>&1; then
+    out="$(python -c "$py_snippet" "$cfg" 2>/dev/null)" && { printf '%s\n' "$out"; return 0; }
+  fi
+  return 0
 }
 
-# mcp_load: run `claude mcp list` once if a binary is available and cache "name|status"
+# mcp_load: run `claude mcp list` once if a binary is available and cache "name|status|kind"
 # lines; otherwise fall back to reading ~/.claude.json.
 mcp_load() {
   local raw claude_bin
@@ -68,7 +81,8 @@ mcp_load() {
         else if ($0 ~ /Pending approval/)  st="pending"
         else if ($0 ~ /Disabled/)          st="disabled"
         else if ($0 ~ /Failed/)            st="failed"
-        print name "|" st
+        kind="stdio"; if ($2 ~ /^https?:\/\//) kind="http"
+        print name "|" st "|" kind
       }')"
   else
     MCP_LIST_CACHE="$(_mcp_load_from_config)"
@@ -80,4 +94,11 @@ mcp_status() {
   local s
   s="$(printf '%s\n' "$MCP_LIST_CACHE" | awk -F'|' -v n="$1" '$1==n {print $2; exit}')"
   [ -n "$s" ] && printf '%s\n' "$s" || printf 'absent\n'
+}
+
+# mcp_kind <name>: stdio|http|absent
+mcp_kind() {
+  local k
+  k="$(printf '%s\n' "$MCP_LIST_CACHE" | awk -F'|' -v n="$1" '$1==n {print $3; exit}')"
+  [ -n "$k" ] && printf '%s\n' "$k" || printf 'absent\n'
 }

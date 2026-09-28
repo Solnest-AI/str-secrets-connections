@@ -13,6 +13,9 @@ for s in hospitable pricelabs turno airroi kie; do
   t "$s .env.example values blank" "! grep -qE '^[A-Z_]+=.+' mcp-servers/$s/.env.example || grep -qE '^TURNO_ENV=' mcp-servers/$s/.env.example"
 done
 t "no rankbreeze folder (retired)" "[ ! -d mcp-servers/rankbreeze ]"
+t "supabase server pinned, launched by node, not npx" "grep -q '\"@supabase/mcp-server-supabase\": \"0.13.0\"' mcp-servers/supabase/package.json && [ -f mcp-servers/supabase/package-lock.json ]"
+t "supabase folder ignores node_modules"  "grep -q '^node_modules/$' mcp-servers/supabase/.gitignore"
+t "no register line launches supabase through npx" "! grep -q 'supabase-revenue-manager --stdio npx' connectors/db-supabase.md"
 t "kie has models.json"     "[ -f mcp-servers/kie/models.json ]"
 t "SOURCES.md has hash"     "grep -qE 'commit: [0-9a-f]{7,40}' mcp-servers/SOURCES.md"
 t "build files present"     "[ -f build/build-pms-mcp.md ] && [ -f build/build-pricing-ops-mcp.md ]"

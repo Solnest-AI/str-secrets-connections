@@ -8,3 +8,4 @@
 *.ts text eol=lf
 *.pdf binary
 *.png binary
+*.ps1 text eol=lf

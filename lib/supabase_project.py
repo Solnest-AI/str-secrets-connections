@@ -20,4 +20,8 @@ with open(os.environ["BUNDLE_ENV"], "a") as f: f.write(f"SUPABASE_DB_PASSWORD={p
 for _ in range(40):
     time.sleep(15); s = call("GET", f"/projects/{p['ref']}").get("status")
     if s == "ACTIVE_HEALTHY": break
+else:
+    # Ten minutes and still starting: say so, never REF= (the caller would register a project
+    # that is not up). Running the step again finds it by name and prints REF= once it is.
+    print(f"PENDING: str-secrets-summit ({p['ref']}) is still {s} after 10 minutes; its password is already in .env. Wait a few minutes and run this step again."); sys.exit(4)
 print("REF=" + p["ref"])

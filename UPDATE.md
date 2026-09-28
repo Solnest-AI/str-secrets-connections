@@ -33,7 +33,7 @@ Empty output means no bundled server changed; keep that file around either way, 
 
 ```bash
 cd /tmp/ssc-update
-for item in CONNECTIONS.md connectors emails lib check-connections.sh fan-out-env.sh KEYS.md VERSION CHANGELOG.md build mcp-servers; do
+for item in CONNECTIONS.md connectors emails lib check-connections.sh fan-out-env.sh install-tools.sh KEYS.md VERSION CHANGELOG.md build mcp-servers; do
   [ -e "$item" ] || continue
   rsync -a --exclude '.env' --exclude '.env.*' --exclude '.cache/' --exclude 'node_modules/' --exclude '.venv/' --exclude 'dist/' "$item" "$BUNDLE/"
 done
@@ -57,7 +57,13 @@ Everything that was green before this update should still be green. If a row tha
 cat /tmp/ssc-changed-servers.txt
 ```
 
-For each server named there, rebuild it the same way its connector file's Register block does (`npm ci && npm run build` for the Node servers, `uv venv` plus `uv pip install` for the Python ones), then tell the attendee: "quit and reopen the Claude Code desktop app, open this same folder" so the rebuilt server picks up. No need to re-register; the register helper already points at the same file path, and the rebuild replaces what's on disk there.
+For each server named there, rebuild it the same way its connector file's Register block does (`npm ci && npm run build` for the Node servers, `uv venv` plus `uv pip install` for the Python ones), then tell the attendee: "quit and reopen the Claude Code desktop app, open this same folder" so the rebuilt server picks up. A rebuild alone does not re-register; the register helper already points at the same file path, and the rebuild replaces what's on disk there.
+
+**Coming from 1.0.6 or older (check the old `VERSION` from step 1), three things changed shape and do need a re-register:**
+1. Run `bash "$BUNDLE/install-tools.sh"` once. It confirms uv, Python 3.13 and Node from inside the app; if it says `RESTART NEEDED`, do that restart before going on.
+2. `supabase-revenue-manager` used to launch through `npx` (15 to 18 seconds per start, timing out beside the other servers). Run the Register block in `connectors/db-supabase.md` section 3: it installs the pinned server into `mcp-servers/supabase/` and re-registers it as a direct `node` launch, same name, same `--project-ref`, same token variable, so the Revenue Manager still finds it.
+3. `turno` (only if their ops tool is Turno) used to be registered as a bare `uv`. Run the Register block in `connectors/ops-turno.md` section 3: precompiled, uv by its full path.
+Both rows show 🔒 until the app is quit and reopened; the checker clears them itself afterwards.
 
 ## 7. What changed
 

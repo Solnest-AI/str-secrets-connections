@@ -59,15 +59,13 @@ Then build and register:
 ```bash
 cd "$BUNDLE/mcp-servers/smoobu" && npm install --silent && npm run build --silent
 bash "$BUNDLE/fan-out-env.sh"
-uv run --python 3.13 python "$BUNDLE/lib/mcp_register.py" smoobu --stdio node "$BUNDLE/mcp-servers/smoobu/dist/index.js" && echo "smoobu registered ✅" || echo "register failed ❌"
-echo smoobu >> "$BUNDLE/.cache/needs-restart"
+uv run --no-project --python 3.13 python "$BUNDLE/lib/mcp_register.py" smoobu --stdio node "$BUNDLE/mcp-servers/smoobu/dist/index.js" && echo "smoobu registered ✅" || echo "register failed ❌"
 ```
 
-**Windows note (Git Bash):** run the build line above as-is (the first line of the block, `cd ... && npm install ... && npm run build`), then use these lines INSTEAD of the register and needs-restart lines. Claude Code on Windows is a native Windows process, so it needs a `C:\...` path, not the `/c/Users/...` form Git Bash shows you. Convert it with `cygpath -w` and register the converted form:
+**Windows note (Git Bash):** run the build line above as-is (the first line of the block, `cd ... && npm install ... && npm run build`), then use these lines INSTEAD of the register line. Claude Code on Windows is a native Windows process, so it needs a `C:\...` path, not the `/c/Users/...` form Git Bash shows you. Convert it with `cygpath -w` and register the converted form:
 ```bash
 bash "$BUNDLE/fan-out-env.sh"
-uv run --python 3.13 python "$BUNDLE/lib/mcp_register.py" smoobu --stdio node "$(cygpath -w "$BUNDLE/mcp-servers/smoobu/dist/index.js")" && echo "smoobu registered ✅" || echo "register failed ❌"
-echo smoobu >> "$BUNDLE/.cache/needs-restart"
+uv run --no-project --python 3.13 python "$BUNDLE/lib/mcp_register.py" smoobu --stdio node "$(cygpath -w "$BUNDLE/mcp-servers/smoobu/dist/index.js")" && echo "smoobu registered ✅" || echo "register failed ❌"
 ```
 If Claude built the server in Python instead (airroi style, flat `server.py`), the interpreter on Windows is `$BUNDLE/mcp-servers/smoobu/.venv/Scripts/python.exe`, not `.venv/bin/python`, and both that path and `server.py` get the same `cygpath -w` treatment.
 

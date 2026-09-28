@@ -1,0 +1,8 @@
+{
+  "name": "str-secrets-supabase-mcp",
+  "private": true,
+  "description": "Pins Supabase's MCP server so Claude Code launches it as a plain node process. Through npx it re-resolved the package on every start (15 to 18 s even with a warm cache, measured 2026-09-28) and ran past the 30 s startup limit whenever the other servers started alongside it.",
+  "dependencies": {
+    "@supabase/mcp-server-supabase": "0.13.0"
+  }
+}

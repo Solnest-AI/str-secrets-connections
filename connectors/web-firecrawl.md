@@ -38,8 +38,7 @@ Then, from the bundle folder (`cd "$BUNDLE"`):
 **Register** Firecrawl's hosted server with the key in a header. Claude runs this from inside the desktop app, no terminal of your own needed. It reads the key straight out of `.env` and hands the helper only the NAME of the variable, never the value, so the key is never typed into this command and never shows up in chat. Re-running this block any time (a new key, a fresh install) just overwrites the old entry; nothing to remove first.
 ```bash
 set -a; . "$BUNDLE/.env"; set +a
-uv run --python 3.13 python "$BUNDLE/lib/mcp_register.py" firecrawl --http https://mcp.firecrawl.dev/v2/mcp --header "Authorization: Bearer FIRECRAWL_API_KEY" && echo "firecrawl registered ✅" || echo "firecrawl failed ❌"
-echo firecrawl >> "$BUNDLE/.cache/needs-restart"
+uv run --no-project --python 3.13 python "$BUNDLE/lib/mcp_register.py" firecrawl --http https://mcp.firecrawl.dev/v2/mcp --header "Authorization: Bearer FIRECRAWL_API_KEY" && echo "firecrawl registered ✅" || echo "firecrawl failed ❌"
 ```
 If `FIRECRAWL_API_KEY` is blank in `.env`, the helper says so on its own (`FIRECRAWL_API_KEY is blank`) and registers nothing; fill the line and run the block again.
 
@@ -47,7 +46,7 @@ Then quit and reopen the Claude Code desktop app. New servers only show up after
 
 The header is stored in `~/.claude.json`, not in the URL. Firecrawl's own rule: "Configure the key through an environment variable or your client's secret storage, never in the MCP URL." So the `mcp.firecrawl.dev/<key>/` URL form is never used in this kit. And Claude never prints the raw contents of `~/.claude.json` to you, whatever is in it.
 
-**Windows note:** run this under Git Bash (that is what Claude's Bash tool is). `$BUNDLE/.env` and `$BUNDLE/.cache/needs-restart` are read by bash itself, so the Git Bash form (`/c/Users/...`) is right as-is. Nothing here needs `cygpath -w` or `.venv/Scripts/python.exe`: the only things handed to the register helper are a URL and a header, and those are the same on every OS. That is also why the hosted server is the primary path on Windows; the npx fallback in section 6 has a known env-var problem there.
+**Windows note:** run this under Git Bash (that is what Claude's Bash tool is). `$BUNDLE/.env` is read by bash itself, so the Git Bash form (`/c/Users/...`) is right as-is. Nothing here needs `cygpath -w` or `.venv/Scripts/python.exe`: the only things handed to the register helper are a URL and a header, and those are the same on every OS. That is also why the hosted server is the primary path on Windows; the npx fallback in section 6 has a known env-var problem there.
 
 ## 4. Path B: official MCP
 This IS the official MCP. The register block in section 3 registers it as an `http` server, with the key as a header. Auth is the header, not a browser login, so there is no `/mcp` > Authenticate step and no browser window opens.
@@ -80,7 +79,7 @@ The in-chat test after restart: ask Claude "What is my Firecrawl credit usage?" 
 - **Hosted server unreachable and you need it now (fallback):** Firecrawl still supports a local server, vendor-pinned to 3.23.7. Needs Node 22 or newer (`node --version` to check; see the Node connector if it is older). The key goes in through `--env`, not the URL:
   ```bash
   set -a; . "$BUNDLE/.env"; set +a
-  uv run --python 3.13 python "$BUNDLE/lib/mcp_register.py" firecrawl --stdio npx -y firecrawl-mcp@3.23.7 --env FIRECRAWL_API_KEY && { echo "firecrawl registered ✅"; echo firecrawl >> "$BUNDLE/.cache/needs-restart"; } || echo "firecrawl register failed ❌"
+  uv run --no-project --python 3.13 python "$BUNDLE/lib/mcp_register.py" firecrawl --stdio npx -y firecrawl-mcp@3.23.7 --env FIRECRAWL_API_KEY && echo "firecrawl registered ✅" || echo "firecrawl register failed ❌"
   ```
   Same server name, so the summit skills do not notice the swap. Windows: this path has a known problem passing the env var through npx; stay on the hosted server unless it is actually down.
 - **You found the `mcp.firecrawl.dev/<key>/` URL style in an old tutorial:** skip it. The key ends up in a URL, and URLs get logged. Firecrawl says header or secret storage, never the URL. The kit only ever registers the header form.

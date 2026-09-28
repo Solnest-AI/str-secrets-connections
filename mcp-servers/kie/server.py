@@ -39,12 +39,13 @@ def _load_env() -> None:
     if os.environ.get("KIE_ENV_PATH"):
         candidates.append(Path(os.environ["KIE_ENV_PATH"]))
     candidates += [
+        SCRIPT_DIR / ".env",  # next to this file: the one .env.example says to create
         Path.home() / "Solnest AI Automator" / ".env",
-        SCRIPT_DIR.parent.parent.parent / ".env",  # repo root
+        SCRIPT_DIR.parent.parent / ".env",  # the kit root (mcp-servers/kie -> mcp-servers -> kit)
     ]
     for p in candidates:
         if p.exists():
-            for line in p.read_text().splitlines():
+            for line in p.read_text(encoding="utf-8-sig").splitlines():
                 line = line.strip()
                 if line and not line.startswith("#") and "=" in line:
                     k, v = line.split("=", 1)

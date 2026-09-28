@@ -47,15 +47,13 @@ OWNERREZ_TOKEN=
 **Register:**
 ```bash
 bash "$BUNDLE/fan-out-env.sh"
-uv run --python 3.13 python "$BUNDLE/lib/mcp_register.py" ownerrez --stdio node "$BUNDLE/mcp-servers/ownerrez/dist/index.js" && echo "ownerrez registered ✅" || echo "register failed ❌"
-echo ownerrez >> "$BUNDLE/.cache/needs-restart"
+uv run --no-project --python 3.13 python "$BUNDLE/lib/mcp_register.py" ownerrez --stdio node "$BUNDLE/mcp-servers/ownerrez/dist/index.js" && echo "ownerrez registered ✅" || echo "register failed ❌"
 ```
 
 **Register (Windows, Git Bash):** Claude Code is a native Windows process, so it must be handed a `C:\...` path even though you are typing in Git Bash. Skip the block above on Windows; run this one instead, which converts the path with `cygpath -w` first:
 ```bash
 bash "$BUNDLE/fan-out-env.sh"
-uv run --python 3.13 python "$BUNDLE/lib/mcp_register.py" ownerrez --stdio node "$(cygpath -w "$BUNDLE/mcp-servers/ownerrez/dist/index.js")" && echo "ownerrez registered ✅" || echo "register failed ❌"
-echo ownerrez >> "$BUNDLE/.cache/needs-restart"
+uv run --no-project --python 3.13 python "$BUNDLE/lib/mcp_register.py" ownerrez --stdio node "$(cygpath -w "$BUNDLE/mcp-servers/ownerrez/dist/index.js")" && echo "ownerrez registered ✅" || echo "register failed ❌"
 ```
 (This server is TypeScript, so there is no venv. The Python servers in this kit use `.venv/Scripts/python.exe` on Windows instead of `.venv/bin/python`, and that path gets the same `cygpath -w` treatment.)
 

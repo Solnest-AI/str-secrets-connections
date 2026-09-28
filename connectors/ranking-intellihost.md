@@ -60,7 +60,7 @@ The live check: ask Claude "IntelliHost, list my properties". That is one of the
 - **Sign-in page looks wrong or the account is not found:** you are on intellihost.io (PriceLabs). Use clients.intellihost.co.
 - **Claude is offering to change prices:** you granted read and write. Disconnect the assistant in IntelliHost > Connections, remove and re-add the connector, and pick read-only.
 - **Funnel numbers look thin or empty:** IntelliHost gathers its funnel data through its Chrome extension. Make sure the extension is installed and running in your Chrome, then ask again.
-- **Scoreboard stays on Restart (only happens if you used the access-token fallback below):** the `needs-restart` marker is cleared by the setup flow, not by the restart itself. Quit the Claude Code desktop app fully (not just the window), reopen it in this same folder, and say "Check my connections". If you ran `bash check-connections.sh` by hand instead, clear the marker first: `: > "$BUNDLE/.cache/needs-restart"`. The Connectors-UI sign-in in section 4 never needs a restart.
+- **Scoreboard stays on Restart (only happens if you used the access-token fallback below):** the row clears itself the first time the scoreboard runs inside an app that was started after the register. Quit the Claude Code desktop app fully (not just the window), reopen it in this same folder, and say "Check my connections". Still 🔒 after a real restart: `: > "$BUNDLE/.cache/needs-restart"` clears it by hand.
 - **The browser sign-in loops, errors, or never finishes:** fall back to an IntelliHost access token. In IntelliHost > Connections > MCP access tokens, create one named `Claude Code` with Access **Read only**. IntelliHost shows it once. Claude opens `.env` for you; paste it on this line, no quotes, no spaces, save, and never in the chat:
   ```
   INTELLIHOST_MCP_TOKEN=
@@ -73,8 +73,7 @@ The live check: ask Claude "IntelliHost, list my properties". That is one of the
   Then Claude registers it as a header:
   ```bash
   set -a; . "$BUNDLE/.env"; set +a
-  uv run --python 3.13 python "$BUNDLE/lib/mcp_register.py" intellihost --http https://clients.intellihost.co/api/mcp --header "Authorization: Bearer INTELLIHOST_MCP_TOKEN" && echo "intellihost registered ✅" || echo "intellihost register failed ❌"
-  echo intellihost >> "$BUNDLE/.cache/needs-restart"
+  uv run --no-project --python 3.13 python "$BUNDLE/lib/mcp_register.py" intellihost --http https://clients.intellihost.co/api/mcp --header "Authorization: Bearer INTELLIHOST_MCP_TOKEN" && echo "intellihost registered ✅" || echo "intellihost register failed ❌"
   ```
   Quit and reopen the Claude Code desktop app. No Authenticate step this time; the header carries the sign-in. The header lives in `~/.claude.json`, one more reason never to print its raw contents.
 - **You see "MCP access tokens" in IntelliHost:** those long-lived tokens are for assistants that want an API key instead of a sign-in (ChatGPT, Cursor). The kit only needs one if the browser sign-in fails (bullet above). If you create one, IntelliHost shows it only once, so pick **Read only** and never paste it in chat.

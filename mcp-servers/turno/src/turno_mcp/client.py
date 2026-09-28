@@ -16,6 +16,17 @@ BACKOFF_BASE = 0.5  # seconds: 0.5, 1.0, 2.0
 MAX_PAGE_LIMIT = 50
 DEFAULT_TIMEOUT = 30.0
 
+# Turno put api.turnoverbnb.com behind a Cloudflare managed challenge on
+# 2026-08-20. A default library User-Agent is challenged: every call returns 403
+# with an interstitial HTML body and a `cf-mitigated: challenge` header, before
+# the partner token is ever evaluated (an unauthenticated call gets the same 403,
+# not a 401). A browser User-Agent alone clears it. TLS/JA3 is not fingerprinted,
+# so httpx is still fine.
+USER_AGENT = (
+    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 "
+    "(KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36"
+)
+
 
 def _clean_params(params: dict[str, Any] | None) -> dict[str, Any] | None:
     """Drop None-valued params so optional args don't leak into the query string."""
@@ -64,6 +75,7 @@ class TurnoClient:
             "TBNB-Partner-ID": self.config.partner_id,
             "Accept": "application/json",
             "Content-Type": "application/json",
+            "User-Agent": USER_AGENT,
         }
 
     def _url(self, path: str) -> str:

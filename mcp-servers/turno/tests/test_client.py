@@ -147,3 +147,14 @@ async def test_read_still_retries_a_lost_response(monkeypatch):
     async with httpx.AsyncClient(transport=httpx.MockTransport(handler)) as transport:
         client = TurnoClient(make_config(), client=transport)
         assert await client.get("/projects/1") == {"id": 1}
+
+
+@respx.mock
+async def test_requests_send_a_browser_user_agent(client):
+    """Turno's Cloudflare challenge 403s library User-Agents before auth runs."""
+    route = respx.get(f"{ROOT}/projects/1").mock(
+        return_value=httpx.Response(200, json={"data": {"id": 1}})
+    )
+    await client.get("/projects/1")
+    ua = route.calls.last.request.headers["User-Agent"]
+    assert ua.startswith("Mozilla/5.0") and "python-httpx" not in ua

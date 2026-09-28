@@ -57,16 +57,14 @@ WORKS spends one of today's five tokens and caches it in `$BUNDLE/.cache/guesty.
 **Register:**
 ```bash
 bash "$BUNDLE/fan-out-env.sh" >/dev/null && echo "fanned out ✅" || echo "fan-out failed ❌"
-uv run --python 3.13 python "$BUNDLE/lib/mcp_register.py" guesty --stdio node "$BUNDLE/mcp-servers/guesty/dist/index.js" && echo "guesty registered ✅" || echo "register failed ❌"
-echo guesty >> "$BUNDLE/.cache/needs-restart"
+uv run --no-project --python 3.13 python "$BUNDLE/lib/mcp_register.py" guesty --stdio node "$BUNDLE/mcp-servers/guesty/dist/index.js" && echo "guesty registered ✅" || echo "register failed ❌"
 ```
 If Claude built it in Python instead of Node, swap `node "$BUNDLE/mcp-servers/guesty/dist/index.js"` for `"$BUNDLE/mcp-servers/guesty/.venv/bin/python" "$BUNDLE/mcp-servers/guesty/server.py"`, as `build/build-pms-mcp.md` shows.
 
 **Windows note:** Claude Code is a native Windows process, so every absolute path gets converted with `cygpath -w` before it is registered:
 ```bash
 bash "$BUNDLE/fan-out-env.sh" >/dev/null && echo "fanned out ✅" || echo "fan-out failed ❌"
-uv run --python 3.13 python "$BUNDLE/lib/mcp_register.py" guesty --stdio node "$(cygpath -w "$BUNDLE/mcp-servers/guesty/dist/index.js")" && echo "guesty registered ✅" || echo "register failed ❌"
-echo guesty >> "$BUNDLE/.cache/needs-restart"
+uv run --no-project --python 3.13 python "$BUNDLE/lib/mcp_register.py" guesty --stdio node "$(cygpath -w "$BUNDLE/mcp-servers/guesty/dist/index.js")" && echo "guesty registered ✅" || echo "register failed ❌"
 ```
 For a Python build, the venv interpreter is `.venv/Scripts/python.exe`, not `.venv/bin/python`, and it gets the same treatment: `"$(cygpath -w "$BUNDLE/mcp-servers/guesty/.venv/Scripts/python.exe")" "$(cygpath -w "$BUNDLE/mcp-servers/guesty/server.py")"` in place of the `node ...` part.
 
@@ -77,8 +75,7 @@ Source the `.env` first, then register (the two values are read by the helper fr
 ```bash
 set -a; . "$BUNDLE/.env"; set +a
 export CLIENT_ID="$GUESTY_CLIENT_ID" CLIENT_SECRET="$GUESTY_CLIENT_SECRET"
-uv run --python 3.13 python "$BUNDLE/lib/mcp_register.py" guesty-official --stdio npx -y @guestyorg/sdk@0.2.0-alpha.1 mcp --env CLIENT_ID --env CLIENT_SECRET && echo "guesty-official registered ✅" || echo "guesty-official failed ❌"
-echo guesty-official >> "$BUNDLE/.cache/needs-restart"
+uv run --no-project --python 3.13 python "$BUNDLE/lib/mcp_register.py" guesty-official --stdio npx -y @guestyorg/sdk@0.2.0-alpha.1 mcp --env CLIENT_ID --env CLIENT_SECRET && echo "guesty-official registered ✅" || echo "guesty-official failed ❌"
 ```
 The `@0.2.0-alpha.1` pin is deliberate. `@0.2.0` does not exist on npm (checked 2026-09-21: only `0.2.0-alpha` and `0.2.0-alpha.1` are published). No need to "clean it up." Guesty's docs show `npx -y @guestyorg/sdk mcp` with no version; the pin makes sure you get the newest published build, and the same one every time (unpinned, npm's `latest` tag hands you the older `0.2.0-alpha`). Guesty's MCP page lists Cursor, Claude Desktop, VS Code and Antigravity; it has no Claude Code section, so the register line above is our translation of their config, not a line Guesty published or one we have run end to end.
 
@@ -88,7 +85,7 @@ Both values land in `~/.claude.json` as that server's environment. That is a sec
 
 Capability warning: read-only. Calendar writes and guest messages go through the built `guesty` server, never this one. Guesty also lists a hosted version at `https://mcp.guesty.com/v1`, but says "Claude.ai web is not currently a supported client" because that client "defaults to OAuth discovery, which this server does not support." We use the stdio package for that reason. Beta as of 2026-09-21 (Guesty's MCP page is dated 2026-08-22). No waitlist.
 
-**Windows note:** the only paths in this block (`$BUNDLE/.env`, the needs-restart file) are read by Git Bash itself, not handed to Claude Code, so no `cygpath -w` here. If `guesty-official` shows `Failed to connect` after the restart and `node -v` is 20 or newer, re-run the register block with `cmd //c npx -y @guestyorg/sdk@0.2.0-alpha.1 mcp` in place of `npx -y @guestyorg/sdk@0.2.0-alpha.1 mcp` (double slash on purpose: Git Bash turns a lone `/c` into `C:/`); it overwrites the old entry. That is one more restart, so one more token slot; do it tomorrow if today's count is already at four.
+**Windows note:** the only path in this block (`$BUNDLE/.env`) is read by Git Bash itself, not handed to Claude Code, so no `cygpath -w` here. If `guesty-official` shows `Failed to connect` after the restart and `node -v` is 20 or newer, re-run the register block with `cmd //c npx -y @guestyorg/sdk@0.2.0-alpha.1 mcp` in place of `npx -y @guestyorg/sdk@0.2.0-alpha.1 mcp` (double slash on purpose: Git Bash turns a lone `/c` into `C:/`); it overwrites the old entry. That is one more restart, so one more token slot; do it tomorrow if today's count is already at four.
 
 ## 5. Verify
 The checker runs `probe_guesty`. Two real calls:

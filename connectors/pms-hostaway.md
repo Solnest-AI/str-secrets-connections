@@ -47,15 +47,13 @@ If `dist/index.js` is missing after the build step: `cd "$BUNDLE/mcp-servers/hos
 **Register (macOS / Linux):**
 ```bash
 bash "$BUNDLE/fan-out-env.sh"
-uv run --python 3.13 python "$BUNDLE/lib/mcp_register.py" hostaway --stdio node "$BUNDLE/mcp-servers/hostaway/dist/index.js" && echo "hostaway registered ✅" || echo "register failed ❌"
-echo hostaway >> "$BUNDLE/.cache/needs-restart"
+uv run --no-project --python 3.13 python "$BUNDLE/lib/mcp_register.py" hostaway --stdio node "$BUNDLE/mcp-servers/hostaway/dist/index.js" && echo "hostaway registered ✅" || echo "register failed ❌"
 ```
 
 **Register (Windows, Git Bash):** Claude Code is a native Windows process, so it must be handed a `C:\...` path. Convert with `cygpath -w` first and register the Windows form:
 ```bash
 bash "$BUNDLE/fan-out-env.sh"
-uv run --python 3.13 python "$BUNDLE/lib/mcp_register.py" hostaway --stdio node "$(cygpath -w "$BUNDLE/mcp-servers/hostaway/dist/index.js")" && echo "hostaway registered ✅" || echo "register failed ❌"
-echo hostaway >> "$BUNDLE/.cache/needs-restart"
+uv run --no-project --python 3.13 python "$BUNDLE/lib/mcp_register.py" hostaway --stdio node "$(cygpath -w "$BUNDLE/mcp-servers/hostaway/dist/index.js")" && echo "hostaway registered ✅" || echo "register failed ❌"
 ```
 If Claude built the Python flavour instead of Node, the interpreter on Windows is `.venv/Scripts/python.exe` (not `.venv/bin/python`), and both the interpreter path and the `server.py` path go through `cygpath -w` the same way.
 
