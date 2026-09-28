@@ -34,8 +34,9 @@ NOT_OK=0
 mcp_load
 OUT="$(scoreboard)"
 printf '%s\n' "$OUT"
-c=$(printf '%s\n' "$OUT" | grep -c '^✅'); m=$(printf '%s\n' "$OUT" | grep -c '^❌')
-v=$(printf '%s\n' "$OUT" | grep -c '^⏳'); n=$(printf '%s\n' "$OUT" | grep -c '^➖'); r=$(printf '%s\n' "$OUT" | grep -c '^🔒')
-l=$(printf '%s\n' "$OUT" | grep -c '^🔎')
+# Count rows by glyph, byte-wise. Git Bash's grep 3.0 in a UTF-8 locale never matches a
+# character outside the BMP (🔒 🔎), because Windows wchar_t is 16-bit; LC_ALL=C sidesteps it.
+count() { printf '%s\n' "$OUT" | LC_ALL=C grep -c "^$1"; }
+c=$(count ✅); m=$(count ❌); v=$(count ⏳); n=$(count ➖); r=$(count 🔒); l=$(count 🔎)
 echo; echo "Summary: $c connected, $m missing, $v pending vendor, $n not used, $r need restart, $l need live check"
 exit 0

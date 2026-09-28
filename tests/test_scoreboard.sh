@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 set -u; cd "$(dirname "$0")/.."
 . tests/_helpers.sh
+# Byte-wise matching: Git Bash's grep cannot match 🔎 in a UTF-8 locale (see check-connections.sh).
+export LC_ALL=C
 export CURL_STUB_DIR="$PWD/tests/fixtures/curl"
 export CLAUDE_STUB_FIXTURE="$PWD/tests/fixtures/mcp-list-hospitable-full.txt"
 fail=0; t(){ if eval "$2"; then echo "ok   $1"; else echo "FAIL $1"; fail=1; fi; }
