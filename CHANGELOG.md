@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.0.11 (2026-09-28)
+- The guide ends with **Day 1**: what to do the night before or Tuesday morning, and what we do together in the sessions. Three links, each pasted into Claude Code with "Set this up": the summit prep (the only thing to do ahead: tools, ffmpeg, the carousel browser), the Revenue Manager (Tuesday morning, in the session) and the STR Secrets Content Studio (Tuesday afternoon, in the session). It says plainly not to install the two tools before Tuesday morning.
+- The 1.0.10 Content Studio section in the middle of the guide is gone, and the Kie card is back to its 1.0.9 wording. The Kie top-up note now sits with the Content Studio link in Day 1.
+
 ## 1.0.10 (2026-09-28)
 - The guide has a Content Studio section for Tuesday afternoon: the one line to paste into Claude Code (it installs the Solnest Cinematic Director skill, videos and carousels, from its own repo; nothing added to the system, no admin), what the checklist means, and the two sentences to say on the day. Do it the night before, on home wifi.
 - Kie credits, stated plainly in both the new section and the Kie card: the 80 free credits do not cover a video (455 credits each, about $2.28), so top up $5 at kie.ai/billing before Tuesday. Carousels are free.

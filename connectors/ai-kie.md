@@ -13,7 +13,7 @@ portal: https://kie.ai/api-key
 Kie.ai is a reseller. One account, one key, one credit balance, and behind it sit the image and video models the summit's ad skills use to make the pictures and clips for your ads. You never talk to Kie directly; the bundled `kie` server (ours, Python, runs on uv) does, and Claude calls that server. Kie does not publish an MCP server of its own, so there is no Path B here.
 
 ## 2. Required, cost, gate
-Required. Prepaid credits, no subscription. Kie's words: "New users also receive 80 free credits for testing", "KIE credits do not expire", "Failed tasks are not charged." Each generation spends credits, priced per model. The free 80 are enough to prove the connection and make a few test images; they are not enough for a Content Studio video (455 credits each), so add $5 before Tuesday. No plan tier, no approval, no email to anyone. Sign in is "Sign in with Google / Sign in with Microsoft".
+Required. Prepaid credits, no subscription. Kie's words: "New users also receive 80 free credits for testing", "KIE credits do not expire", "Failed tasks are not charged." Each generation spends credits, priced per model. The free 80 are enough to prove the connection and make a few test images; budget a top-up before the ad skills run for real. No plan tier, no approval, no email to anyone. Sign in is "Sign in with Google / Sign in with Microsoft".
 
 ## 3. Path A: API key
 1. Go to https://kie.ai/api-key and sign in with Google or Microsoft.

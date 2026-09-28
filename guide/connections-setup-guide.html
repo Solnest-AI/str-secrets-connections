@@ -693,43 +693,6 @@ Required for everyone
 Summary: 14 connected, 0 missing, 1 pending vendor, 2 not used, 0 need restart, 1 need live check</pre>
     </section>
 
-    <!-- CONTENT STUDIO -->
-    <hr class="rule">
-    <section id="content-studio">
-      <h2 class="display">Content Studio <span class="badge-inline">Tuesday afternoon</span></h2>
-      <p class="section-sub">One more paste, and your listing videos and Instagram carousels are ready to make. Do this the night before, on your own wifi, so the room isn't waiting on 100 downloads at once. It takes a couple of minutes and asks you nothing.</p>
-
-      <div class="download">
-        <p class="dl-label">Paste this into the Claude Code desktop app, in any folder:</p>
-        <p><code class="paste">Install the Solnest Content Studio. Follow the instructions at https://raw.githubusercontent.com/Solnest-AI/solnest-cinematic-director-cc/main/INSTALL.md exactly.</code></p>
-        <p>Claude installs the skill, finds or downloads everything it needs into its own folder (nothing added to your system, no admin password), picks up your Kie key from the kit you set up above, and ends with a checklist. Every line <code>[ok]</code> means you're done: quit and reopen Claude Code once.</p>
-      </div>
-
-      <ol class="timeline">
-        <li>
-          <div class="num">1</div>
-          <div class="step-body">
-            <h3>Top up Kie before Tuesday</h3>
-            <p>The 80 free credits you got with your Kie key are not enough for a video. One 30 second walkthrough is 455 credits (about $2.28). Add $5 at <a href="https://kie.ai/billing" target="_blank" rel="noopener">kie.ai/billing</a> and you're covered for two videos with room to spare. Carousels are free.</p>
-          </div>
-        </li>
-        <li>
-          <div class="num">2</div>
-          <div class="step-body">
-            <h3>Read the checklist</h3>
-            <p>If it says the Kie key is missing, Claude opens the file for you: paste your key after <code>KIE_API_KEY=</code> and save, then paste the install line again. If a download failed, paste the install line again, it tries other mirrors. Never paste a key into the message box.</p>
-          </div>
-        </li>
-        <li>
-          <div class="num">3</div>
-          <div class="step-body">
-            <h3>On the day, one sentence each</h3>
-            <p><b>"Make me a Solnest video for &lt;your Airbnb link&gt;"</b> gets you a 25 to 30 second cinematic walkthrough, vertical for Instagram or wide for your website. <b>"Make me a carousel for &lt;your Airbnb link&gt;"</b> gets you an 8 slide Instagram carousel in your own brand, every word checked against your listing, free.</p>
-          </div>
-        </li>
-      </ol>
-    </section>
-
     <!-- MCP DIRECTORY -->
     <hr class="rule">
     <section id="directory">
@@ -1103,7 +1066,7 @@ Summary: 14 connected, 0 missing, 1 pending vendor, 2 not used, 0 need restart, 
     <li>Copy the key now. Kie does not say whether it shows the full key again later, so treat it as a one-time view.</li>
   </ol>
   <p class="grab"><b>Goes in .env as</b> <code>KIE_API_KEY</code></p>
-  <p class="note">Required. Prepaid credits, no subscription. Kie's words: "New users also receive 80 free credits for testing", "KIE credits do not expire", "Failed tasks are not charged." Each generation spends credits, priced per model. The free 80 are enough to prove the connection and make a few test images; they are not enough for a Content Studio video (455 credits each), so add $5 before Tuesday. No plan tier, no approval, no email to anyone. Sign in is "Sign in with Google / Sign in with Microsoft".</p>
+  <p class="note">Required. Prepaid credits, no subscription. Kie's words: "New users also receive 80 free credits for testing", "KIE credits do not expire", "Failed tasks are not charged." Each generation spends credits, priced per model. The free 80 are enough to prove the connection and make a few test images; budget a top-up before the ad skills run for real. No plan tier, no approval, no email to anyone. Sign in is "Sign in with Google / Sign in with Microsoft".</p>
 </article>
 </div>
 <h3 class="group-head">Web research</h3>
@@ -1185,12 +1148,60 @@ Summary: 14 connected, 0 missing, 1 pending vendor, 2 not used, 0 need restart, 
       </div>
     </section>
 
+    <!-- DAY 1 -->
+    <hr class="rule">
+    <section id="day-1">
+      <h2 class="display">Day 1 <span class="badge-inline">Tuesday</span></h2>
+      <div class="callout warn">
+        <p><span class="tag">We do these together, in the sessions.</span> The Revenue Manager and the STR Secrets Content Studio get set up live on Tuesday, everyone at the same time, one link each, step by step. <b>Please don't install either one before Tuesday morning.</b></p>
+        <p>The only thing to do ahead of time is step 1, the prep: it gets ffmpeg and the summit's tools onto your computer on your own wifi, so the room isn't waiting on 100 downloads at once.</p>
+      </div>
+      <p class="section-sub">For each link: copy it, paste it into the Claude Code desktop app, and say <b>"Set this up"</b>. Claude does the rest and tells you it's done with a ✅ green check.</p>
+
+      <ol class="timeline">
+        <li>
+          <div class="num">1</div>
+          <div class="step-body">
+            <h3>The night before, or when you arrive Tuesday morning: the prep</h3>
+            <div class="download">
+              <p class="dl-label">Copy this link, paste it into Claude Code, say "Set this up":</p>
+              <p><code class="paste">https://github.com/Solnest-AI/str-secrets-summit-prep</code></p>
+            </div>
+            <p>Claude checks every tool the summit runs on and installs what's missing, downloads ffmpeg (the video tool) and the browser the carousels use, and ends with a ✅ green check. About 5 minutes. If it asks, fully quit Claude Code once so it sees the new tools. That's it until the session.</p>
+          </div>
+        </li>
+        <li>
+          <div class="num">2</div>
+          <div class="step-body">
+            <h3>Tuesday morning, together in the session: the Revenue Manager</h3>
+            <div class="download">
+              <p class="dl-label">When we get there: copy this link, paste it into Claude Code, say "Set this up":</p>
+              <p><code class="paste">https://github.com/Solnest-AI/str-secrets-revenue-manager</code></p>
+            </div>
+            <p>Claude re-checks your tools and connections and installs anything missing, installs the Revenue Manager on your Mac or PC, asks the markup you add on each booking site, and shows a ✅ green check. Then it offers to run it on one of your properties right away. Nothing changes on your listings unless you say yes.</p>
+          </div>
+        </li>
+        <li>
+          <div class="num">3</div>
+          <div class="step-body">
+            <h3>Tuesday afternoon, together in the session: the STR Secrets Content Studio</h3>
+            <div class="download">
+              <p class="dl-label">When we get there: copy this link, paste it into Claude Code, say "Set this up":</p>
+              <p><code class="paste">https://github.com/Solnest-AI/solnest-cinematic-director-cc</code></p>
+            </div>
+            <p>Claude checks everything and installs anything missing, installs the Content Studio, picks up your Kie key, and shows a ✅ green check. Then it asks for one of your Airbnb links: an Instagram carousel or a cinematic video?</p>
+            <p><b>Top up Kie before Tuesday afternoon.</b> The 80 free credits you got with your Kie key are not enough for a video: one 30 second video is 455 credits (about $2.28). Add $5 at <a href="https://kie.ai/billing" target="_blank" rel="noopener">kie.ai/billing</a> and you're covered for two videos. Carousels are free.</p>
+          </div>
+        </li>
+      </ol>
+    </section>
+
   </main>
 
   <footer>
     <p class="promise-line">Built by <b>Solnest AI</b>. Your keys stay on your own computer, always. That's the whole promise.</p>
     <p><a href="mailto:ryan.lefebvre@strsecrets.com">ryan.lefebvre@strsecrets.com</a> · FB: Ryan Lefebvre · IG: <a href="https://www.instagram.com/ryan_le5" target="_blank" rel="noopener">ryan_le5</a></p>
-    <p class="version">Version 1.0.10</p>
+    <p class="version">Version 1.0.11</p>
   </footer>
 
 </body>
