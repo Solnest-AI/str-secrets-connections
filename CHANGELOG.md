@@ -1,6 +1,6 @@
 # Changelog
 
-## 1.0.7 (2026-09-28)
+## 1.0.10 (2026-09-28)
 Every item below came out of one attendee's Windows 11 setup (17 ✅ in the end) and was reproduced on the Windows laptop before it was fixed.
 - `install-tools.sh`: Claude installs uv, Python 3.13 and Node from inside the Claude Code desktop app; nobody is sent to PowerShell and nothing touches the Microsoft Store. The desktop app is a Store (MSIX) app that redirects writes under `AppData`, and uv 0.12.19 fails there with "Missing expected target directory for Python minor version link"; Python now lives under `%USERPROFILE%\.uv\python` with `UV_PYTHON_INSTALL_DIR` pinned by `setx`. A tool installed mid-session is invisible to the app until it restarts, so the installer asks for that one restart up front instead of the board showing `uv ❌` for no visible reason. Every Python call in the kit is `uv run --no-project --python 3.13 python`; a bare `python3` on a fresh Windows box is the Store shim. The board has a `Python 3.13 (uv)` row.
 - The board can tell a real restart from a promised one. `lib/mcp_register.py` stamps `.cache/needs-restart` with the time of each register; `lib/app.sh` reads the app's own start time (walking up from the session process, since a nested Git Bash cannot see past an exited MSYS stub); the checker clears a row only once the app was started after the stamp. Rows used to go green the moment Claude cleared the marker on the attendee's word. The conductor now also has Claude confirm each new server with `session_connectors_status` and use `reconnect_session_connector` on a cold-start `failed`.
@@ -11,6 +11,21 @@ Every item below came out of one attendee's Windows 11 setup (17 ✅ in the end)
 - Gemini: AI Studio keys made today start with `AQ.`, not `AIza`; the connector, KEYS.md and the guide say so, and the live probe is the judge, not the prefix. Google's page no longer carries a September date; it rejects unrestricted standard keys.
 - `fan-out-env.sh` fills only the folders in the attendee's own stack (their PMS, pricing, ops, plus airroi and kie), so a Hostfully shop no longer gets a `hospitable/.env`; it prints what it left alone. `env_discover.py` reports "looked through N folders ... read M env file(s)" instead of "searched 0 env files", which read as a broken search.
 - From the parallel code review: `~/.claude.json` and `.env` are read with `utf-8-sig` (a BOM no longer resets the file), `env_discover` rewrites `.env` once atomically, `supabase_project.py` prints `PENDING:` instead of `REF=` when a project is still provisioning after ten minutes, `sync-bundled-servers.sh` works without rsync, and the Kie server reads its own folder's `.env` first.
+
+## 1.0.9 (2026-09-26)
+- Breezeway: the credentials request now says exactly what Breezeway's API team asks for. A summit attendee described the use case as automating guest communications and syncing Breezeway with Hospitable, and Breezeway came back asking which data they needed (guest messaging is not in Breezeway's API at all). The email template, the "Do these today" box in the guide and the request-form answer in the connector now all say the same thing: account holder, read-only, properties, reservations and tasks with status and costs, no people records, no guest messaging, nothing created or changed.
+- `emails/breezeway-request.md` also carries a ready reply for anyone who already got Breezeway's "which data do you need" follow-up, and what to say if Breezeway quotes a monthly fee. The connector's troubleshooting section tells Claude to print that reply.
+- The Breezeway card said the summit skills "draft new tasks" in Breezeway. They don't: Breezeway is read-only in the kit (write scope decided 2026-09-25). The card says read-only now, and the connector tells Claude to build read tools only, even though the build doc lists Breezeway write tools.
+- The Breezeway card told Claude to print the template from `emails/breezeway.md`, a file that does not exist. It points at `emails/breezeway-request.md` now.
+- For maintainers only: `scripts/release.sh` does a kit release in one command. It publishes the GitHub release with both zips, deploys the guide page, then checks that the download link and the live page both match the tag. Attendees never run it.
+
+## 1.0.8 (2026-09-26)
+- The setup guide carries the STR Secrets AI Summit 2.0 branding (STR Secrets logo and favicon, page title) that the live guide page has shown since Sept 22. It was never committed, so the guide inside the download still said Solnest AI. The downloaded guide, its PDF and the web page now match.
+
+## 1.0.7 (2026-09-26)
+- OwnerRez: the build doc and the OwnerRez connector said OwnerRez has no way to read nightly rates, so an OwnerRez server built from them could see bookings but not the attendee's own prices. It can: `GET /v2/calendar/{propertyId}` returns each night's status, rate, min nights and arrival/departure rules (measured live on 8 properties x 90 nights). Both files now say so and name the endpoint.
+- Smoobu: the build doc told Claude to connect with Smoobu's old single-key login (`Api-Key`, one variable) and to test it with a curl using that header, which contradicted the Smoobu connector page. A server built from the build doc would stop working when Smoobu switches that login off. The build doc now uses the signed login only (key plus secret, four headers, exactly as the connector page specifies) and says never to use the old one.
+- Smoobu's cutoff for the old login is October 31, 2026 (Smoobu's docs, re-read 2026-09-25). The connector page said September 25.
 
 ## 1.0.6 (2026-09-22)
 - The setup walkthrough video is the first thing on the guide page: a Start here band above the title with the player embedded, a Play button and the plain URL under it (the PDF drops the player and keeps the link). It is also the first section of the README, above the download.
