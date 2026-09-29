@@ -115,6 +115,7 @@ for r in sorted(refs):
     print(r)
 PY
   while IFS= read -r ref; do
+    ref="${ref%$'\r'}"   # Python on Windows prints CRLF; a trailing CR makes every asset look missing
     case "$ref" in
       /*)    die "the guide links '$ref' from the site root; use a path relative to guide/ so it ships with the page" ;;
       *..*)  die "the guide links '$ref', outside guide/" ;;
