@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.0.15 (2026-09-29)
+Day 1 gets the Listing Optimizer, set up Tuesday afternoon after the Revenue Manager and before the Content Studio.
+- Guide, Day 1: new step 3 with https://github.com/Solnest-AI/listing-optimizer and the same "copy this link, paste it into Claude Code, say Set this up" direction as the other steps. The Content Studio is now step 4. The intro names all three skills ("don't install any of them before Tuesday morning").
+- The step says to open the `listing-optimizer` folder before "Optimize my [listing] for [season]": its `listing-writer` agent is project-local and only loads in a session opened in that folder (checked: listed inside the folder, absent from its parent).
+- listing-optimizer `55fc97a` added the matching README note for Claude (clone to `~/listing-optimizer`, run setup, say ✅, hand over the folder path). Its setup was run from a clean clone against a copy of a set-up kit: exit 0, 426 tests passed, keys copied from the kit, Hospitable and Gemini checked live.
+
 ## 1.0.14 (2026-09-29)
 For attendees who set up in the room without doing the prep. Same fix as Revenue Manager 5.0.10 and summit prep 1.0.1.
 - `install-tools.sh`: Git counts only when `git --version` answers. A Mac's `/usr/bin/git` is a stub until Apple's command line tools are installed, so the old `command -v git` printed "✅ Git" with a blank version on Macs with no Git (and on Windows whenever a broken `git` sat on PATH). A Mac without Git now gets a ⚠️ line and Apple's installer window, and the setup carries on: nothing in the kit needs Git once the zip is unzipped. Windows without Git still stops. Checked on a simulated Mac with every Apple developer tool removed: the tool check, the Hospitable and PriceLabs server builds, the Supabase install and Turno's `uv sync` all pass.
