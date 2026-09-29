@@ -2,6 +2,12 @@
 
 Claude: if someone pasted a GitHub link and said "set up my connections", read CONNECTIONS.md in this folder and follow it.
 
+Claude, if you have to download the kit first and `git` fails on a Mac with `xcrun: error` or `invalid active developer path` (Apple's command line tools are not installed, and nothing in the kit needs them), download the release zip instead. It unzips to `~/str-secrets-connections`:
+
+```bash
+curl -fsSL -o ~/str-secrets-connections.zip https://github.com/Solnest-AI/str-secrets-connections/releases/latest/download/str-secrets-connections.zip && unzip -q -o ~/str-secrets-connections.zip -d ~ && rm -f ~/str-secrets-connections.zip
+```
+
 Get every tool the summit skills need wired into Claude Code, on Mac or Windows, before the event.
 
 A free setup kit from **Solnest AI** for **STR Secrets AI Summit 2.0**. For the full walkthrough with pictures, including the Day-0 list of what to send off before you even start, see the Connections Setup Guide PDF.

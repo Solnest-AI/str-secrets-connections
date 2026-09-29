@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.0.14 (2026-09-29)
+For attendees who set up in the room without doing the prep. Same fix as Revenue Manager 5.0.10 and summit prep 1.0.1.
+- `install-tools.sh`: Git counts only when `git --version` answers. A Mac's `/usr/bin/git` is a stub until Apple's command line tools are installed, so the old `command -v git` printed "✅ Git" with a blank version on Macs with no Git (and on Windows whenever a broken `git` sat on PATH). A Mac without Git now gets a ⚠️ line and Apple's installer window, and the setup carries on: nothing in the kit needs Git once the zip is unzipped. Windows without Git still stops. Checked on a simulated Mac with every Apple developer tool removed: the tool check, the Hospitable and PriceLabs server builds, the Supabase install and Turno's `uv sync` all pass.
+- `install-tools.sh`: winget installs Node from `--source winget` only, so an unreachable Microsoft Store no longer aborts it, and a failure prints winget's own last line instead of nothing.
+- README: when Claude has to download the kit and `git` fails on a Mac with `xcrun: error`, it downloads the release zip with curl and unzip instead.
+- `tests/test_install_tools.sh`: the Git cases run the Git block alone against stub `git` and `xcode-select` (nothing is installed). The "uv off PATH" case keeps uv's own Python dir, so it no longer fails on a machine whose Python lives under the real home.
+
 ## 1.0.13 (2026-09-29)
 The Windows branch merged into main (its items were first written up as a second 1.0.10, before main shipped 1.0.10 to 1.0.12).
 - The bundled PriceLabs server is synced from Revenue Manager 5.0.9: `pricelabs_set_overrides` and `pricelabs_update_listings` need `confirm: true` and refuse a price without its type, a fixed amount without the listing's currency or below its min, a percent outside -75 to 500, min above base or base above max, and any min/base/max more than 5x off live.
