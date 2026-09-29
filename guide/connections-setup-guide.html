@@ -1081,7 +1081,7 @@ Summary: 14 connected, 0 missing, 1 pending vendor, 2 not used, 0 need restart, 
     <span class="badge badge-required">REQUIRED</span>
   </div>
   <p class="login">Needs: Ad Spy, Comping Agent</p>
-  <p>Firecrawl fetches web pages and hands them back as clean text or structured data. Search the web, scrape one page, map a whole site, crawl it. The Comping Agent uses it for address lookups. The Ad Spy uses it too. This kit registers Firecrawl's own hosted MCP server, named <code>firecrawl</code>, with your key sent as a header. Nothing to install, nothing to build. 27 tools as of 2026-09-21.</p>
+  <p>Firecrawl fetches web pages and hands them back as clean text or structured data. Search the web, scrape one page, map a whole site, crawl it. The Comping Agent requires it (address and Zillow lookups; its setup check will not pass without this key). The Ad Spy uses it too. This kit registers Firecrawl's own hosted MCP server, named <code>firecrawl</code>, with your key sent as a header. Nothing to install, nothing to build.</p>
   <p class="login">Get it at <a href="https://www.firecrawl.dev/app/api-keys" target="_blank" rel="noopener">https://www.firecrawl.dev/app/api-keys</a></p>
   <ol>
     <li>Sign in or create an account at <a href="https://www.firecrawl.dev/signin" target="_blank" rel="noopener">https://www.firecrawl.dev/signin</a>.</li>
@@ -1152,12 +1152,60 @@ Summary: 14 connected, 0 missing, 1 pending vendor, 2 not used, 0 need restart, 
       </div>
     </section>
 
+    <!-- DAY 1 -->
+    <hr class="rule">
+    <section id="day-1">
+      <h2 class="display">Day 1 <span class="badge-inline">Tuesday</span></h2>
+      <div class="callout warn">
+        <p><span class="tag">We do these together, in the sessions.</span> The Revenue Manager and the STR Secrets Content Studio get set up live on Tuesday, everyone at the same time, one link each, step by step. <b>Please don't install either one before Tuesday morning.</b></p>
+        <p>The only thing to do ahead of time is step 1, the prep: it gets ffmpeg and the summit's tools onto your computer on your own wifi, so the room isn't waiting on 100 downloads at once.</p>
+      </div>
+      <p class="section-sub">For each link: copy it, paste it into the Claude Code desktop app, and say <b>"Set this up"</b>. Claude does the rest and tells you it's done with a ✅ green check.</p>
+
+      <ol class="timeline">
+        <li>
+          <div class="num">1</div>
+          <div class="step-body">
+            <h3>The night before, or when you arrive Tuesday morning: the prep</h3>
+            <div class="download">
+              <p class="dl-label">Copy this link, paste it into Claude Code, say "Set this up":</p>
+              <p><code class="paste">https://github.com/Solnest-AI/str-secrets-summit-prep</code></p>
+            </div>
+            <p>Claude checks every tool the summit runs on and installs what's missing, downloads ffmpeg (the video tool) and the browser the carousels use, and ends with a ✅ green check. About 5 minutes. If it asks, fully quit Claude Code once so it sees the new tools. That's it until the session.</p>
+          </div>
+        </li>
+        <li>
+          <div class="num">2</div>
+          <div class="step-body">
+            <h3>Tuesday morning, together in the session: the Revenue Manager</h3>
+            <div class="download">
+              <p class="dl-label">When we get there: copy this link, paste it into Claude Code, say "Set this up":</p>
+              <p><code class="paste">https://github.com/Solnest-AI/str-secrets-revenue-manager</code></p>
+            </div>
+            <p>Claude re-checks your tools and connections and installs anything missing, installs the Revenue Manager on your Mac or PC, asks the markup you add on each booking site, and shows a ✅ green check. Then it offers to run it on one of your properties right away. Nothing changes on your listings unless you say yes.</p>
+          </div>
+        </li>
+        <li>
+          <div class="num">3</div>
+          <div class="step-body">
+            <h3>Tuesday afternoon, together in the session: the STR Secrets Content Studio</h3>
+            <div class="download">
+              <p class="dl-label">When we get there: copy this link, paste it into Claude Code, say "Set this up":</p>
+              <p><code class="paste">https://github.com/Solnest-AI/str-secrets-content-studio</code></p>
+            </div>
+            <p>Claude checks everything and installs anything missing, installs the Content Studio, picks up your Kie key, and shows a ✅ green check. Then it asks for one of your Airbnb links: an Instagram carousel or a cinematic video?</p>
+            <p><b>Top up Kie before Tuesday afternoon.</b> The 80 free credits you got with your Kie key are not enough for a video: one 30 second video is 455 credits (about $2.28). Add $5 at <a href="https://kie.ai/billing" target="_blank" rel="noopener">kie.ai/billing</a> and you're covered for two videos. Carousels are free.</p>
+          </div>
+        </li>
+      </ol>
+    </section>
+
   </main>
 
   <footer>
     <p class="promise-line">Built by <b>Solnest AI</b>. Your keys stay on your own computer, always. That's the whole promise.</p>
     <p><a href="mailto:ryan.lefebvre@strsecrets.com">ryan.lefebvre@strsecrets.com</a> · FB: Ryan Lefebvre · IG: <a href="https://www.instagram.com/ryan_le5" target="_blank" rel="noopener">ryan_le5</a></p>
-    <p class="version">Version 1.0.10</p>
+    <p class="version">Version 1.0.13</p>
   </footer>
 
 </body>
