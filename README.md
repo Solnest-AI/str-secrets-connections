@@ -22,6 +22,8 @@ Claude asks four questions, builds a `.env` with only your tools in it, finds an
 
 Claude reads `CONNECTIONS.md`, checks every connection, fixes what it can, and tells you exactly what to do for the rest. Say **"Check my connections"** any time to see the scoreboard again.
 
+**If Claude says a command was "Blocked", or that a safety check "failed" or gave "no verdict":** that is the app's Auto mode having a bad minute, not the kit. Click the mode selector next to the send button (it says Auto), choose **Manual**, and say "retry". From then on Claude asks before each step and you click Allow.
+
 ## Your keys never touch the chat
 
 When Claude needs a key, it opens a file called `.env` for you. You paste the key into that file and save. Keys stay on your computer and only ever go to the tool they belong to. Full list, with where to get every key: `KEYS.md`.

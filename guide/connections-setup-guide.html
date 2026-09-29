@@ -594,11 +594,15 @@
 
       <div class="download">
         <p class="dl-label">Two ways to get the kit. Pick one.</p>
-        <p><b>A. The link.</b> Open the Claude Code desktop app, start a session in any folder (your Desktop is fine), and paste this into the message box:</p>
-        <p><code class="paste">Clone https://github.com/Solnest-AI/str-secrets-connections and then set up my connections</code></p>
-        <p>Claude downloads the kit into that folder and starts. That's it.</p>
-        <p><b>B. The zip.</b> Download it, unzip it somewhere easy like your Desktop, and open that folder in the app.</p>
+        <p><b>A. The zip (the sure way).</b> Download it, unzip it somewhere easy like your Desktop, then open the Claude Code desktop app and open that folder in it (or drag the folder into the app window).</p>
         <a class="dl-btn" href="https://github.com/Solnest-AI/str-secrets-connections/releases/latest/download/str-secrets-connections.zip">Download the Connections Kit (.zip)</a>
+        <p><b>B. The link.</b> Open the Claude Code desktop app, start a session in any folder (your Desktop is fine), and paste this into the message box:</p>
+        <p><code class="paste">Clone https://github.com/Solnest-AI/str-secrets-connections and then set up my connections</code></p>
+        <p>Claude downloads the kit into that folder and starts.</p>
+      </div>
+
+      <div class="callout warn">
+        <p><span class="tag">Blocked?</span> If Claude says a command was "Blocked", or that a safety check "failed" or gave "no verdict" (even for the download itself), that is the app, not the kit. The app's Auto mode runs every command past a safety check on Anthropic's side first, and when that check is having a bad minute it blocks everything. Click the mode selector next to the send button (it says <b>Auto</b>), choose <b>Manual</b>, and say "retry". From then on Claude asks before each step and you click Allow. Once things are rolling you can pick Auto again; if it blocks again, back to Manual.</p>
       </div>
 
       <ol class="timeline">
