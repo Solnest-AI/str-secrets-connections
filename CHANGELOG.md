@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.0.16 (2026-09-29)
+The STR Comping Agent joins the guide as step 5, at the bottom of the setup steps.
+- Guide: step 5 with https://github.com/Solnest-AI/solnest-str-comping-agent and the same "copy this link, paste it into Claude Code, say Set this up" direction as the other steps. It says what setup does (installs, checks the AirROI and Firecrawl keys from the kit, asks for the company website for the report's logo and brand colors, ends on a ✅), how to use it ("Run comps on" an Airbnb link, a Zillow link or an address; Zillow gets asked for guest count), and the cost (about $0.50 of AirROI credit a report, up to about $1.60 in a thin market).
+- The step says a report is never uploaded or pushed, even on "save". Comping agent PR #8: a student's copy is downloaded or detached from GitHub at setup, and Claude is told "save" means the files on disk. At the summit today a student's "save" turned into a push attempt to Solnest-AI's GitHub.
+
 ## 1.0.15 (2026-09-29)
 Day 1 gets the Listing Optimizer, set up Tuesday afternoon after the Revenue Manager and before the Content Studio.
 - Guide, Day 1: new step 3 with https://github.com/Solnest-AI/listing-optimizer and the same "copy this link, paste it into Claude Code, say Set this up" direction as the other steps. The Content Studio is now step 4. The intro names all three skills ("don't install any of them before Tuesday morning").
