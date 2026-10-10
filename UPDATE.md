@@ -43,6 +43,12 @@ No `rsync` on this machine: use `cp -R` per item instead, then manually delete a
 
 This never touches: the attendee's own `.env` (their keys), `.cache/` (restart and pending-vendor state), or anything already registered in `~/.claude.json`. A newer version of a bundled server's source gets copied in, but nothing re-registers it automatically; that only happens in step 6 if step 3 found it changed.
 
+Then unhook their folder from our GitHub, in case they set it up with a `git clone` before kit 1.0.17:
+```bash
+bash "$BUNDLE/lib/detach_from_github.sh"
+```
+It removes the link only from an untouched copy of the kit, never their `.env` or a working copy, and always exits 0. Relay its one line. This update is how a plain (detached) folder gets new versions: it downloads a fresh copy to `/tmp` and copies files over, so it never needs git in their folder. Never commit or push anything in their folder.
+
 ## 5. Re-check
 
 ```bash
