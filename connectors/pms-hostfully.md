@@ -89,12 +89,14 @@ _None for this connector._
 Hostfully publishes no MCP server (help site, developer docs and a domain search all came up empty on 2026-09-21). The built `hostfully` server above is the whole story.
 
 ## 5. Verify
-The checker's `probe_hostfully` makes one real call: `GET https://api.hostfully.com/v3/properties?agencyUid=<your UID>` with the header `X-HOSTFULLY-APIKEY: <your key>`. It prints nothing but the return code:
+The checker's `probe_hostfully` makes one real call: `GET https://api.hostfully.com/api/v3.3/properties?agencyUid=<your UID>` with the header `X-HOSTFULLY-APIKEY: <your key>`, the same base the built server uses. Only if that call does not work does it try the older `https://api.hostfully.com/v3/properties` once. It prints nothing but the return code:
 
-- **rc=0:** any 2xx. Key and UID both work. The scoreboard shows `✅ Hostfully API` once the server is registered and you have restarted (before the restart it shows 🔒 need restart, which is normal).
+- **rc=0:** a 2xx on either path. Key and UID both work. The scoreboard shows `✅ Hostfully API` once the server is registered and you have restarted (before the restart it shows 🔒 need restart, which is normal).
 - **rc=1:** 401 or 403. Hostfully rejected the key or the UID. Re-copy both from the Agency Settings page.
 - **rc=2:** one or both lines in `.env` are blank.
-- **rc=3:** anything else (timeout, 5xx, a 404 from a path outside the API). Hostfully is unreachable or the URL is off; try again in a minute.
+- **rc=3:** anything else on both paths (timeout, 5xx, 404). Hostfully is unreachable or has moved its API; try again in a minute.
+
+Until kit v1.0.17 the checker called only `/v3/`. A working key got `404 Endpoint not found` there and `200` on `/api/v3.3/` (an attendee's live account, 2026-09-29), so the scoreboard showed a false warning for a good key. If you see that on an older kit, update the kit; your key is fine.
 
 Our research did not capture the exact error text Hostfully returns for a bad key, so go by the status code, not the message.
 
@@ -105,7 +107,7 @@ After the restart, two real tests. "List my Hostfully properties": your listings
 - **Need a new key (rotation, or it leaked):** only Hostfully can issue one. Email api@hostfully.com. There is no regenerate button.
 - **rc=1 but you are sure the key is right:** check the UID. Both values come from the same page, and the UID is at the very bottom, easy to miss or half-copy. Also check for a stray space or quote after the `=` in `.env`.
 - **400 from the properties call:** `agencyUid` is missing. It is a query parameter on list endpoints (properties, leads), not a header. The built server handles this; if you are testing by hand, add `?agencyUid=...`.
-- **404 on a call that should work, or rc=1 with a key you trust:** Hostfully's help pages show two base paths, `https://api.hostfully.com/v3/` and `https://api.hostfully.com/api/v3/`, and its developer docs pin `https://api.hostfully.com/api/v3.3/`. The checker uses `/v3/`; the server Claude builds uses `/api/v3.3/` (that is what `build/build-pms-mcp.md` tells it to do). All three answered on 2026-09-21. Note that a wrong version under `/api/` comes back as 401, not 404, so a bad base path in the built server can look like a rejected key. If Hostfully moves things, the base URL constant in `$BUNDLE/mcp-servers/hostfully/` is the first line to change.
+- **404 on a call that should work, or rc=1 with a key you trust:** Hostfully's help pages show two base paths, `https://api.hostfully.com/v3/` and `https://api.hostfully.com/api/v3/`, and its developer docs pin `https://api.hostfully.com/api/v3.3/`. Both the checker and the server Claude builds use `/api/v3.3/` (that is what `build/build-pms-mcp.md` tells it to do); the checker falls back to `/v3/` only when `/api/v3.3/` does not work. A real key answered `200` on `/api/v3.3/` and `404 Endpoint not found` on `/v3/` (2026-09-29). Do not test paths with a made-up key: Hostfully checks the key before the path, so a fake key gets `401 Could not identify the requesting entity` on every path, real or not (checked 2026-10-10). That is why "all three answered" on 2026-09-21 proved nothing. If Hostfully moves things, the base URL constant in `$BUNDLE/mcp-servers/hostfully/` is the first line to change.
 - **A 30-day pull comes back as about a week, or every list stops at 20:** the built server is not following `_paging._nextCursor`. Hostfully defaults `_limit` to 20 (max 100) and pages by cursor only; `from`/`to`/`offset` are silently ignored. Fix `list_leads` and `list_properties` per the paging rule in section 3, rebuild (`npm run build --silent`), quit and reopen the Claude Code desktop app.
 - **`list_properties` comes back as 100k characters and Claude cannot read it:** the server is returning the raw payload. Compact rows plus `get_property` for detail (section 3, the size rule), rebuild, restart.
 - **Rate limit:** Hostfully's developer docs say 10,000 calls an hour; their FAQ says 1,000. Plan for the lower number. A handful of properties checked a few times a day stays well under either.

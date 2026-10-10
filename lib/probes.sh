@@ -56,9 +56,17 @@ probe_guesty() {
 }
 probe_hostfully() {
   env_filled HOSTFULLY_API_KEY && env_filled HOSTFULLY_AGENCY_UID || return 2
-  local b; b=$(mktemp); local s
-  s=$(_http "$b" -H "X-HOSTFULLY-APIKEY: $HOSTFULLY_API_KEY" "https://api.hostfully.com/v3/properties?agencyUid=$HOSTFULLY_AGENCY_UID"); rm -f "$b"
-  _classify "$s"
+  # /api/v3.3/ is the documented base and what the built server uses. A working key got 404 "Endpoint not found"
+  # on /v3/ (attendee, 2026-09-29), so /v3/ is only the fallback. A bad key gets 401 on every path, so a fake-key
+  # test cannot tell the paths apart: works on either = 0, 401/403 on any = 1, else 3.
+  local b s base rejected=0
+  for base in api/v3.3 v3; do
+    b=$(mktemp)
+    s=$(_http "$b" -H "X-HOSTFULLY-APIKEY: $HOSTFULLY_API_KEY" "https://api.hostfully.com/$base/properties?agencyUid=$HOSTFULLY_AGENCY_UID"); rm -f "$b"
+    case "$s" in 2??) return 0 ;; 401|403) rejected=1 ;; esac
+  done
+  [ "$rejected" = 1 ] && return 1
+  return 3
 }
 probe_ownerrez() {
   env_filled OWNERREZ_EMAIL && env_filled OWNERREZ_TOKEN || return 2
