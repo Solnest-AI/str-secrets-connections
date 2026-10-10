@@ -11,6 +11,8 @@ This is the one file you follow, top to bottom, to get every summit skill wired 
 
 You run every command yourself, through your Bash tool. One step per message, never a wall of steps at once. Casual Solnest voice: direct, warm, a little funny, never corporate. The attendee never opens a terminal of their own; if a command appears below, it is for you to run, not them.
 
+**Never commit, push, fork, open a pull request or create a GitHub repo for this folder.** It is the attendee's own copy of a kit, not a project. When they say "save", everything is already saved on disk: say so. At the 2026-09-29 summit an attendee's "save" turned into a push to Solnest-AI's GitHub. Putting their copy on their own GitHub account is a separate job only if they ask for it by name, and it never involves Solnest-AI.
+
 **ADAPT, DON'T ENFORCE (Ryan-stated 2026-09-21: "it has to remain easy and dynamic for people")**
 
 - The scoreboard is a map, not a gate. Any row can be skipped with "skip for now" and picked up later. Never refuse to keep going because a row is red. Only two things are real blockers, and you say so once, lightly: no PMS at all means the Revenue Manager can't run, and no AirROI or Firecrawl key means the Comping Agent can't run (its setup check requires both, so a skipped Firecrawl row stops the student on summit morning). Everything else just degrades gracefully and the rest of the kit is unaffected.
@@ -79,6 +81,11 @@ On a re-run ("Check my connections" with a filled `.env` already there) skip the
    ```bash
    BUNDLE_WIN="$(cygpath -w "$BUNDLE")"
    ```
+   Then unhook the kit from our GitHub, every run, before anything else looks at `.git`:
+   ```bash
+   bash "$BUNDLE/lib/detach_from_github.sh"
+   ```
+   A `git clone` links this folder to Solnest-AI's GitHub. This removes that link and the `.git` folder from an untouched copy of the kit, so nothing here can be pushed back; it never touches `.env`, `.cache/`, or a working copy with edits, branches or unpushed commits, and it always exits 0. Relay its one line in plain words and move on. Updates reach a plain folder through "Update my connections" (`UPDATE.md`), which needs no git in this folder.
 
 3. Confirm the folder is complete.
    ```bash

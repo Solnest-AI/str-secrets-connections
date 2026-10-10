@@ -2,11 +2,13 @@
 
 Claude: if someone pasted a GitHub link and said "set up my connections", read CONNECTIONS.md in this folder and follow it.
 
-Claude, if you have to download the kit first and `git` fails on a Mac with `xcrun: error` or `invalid active developer path` (Apple's command line tools are not installed, and nothing in the kit needs them), download the release zip instead. It unzips to `~/str-secrets-connections`:
+Claude, if you have to download the kit first: download the release zip into the current folder. Do **not** `git clone` it. A clone stays linked to Solnest-AI's GitHub, and at the 2026-09-29 summit an attendee's "save" turned into a push to our repo. The zip also needs no git, so a Mac without Apple's command line tools (`xcrun: error`) is fine. It unzips to `./str-secrets-connections`:
 
 ```bash
-curl -fsSL -o ~/str-secrets-connections.zip https://github.com/Solnest-AI/str-secrets-connections/releases/latest/download/str-secrets-connections.zip && unzip -q -o ~/str-secrets-connections.zip -d ~ && rm -f ~/str-secrets-connections.zip
+curl -fsSL -o str-secrets-connections.zip https://github.com/Solnest-AI/str-secrets-connections/releases/latest/download/str-secrets-connections.zip && unzip -q -o str-secrets-connections.zip && rm -f str-secrets-connections.zip
 ```
+
+If `unzip` is not available, a `git clone` is the fallback: setup's first step (`lib/detach_from_github.sh`) removes the link. Never commit or push from the kit folder.
 
 Get every tool the summit skills need wired into Claude Code, on Mac or Windows, before the event.
 
@@ -36,7 +38,7 @@ When Claude needs a key, it opens a file called `.env` for you. You paste the ke
 
 ## Already set up? Get the latest version
 
-Paste this into Claude Code:
+Your copy is a plain folder on your computer, not linked to GitHub, so nothing you do in it can change ours. New versions reach it this way. Paste this into Claude Code:
 
 > Update my connections. Follow the instructions at https://raw.githubusercontent.com/Solnest-AI/str-secrets-connections/main/UPDATE.md exactly.
 
