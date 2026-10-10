@@ -1,5 +1,19 @@
 # Changelog
 
+## 1.0.17 (2026-10-10)
+Fixes from Summit 2.0 student feedback. To get them, open Claude Code in your kit folder and say "Update my connections". Your keys and everything already set up stay as they are, and this one needs no app restart.
+
+- **Hostfully showed a warning for a key that works.** Fixed. The kit was checking an old Hostfully address that answers "Endpoint not found" for some accounts. It now checks the address Hostfully documents (the same one the Revenue Manager uses) and only tries the old one if that fails. If your Hostfully row had a warning, say "Check my connections" after updating and it should turn green.
+- **The Gemini card in the guide was confusing.** Fixed. It keeps the "New to Google AI Studio?" and "Already have a Google Cloud account?" headings again, so the import steps clearly only apply if you already use Google Cloud. It also shows the last step, "Copy the new auth API key", which the old card cut off.
+- **Your copy of the kit is no longer linked to our GitHub.** If you set the kit up by pasting the GitHub link, your folder was still connected to our repo, and asking Claude to "save" could try to push to it. Setup and updates now unhook it for you. Your keys and settings are not touched. "Save" just means the files on your computer, and those are already saved. New versions still arrive the same way: "Update my connections".
+- **New answers in the guide:**
+  - Breezeway: the exact read-only answer to paste into the "Use case" box on Breezeway's request form, so the request does not bounce.
+  - RankBreeze: is it worth paying for? With 1 to 3 listings, hold off. Every summit skill runs without it.
+  - PriceLabs with Hostfully: inside PriceLabs, Hostfully is called "orbirental". If a PriceLabs lookup for Hostfully comes back empty, that is why.
+  - Which Claude account to use (business Team or personal), whether your VAs can see your computer (they cannot), and what to do if you registered for the summit with a different email (nothing, it does not matter).
+
+Under the hood: `probe_hostfully` tries `/api/v3.3/` then `/v3/`; `guide/gen-cards.py` keeps branch headings and every step (no 8-step cap); `lib/detach_from_github.sh` runs in Phase 0 and in `UPDATE.md`; tests went from 298 to 344 checks.
+
 ## 1.0.16 (2026-09-29)
 The STR Comping Agent joins the guide as step 5, at the bottom of the setup steps.
 - Guide: step 5 with https://github.com/Solnest-AI/solnest-str-comping-agent and the same "copy this link, paste it into Claude Code, say Set this up" direction as the other steps. It says what setup does (installs, checks the AirROI and Firecrawl keys from the kit, asks for the company website for the report's logo and brand colors, ends on a ✅), how to use it ("Run comps on" an Airbnb link, a Zillow link or an address; Zillow gets asked for guest count), and the cost (about $0.50 of AirROI credit a report, up to about $1.60 in a thin market).
