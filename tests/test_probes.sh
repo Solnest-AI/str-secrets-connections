@@ -15,5 +15,13 @@ t "supabase 200 → 0"              "probe_supabase; [ \$? -eq 0 ]"
 t "gemini 200 → 0"                "probe_gemini; [ \$? -eq 0 ]"
 t "blank key → 2"                 "unset HOSPITABLE_API_KEY; probe_hospitable; [ \$? -eq 2 ]"
 t "unknown host → 3"              "export BEYOND_TOKEN=x; probe_beyond; [ \$? -eq 3 ]"
+# Hostfully (S2-010): a working key got 404 "Endpoint not found" on /v3/ and 200 on /api/v3.3/ (attendee, 2026-09-29).
+# The agency UID picks the fixture: NEW = that account, OLD = an account only /v3/ answers for, BAD = rejected everywhere.
+export HOSTFULLY_API_KEY=x
+t "hostfully 404 on /v3/, 200 on /api/v3.3/ → 0"  "HOSTFULLY_AGENCY_UID=AGENCY-NEW probe_hostfully; [ \$? -eq 0 ]"
+t "hostfully only /v3/ answers → 0 (fallback)"    "HOSTFULLY_AGENCY_UID=AGENCY-OLD probe_hostfully; [ \$? -eq 0 ]"
+t "hostfully 401 on every path → 1"                "HOSTFULLY_AGENCY_UID=AGENCY-BAD probe_hostfully; [ \$? -eq 1 ]"
+t "hostfully unreachable → 3"                      "HOSTFULLY_AGENCY_UID=AGENCY-NONE probe_hostfully; [ \$? -eq 3 ]"
+t "hostfully blank UID → 2"                        "HOSTFULLY_AGENCY_UID= probe_hostfully; [ \$? -eq 2 ]"
 t "probes print nothing"          "export HOSPITABLE_API_KEY=x; [ -z \"\$(probe_hospitable 2>&1; probe_pricelabs 2>&1; probe_kie 2>&1)\" ]"
 exit $fail

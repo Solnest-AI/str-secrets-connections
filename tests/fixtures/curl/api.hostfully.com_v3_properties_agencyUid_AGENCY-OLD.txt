@@ -1,0 +1,2 @@
+200
+{"properties":[{"uid":"p-1","name":"Fixture Cabin"}]}
