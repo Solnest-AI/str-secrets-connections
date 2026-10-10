@@ -139,6 +139,38 @@ def clickpath_steps(section3: str) -> list[str]:
     return []
 
 
+def clickpath_groups(section3: str) -> list[tuple[str, str, list[str]]]:
+    """Click paths with branches, e.g. Gemini's "**New to Google AI Studio?** ..."
+    then "**Already have a Google Cloud account?** 1. ... 5." then "**Make the
+    key** 1. ... 4.". Flattening those into one list made the import steps look
+    required and the old 8-step cap cut "Copy the new auth API key" (attendee,
+    2026-09-28). Returns [(heading, lead, steps)] only when two or more bold
+    leads each own a numbered list; a bold question with no list of its own
+    (a branch you can skip past) is kept as heading + lead. Anything else
+    returns [] and the card renders the flat clickpath_steps() list as before."""
+    if not section3 or section3.strip().startswith("_None"):
+        return []
+    safe_idx = section3.find("**SAFE:**")
+    scope = section3[:safe_idx] if safe_idx != -1 else section3
+    groups = []
+    for block in re.split(r"\n\s*\n", scope):
+        lines = [l for l in block.strip().splitlines() if l.strip()]
+        if not lines:
+            continue
+        steps = [re.sub(r":\s*$", ".", m.group(1).strip())
+                 for m in (re.match(r"^\s*\d+\.\s+(.+)$", l) for l in lines) if m]
+        head = re.match(r"^\*\*(.+?)\*\*\s*(.*)$", lines[0])
+        if not head:
+            continue
+        lead_lines = [lines[0]] + [l for l in lines[1:] if not re.match(r"^\s*\d+\.\s", l)]
+        lead = " ".join(lead_lines)
+        lead = re.sub(r"^\*\*.+?\*\*\s*", "", lead).strip()
+        groups.append((head.group(1).strip(), lead, steps))
+    if sum(1 for _, _, steps in groups if steps) < 2:
+        return []
+    return [(h, lead, steps) for h, lead, steps in groups if steps or h.endswith("?")]
+
+
 def direct_link(section3: str) -> str | None:
     m = re.search(r"Direct link:\s*(\S+)", section3 or "")
     return m.group(1).rstrip(".,") if m else None
@@ -216,6 +248,7 @@ def build_card(entry: dict) -> str:
     what = trim(first_paragraph(entry["sections"].get(1, "")), 420)
     gate = trim(gate_text(entry["sections"].get(2, "")), 600)
     skills = html.escape(skills_for(entry))
+    groups = clickpath_groups(entry["sections"].get(3, ""))
     steps = clickpath_steps(entry["sections"].get(3, ""))
     if not steps:
         # sign-in only servers (Meta, IntelliHost): the steps live in section 4
@@ -240,11 +273,16 @@ def build_card(entry: dict) -> str:
         parts.append(f'  <p>{inline_html(what)}</p>')
     if link:
         parts.append(f'  <p class="login">Get it at <a href="{html.escape(link)}" target="_blank" rel="noopener">{html.escape(link)}</a></p>')
-    if steps:
-        parts.append('  <ol>')
-        for s in steps[:8]:
-            parts.append(f'    <li>{inline_html(trim(s, 360))}</li>')
-        parts.append('  </ol>')
+    # Every step, never a cap: a capped list cut Gemini's copy-the-key step (2026-09-28).
+    for heading, lead, group_steps in (groups or [("", "", steps)]):
+        if heading:
+            lead_html = f" {inline_html(trim(lead, 240))}" if lead else ""
+            parts.append(f'  <p><strong>{inline_html(heading)}</strong>{lead_html}</p>')
+        if group_steps:
+            parts.append('  <ol>')
+            for s in group_steps:
+                parts.append(f'    <li>{inline_html(trim(s, 360))}</li>')
+            parts.append('  </ol>')
     sign_in = has_official and official.strip().startswith("http") and entry["vendor"] not in CLAUDE_ADDS
     sign_in_only = sign_in and all(v in SIGN_IN_FALLBACK_VARS for v in env_vars)
     if env_vars and not sign_in_only:
