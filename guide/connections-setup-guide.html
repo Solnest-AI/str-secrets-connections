@@ -523,6 +523,8 @@
         &lt;your name&gt;<br>
         &lt;company, number of properties&gt;</p>
         <p>If Breezeway sends you their request form, describe the same thing: read-only, your own account, properties, reservations and tasks. Don't mention guest communications or syncing with your PMS. Breezeway's API has no guest messaging, and that wording gets you a follow-up asking which data you need. If you already got that follow-up, tell Claude "Breezeway asked which data I need" and it prints the reply to send.</p>
+        <p><b>For the form's "Use case" box, copy this as is:</b><br>
+        Account holder, not a software vendor. An AI assistant (Claude Code) on my own computer reads my own Breezeway account, read-only: properties, reservations, and tasks with their status and costs. Single account, low volume, not a product for other companies. No guest messaging, no people or staff records, nothing created or changed.</p>
       </div>
 
       <div class="callout today">
@@ -949,7 +951,7 @@ Summary: 14 connected, 0 missing, 1 pending vendor, 2 not used, 0 need restart, 
     <li>In the <strong>Remote MCP</strong> section, click <strong>+ Add URL</strong> and name it <code>Claude Code</code>. (RankBreeze's tip: one URL per AI tool, so you can revoke one later without touching the others.) Then click <strong>Copy URL</strong> on that row. Already have a URL there and only use Claude Code? Just click <strong>Copy URL</strong> on it.</li>
   </ol>
   <p class="grab"><b>Goes in .env as</b> <code>RANKBREEZE_MCP_URL</code></p>
-  <p class="note">Optional. Pick RankBreeze, IntelliHost, or neither. If you pick RankBreeze, this is the whole setup.</p>
+  <p class="note">Optional. Pick RankBreeze, IntelliHost, or neither. If you pick RankBreeze, this is the whole setup. <strong>Do I need it?</strong> With 1 to 3 listings, hold off: every summit skill runs without it, and Airbnb's own performance page already shows your views, first-page search impressions and conversion for free. Add it once you're growing past a handful of listings, or when a listing gets views but not bookings and you want to see where it ranks day by day. Already paying for it? Connect it.</p>
   <p class="note">An official vendor MCP exists too. Claude registers it for you once the key is in.</p>
 </article>
 </div>
@@ -1145,6 +1147,13 @@ Summary: 14 connected, 0 missing, 1 pending vendor, 2 not used, 0 need restart, 
         <li><b>You might get asked for a second folder.</b> If you use a booking system that isn't pre-built, Claude builds a connector for it on the spot and asks where your projects live. Point it at Documents. Expected, not an error.</li>
         <li><b>Restarts happen once or twice, not once per tool.</b> Claude batches them and tells you exactly when.</li>
         <li><b>Windows opens Git Bash for the parts Claude runs itself.</b> That's Claude's own command runner doing its job in the background. You still never type into it.</li>
+      </ul>
+
+      <p class="section-sub" style="margin-top:22px">Questions people asked before the summit:</p>
+      <ul class="normal">
+        <li><b>Should I set this up on my business Team account or my personal one?</b> Either works, as long as it's a paid plan. Pick the one you'll keep using and stay on it for setup. Your keys and the connections Claude registers live on this computer (the kit folder's <code>.env</code> and Claude Code's own settings file), not inside your Claude account. The sign-in tools you add under + &gt; Connectors are the exception: those live in the Claude account you're signed in with, so add them on the account you'll use.</li>
+        <li><b>If I use our Team account, can my VAs see my computer?</b> No. Claude Code runs on the computer it's installed on, and your VAs' seats cannot see your computer, your files or the keys in your <code>.env</code>. For a VA to run the skills on their own computer, set the kit up on that computer too, with the keys you choose to give them.</li>
+        <li><b>I signed up for the summit with a different email than my Claude account.</b> That's fine. Nothing in the kit or the skills checks which email you registered with. Everything you need is on this page, so keep the link.</li>
       </ul>
     </section>
 

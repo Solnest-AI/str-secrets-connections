@@ -13,9 +13,9 @@ portal: https://app.rankbreeze.com
 RankBreeze tracks your Airbnb search rank, first-page impressions, click-through rate, page views, wishlists and booking rate, per listing, per day. It is the visibility spoke of the Revenue Manager: pricing tells you what to charge, RankBreeze tells you whether anyone is seeing the listing at that price. The Revenue Manager reads it through RankBreeze's own hosted MCP server, registered in Claude Code as `rankbreeze`. Read-only, 15 tools, nothing to install.
 
 ## 2. Required, cost, gate
-Optional. Pick RankBreeze, IntelliHost, or neither. If you pick RankBreeze, this is the whole setup.
+Optional. Pick RankBreeze, IntelliHost, or neither. If you pick RankBreeze, this is the whole setup. **Do I need it?** With 1 to 3 listings, hold off: every summit skill runs without it, and Airbnb's own performance page already shows your views, first-page search impressions and conversion for free. Add it once you're growing past a handful of listings, or when a listing gets views but not bookings and you want to see where it ranks day by day. Already paying for it? Connect it.
 
-No extra cost and no plan gate. RankBreeze's own FAQ: "Do I need a specific Rankbreeze plan to use the MCP? No, the Rankbreeze MCP is available on all listing plans." It is instant. No email, no form, no waiting on a human.
+No extra cost and no plan gate. RankBreeze's own FAQ: "Do I need a specific Rankbreeze plan to use the MCP? No, the Rankbreeze MCP is available on all listing plans." It is instant. No email, no form, no waiting on a human. The subscription itself starts at US$29 a month for up to 3 listings, and the price per listing drops as you add more (RankBreeze's pricing plans article, read 2026-10-10).
 
 We do not use RankBreeze's REST API. That one is an Enterprise add-on and needs a support ticket. Skip it. The MCP covers everything the summit skills need.
 

@@ -14,6 +14,8 @@ Anthropic's command-line coding agent. Every summit skill runs inside it. You ar
 ## 2. Required, cost, gate
 Required. Needs a paid claude.ai plan (Pro, Max, Team or Enterprise). The free plan does not include Claude Code. The installer downloads about 300 MB: do it at home, not at the venue.
 
+**Team or personal account?** Either, as long as it is paid. Pick the one they will keep using and stay on it for setup. Keys (`.env`) and the servers Claude registers (`~/.claude.json`) live on the computer, not in the Claude account; sign-in connectors added under + > Connectors live in the signed-in account. Teammates on a Team plan (their VAs) cannot see this computer, its files or its `.env`; a VA who runs the skills on their own computer needs the kit set up there. The email they registered for the summit with does not have to match their Claude account; nothing checks it. (Attendee questions, 2026-09-25 and 09-26.)
+
 ## 3. Path A: API key
 _None for this connector._ Install instead:
 
