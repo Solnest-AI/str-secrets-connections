@@ -1042,15 +1042,21 @@ Summary: 14 connected, 0 missing, 1 pending vendor, 2 not used, 0 need restart, 
   <p class="login">Needs: Listing Optimizer</p>
   <p>Gemini is Google's AI model. The Listing Optimizer sends your listing photos to it and gets back a score and notes per photo: what is working, what is dark, what is cluttered, what to reshoot. That is the only job it has in the summit kit. Photo scoring, nothing else. There is no server to build and no MCP to register.</p>
   <p class="login">Get it at <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">https://aistudio.google.com/apikey</a></p>
+  <p><strong>New to Google AI Studio?</strong> Sign in with your Google account, accept the Terms of Service, then skip the import steps and go straight to <strong>Make the key</strong> below.</p>
+  <p><strong>Already have a Google Cloud account?</strong> AI Studio does not make a default project for you, and it hides your existing ones until you import one. Google's steps:</p>
   <ol>
     <li>Go to Google AI Studio.</li>
     <li>Open the Dashboard from the left panel and select Projects.</li>
     <li>Click the Import projects button.</li>
     <li>Search for and select the Google Cloud project you want to import, then click Import.</li>
     <li>Once imported, navigate to the API Keys page in the dashboard to create a key in that project.</li>
+  </ol>
+  <p><strong>Make the key</strong> (Google's steps, either way):</p>
+  <ol>
     <li>Go to the AI Studio API Keys page (the link above).</li>
     <li>Check the Key Type column to identify any keys listed as Standard.</li>
     <li>Click Create API key to generate a new key. "All new keys created in AI Studio are automatically created as auth keys."</li>
+    <li>Copy the new auth API key.</li>
   </ol>
   <p class="grab"><b>Goes in .env as</b> <code>GEMINI_API_KEY</code></p>
   <p class="note">Required. The Listing Optimizer will not score photos without it.</p>

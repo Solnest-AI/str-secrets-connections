@@ -22,7 +22,7 @@ No email, no waitlist, no approval. Any Google account works, and a personal Gma
 ## 3. Path A: API key
 Direct link: https://aistudio.google.com/apikey
 
-**New to Google AI Studio?** Sign in with your Google account and accept the Terms of Service. Google's words: "If you are a new user, Google AI Studio automatically creates a default Google Cloud project and API key after you accept the Terms of Service." So a project already exists by the time you land on the API Keys page.
+**New to Google AI Studio?** Sign in with your Google account, accept the Terms of Service, then skip the import steps and go straight to **Make the key** below. Google's words: "If you are a new user, Google AI Studio automatically creates a default Google Cloud project and API key after you accept the Terms of Service." So a project already exists by the time you land on the API Keys page.
 
 **Already have a Google Cloud account?** AI Studio does not make a default project for you, and it hides your existing ones until you import one. Google's steps:
 1. Go to Google AI Studio.
