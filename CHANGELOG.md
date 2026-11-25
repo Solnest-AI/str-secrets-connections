@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.1.0 (2026-11-24)
+The kit now updates itself. No more "Update my connections" to get a fix.
+
+- **Automatic updates.** Once a day, quietly, when you open Claude Code, the kit checks for a new version and installs it. Your keys (`.env`, and the copies inside `mcp-servers/`), your saved state in `.cache/`, any server Claude built for you, and everything connected in Claude Code stay exactly as they are. If a bundled server changed, it is rebuilt in place and the new version starts the next time you open the app. If a new version ever fails to install, the old one is put back by itself.
+- **Your own changes are kept.** Ask Claude to change how the kit works for you and it saves that in `~/.solnest/connections/my-instructions.md`, outside the kit folder, so an update never wipes it.
+- **Getting it:** say "Update my connections" once (or run setup again). That brings in 1.1.0 and turns automatic updates on. After that, nothing to do.
+
+Under the hood: `scripts/update.py` (ported from the Comping Agent) installs only published GitHub releases, never untagged work on main, backs up every file it replaces to `.update-backup/`, and has `--undo`. `--after` rebuilds only the bundled servers whose files changed and that you already built; it never re-registers anything. `scripts/solnest_autoupdate.py` is the shared Solnest auto-updater (one Claude Code start hook, state in `~/.solnest/`); `~/.solnest/autoupdate.py status`, `pause` and `resume` check or stop it. `UPDATE.md` now runs the updater instead of copying folders from a clone of main.
+
 ## 1.0.17 (2026-10-10)
 Fixes from Summit 2.0 student feedback. To get them, open Claude Code in your kit folder and say "Update my connections". Your keys and everything already set up stay as they are, and this one needs no app restart.
 

@@ -12,6 +12,9 @@ dist/
 __pycache__/
 *.pyc
 uv.lock.bak
+# updater state (scripts/update.py)
+.update-backup/
+.connections-files.txt
 # os
 .DS_Store
 Thumbs.db
