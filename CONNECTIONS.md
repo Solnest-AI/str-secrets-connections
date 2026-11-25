@@ -7,6 +7,18 @@ description: Checks and fixes every connection the STR Secrets summit skills nee
 
 This is the one file you follow, top to bottom, to get every summit skill wired in. Everything else in this folder (`connectors/*.md`, `emails/*.md`, `lib/`) is a reference this file sends you to. Do not improvise a different setup path.
 
+## Your own changes (read first, every time)
+
+Before anything else, read `~/.solnest/connections/my-instructions.md` if it exists and
+follow it. It holds this user's own changes to how this tool works, and it wins over the
+defaults in this file.
+
+When the user asks to change how this tool works for them (wording, tone, topics, steps,
+defaults, what to include or leave out), write the change into that file in plain words,
+create it if needed, and read it back to them. **Never edit this tool's own files for
+that.** This tool updates itself automatically and replaces its own files, so a change
+made there is lost on the next update. Their keys (`.env`, and each server's own `.env` under `mcp-servers/`), `.cache/`, any server Claude built for them, and the servers registered in Claude Code are never touched by an update either.
+
 ## Claude, read this first
 
 You run every command yourself, through your Bash tool. One step per message, never a wall of steps at once. Casual Solnest voice: direct, warm, a little funny, never corporate. The attendee never opens a terminal of their own; if a command appears below, it is for you to run, not them.
@@ -85,7 +97,7 @@ On a re-run ("Check my connections" with a filled `.env` already there) skip the
    ```bash
    bash "$BUNDLE/lib/detach_from_github.sh"
    ```
-   A `git clone` links this folder to Solnest-AI's GitHub. This removes that link and the `.git` folder from an untouched copy of the kit, so nothing here can be pushed back; it never touches `.env`, `.cache/`, or a working copy with edits, branches or unpushed commits, and it always exits 0. Relay its one line in plain words and move on. Updates reach a plain folder through "Update my connections" (`UPDATE.md`), which needs no git in this folder.
+   A `git clone` links this folder to Solnest-AI's GitHub. This removes that link and the `.git` folder from an untouched copy of the kit, so nothing here can be pushed back; it never touches `.env`, `.cache/`, or a working copy with edits, branches or unpushed commits, and it always exits 0. Relay its one line in plain words and move on. Updates reach a plain folder by themselves (step 6 turns that on), and "Update my connections" (`UPDATE.md`) still works by hand; neither needs git in this folder.
 
 3. Confirm the folder is complete.
    ```bash
@@ -104,7 +116,13 @@ On a re-run ("Check my connections" with a filled `.env` already there) skip the
    ```
    Exit 0 (`All set`): carry on. Exit 3 (`RESTART NEEDED`): it installed something, or found a tool that was installed by hand after this app started (a winget install earlier in the day), and the app only sees a new tool after it is quit and reopened. Say so in one line: quit the Claude Code desktop app fully (not just the window), open it again, open this same folder, say "Set up my connections" again; Phase 0 re-runs in seconds and sails through. Exit 1: a ❌ line names the `connectors/system-*.md` file to open. Do not check the tools by hand and do not re-check in a "fresh shell": a PATH change never reaches a running app, only a restart does.
 
-6. Confirm they have a paid claude.ai plan; the free plan cannot run Claude Code at all (`connectors/system-claude-code.md` section 2). For the summit the ask is Max 5x: setup plus the four skills in one day runs Pro dry partway through.
+6. Turn on automatic updates (required, silent). Run it as is:
+   ```bash
+   uv run --no-project --python 3.13 python "$BUNDLE/scripts/solnest_autoupdate.py" register --name connections --folder "$BUNDLE" --update '{python} scripts/update.py' --after '{python} scripts/update.py --after' --undo '{python} scripts/update.py --undo'
+   ```
+   From now on the kit keeps itself on the latest release with no one asking: once a day, in the background when Claude Code starts, it runs `scripts/update.py` (it never touches any `.env`, `.cache/`, a server Claude built, or anything registered in `~/.claude.json`), then rebuilds only the bundled servers that changed. It never re-registers a server: every register line points at a fixed path in this folder, so a rebuilt server is picked up the next time the app starts. If a new release fails that rebuild, it puts the old version back by itself. Relay the one line it prints, nothing more. It lives in `~/.solnest/`, outside this folder.
+
+7. Confirm they have a paid claude.ai plan; the free plan cannot run Claude Code at all (`connectors/system-claude-code.md` section 2). For the summit the ask is Max 5x: setup plus the four skills in one day runs Pro dry partway through.
 
 ## Phase 1: four questions, then a `.env` shaped to their answers
 
@@ -242,7 +260,7 @@ Celebrate the win. They just wired up ten-plus tools without ever touching a ter
 
 ## Running this again
 
-Say "Check my connections" any time and Phase 2 through Phase 4 run again from wherever things stand (Phase 1 is skipped once the four answers are in `.env`); nothing gets re-asked that's already filled in, and nothing that already works gets touched. Changed a tool ("I moved to Beyond")? Re-run the `env_make.py` line from Phase 1 with the new answer; every existing key is carried over and the new slot appears. Say "Update my connections" and switch to `UPDATE.md` instead of this file; it handles pulling a newer version of the kit without touching anything already working.
+Say "Check my connections" any time and Phase 2 through Phase 4 run again from wherever things stand (Phase 1 is skipped once the four answers are in `.env`); nothing gets re-asked that's already filled in, and nothing that already works gets touched. Changed a tool ("I moved to Beyond")? Re-run the `env_make.py` line from Phase 1 with the new answer; every existing key is carried over and the new slot appears. New versions install themselves (Phase 0, step 6). Say "Update my connections" to get one right now: switch to `UPDATE.md` instead of this file; it pulls the latest release without touching anything already working.
 
 ## Server names, for reference
 

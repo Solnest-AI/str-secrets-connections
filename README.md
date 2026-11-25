@@ -38,7 +38,9 @@ When Claude needs a key, it opens a file called `.env` for you. You paste the ke
 
 ## Already set up? Get the latest version
 
-Your copy is a plain folder on your computer, not linked to GitHub, so nothing you do in it can change ours. New versions reach it this way. Paste this into Claude Code:
+Your copy is a plain folder on your computer, not linked to GitHub, so nothing you do in it can change ours. New versions install themselves: once a day, quietly, when you open Claude Code. Your keys and everything already connected stay exactly as they are.
+
+Set up before automatic updates existed, or want the newest version right now? Paste this into Claude Code:
 
 > Update my connections. Follow the instructions at https://raw.githubusercontent.com/Solnest-AI/str-secrets-connections/main/UPDATE.md exactly.
 
